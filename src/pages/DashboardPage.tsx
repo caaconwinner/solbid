@@ -351,7 +351,7 @@ export function DashboardPage() {
   if (!user) return null;
 
   const bids  = txs.filter((t) => t.type === 'bid');
-  const funds = txs.filter((t) => t.type !== 'bid');
+  const funds = txs.filter((t) => t.type === 'deposit' || t.type === 'withdraw');
 
   return (
     <div className="page page-narrow">

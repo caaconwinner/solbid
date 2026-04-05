@@ -196,7 +196,7 @@ const stmt = {
     VALUES (@id, @user_id, @type, @item, @auction_id, @credits, @sol, @sig, @ts)
   `),
   getTxByUser:        db.prepare('SELECT * FROM transactions WHERE user_id = ? ORDER BY ts DESC LIMIT 100'),
-  depositedSolByUser: db.prepare("SELECT COALESCE(SUM(sol), 0) as total FROM transactions WHERE user_id = ? AND type = 'deposit'"),
+  netDepositedSolByUser: db.prepare(`SELECT COALESCE(SUM(CASE WHEN type='deposit' THEN sol WHEN type='withdraw' THEN -sol WHEN type='sweep' THEN -sol ELSE 0 END), 0) as net FROM transactions WHERE user_id = ?`),
   insertWinner: db.prepare(`
     INSERT INTO winners (id, auction_id, user_id, item_name, prize_type, prize_data, final_price, ts)
     VALUES (@id, @auction_id, @user_id, @item_name, @prize_type, @prize_data, @final_price, @ts)
@@ -969,6 +969,11 @@ async function sweepToHouse(row, balance) {
     );
     const sig = await sendAndConfirmTransaction(connection, tx, [keypair]);
     console.log(`[sweep] ${row.id} → ${(sweepable / LAMPORTS_PER_SOL).toFixed(4)} SOL | ${sig}`);
+    stmt.insertTx.run({
+      id: `tx-${Date.now()}-${randomBytes(4).toString('hex')}`,
+      user_id: row.id, type: 'sweep', item: null, auction_id: null,
+      credits: 0, sol: parseFloat((sweepable / LAMPORTS_PER_SOL).toFixed(4)), sig, ts: Date.now(),
+    });
   } catch (e) {
     console.error(`[sweep] ${row.id} failed:`, e.message);
   } finally {
@@ -983,8 +988,8 @@ setInterval(async () => {
       const balance = await connection.getBalance(new PublicKey(row.deposit_address));
 
       // ── Deposit detection ──
-      const { total }       = stmt.depositedSolByUser.get(row.id);
-      const alreadyCredited = Math.round(total * LAMPORTS_PER_SOL);
+      const { net }         = stmt.netDepositedSolByUser.get(row.id);
+      const alreadyCredited = Math.max(0, Math.round(net * LAMPORTS_PER_SOL));
       if (balance > alreadyCredited) {
         const lamportsDiff  = balance - alreadyCredited;
         const creditsEarned = Math.floor(lamportsDiff / LAMPORTS_PER_SOL * 100);
