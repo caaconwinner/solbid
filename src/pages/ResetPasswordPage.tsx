@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { api } from '../api';
@@ -12,7 +12,7 @@ export function ResetPasswordPage() {
   const [password2, setPassword2] = useState('');
   const [loading,   setLoading]   = useState(false);
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (password !== password2) { toast.error('Passwords do not match'); return; }
     setLoading(true);
