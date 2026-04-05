@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AuctionRoom } from '../components/AuctionRoom';
@@ -7,6 +8,7 @@ import { Link } from 'react-router-dom';
 export function AuctionPage() {
   const { auctionId } = useParams<{ auctionId: string }>();
   const { user }      = useAuth();
+  const [liveCredits, setLiveCredits] = useState<number | null>(null);
 
   if (!auctionId || !user) return <Navigate to="/" replace />;
 
@@ -16,7 +18,7 @@ export function AuctionPage() {
       <div className="auction-page-layout">
       {/* Main auction */}
       <div className="auction-page-main">
-        <AuctionRoom auctionId={auctionId} userId={user.id} />
+        <AuctionRoom auctionId={auctionId} userId={user.id} onCreditsChange={setLiveCredits} />
       </div>
 
       {/* Account panel */}
@@ -24,7 +26,7 @@ export function AuctionPage() {
         <div className="account-panel">
           <div className="account-panel-section">
             <p className="account-panel-label">CREDITS</p>
-            <p className="account-panel-credits">{user.credits}</p>
+            <p className="account-panel-credits">{liveCredits ?? user.credits}</p>
             <p className="account-panel-hint">Each bid costs 1 credit (0.01 SOL)</p>
           </div>
 

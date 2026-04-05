@@ -7,13 +7,16 @@ import { BidFeed }      from './BidFeed';
 import { Link }         from 'react-router-dom';
 
 interface Props {
-  auctionId: string;
-  userId:    string;
+  auctionId:        string;
+  userId:           string;
+  onCreditsChange?: (credits: number) => void;
 }
 
-export function AuctionRoom({ auctionId, userId }: Props) {
+export function AuctionRoom({ auctionId, userId, onCreditsChange }: Props) {
   const { auction, bids, userCredits, clockDrift, isConnected, bidResult, placeBid } =
     useAuction(auctionId, userId);
+
+  useEffect(() => { onCreditsChange?.(userCredits); }, [userCredits]);
 
   // Outbid flash — fires when the current user loses the leader spot
   const prevLeaderId = useRef<string | null>(null);
