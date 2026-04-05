@@ -1,0 +1,55 @@
+import type { User, AuctionListing, Transaction, Win } from './types';
+
+const BASE = import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? '' : 'http://localhost:3007');
+
+async function req<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+  token?: string | null,
+): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message ?? 'Request failed');
+  return data;
+}
+
+export const api = {
+  login: (username: string, password: string) =>
+    req<{ token: string; user: User }>('POST', '/api/auth/login', { username, password }),
+
+  register: (username: string, password: string, email?: string) =>
+    req<{ token: string; user: User }>('POST', '/api/auth/register', { username, password, email }),
+
+  me: (token: string) =>
+    req<{ user: User }>('GET', '/api/me', undefined, token),
+
+  auctions: (token: string) =>
+    req<{ auctions: AuctionListing[] }>('GET', '/api/auctions', undefined, token),
+
+  balance: (token: string) =>
+    req<{ lamports: number; sol: number }>('GET', '/api/balance', undefined, token),
+
+  transactions: (token: string) =>
+    req<{ transactions: Transaction[] }>('GET', '/api/transactions', undefined, token),
+
+  withdraw: (token: string, amountCredits: number, destinationAddress: string) =>
+    req<{ ok: boolean; solAmount: string; remainingCredits: number; sig: string }>(
+      'POST', '/api/withdraw', { amountCredits, destinationAddress }, token,
+    ),
+
+  myWins: (token: string) =>
+    req<{ wins: Win[] }>('GET', '/api/my-wins', undefined, token),
+
+  purchaseWin: (token: string, winId: string) =>
+    req<{ ok: boolean; prize: Win['prize']; sig?: string }>(
+      'POST', `/api/wins/${winId}/purchase`, {}, token,
+    ),
+};

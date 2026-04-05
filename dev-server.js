@@ -1,0 +1,878 @@
+/**
+ * solBid dev server — Express + Socket.io + SQLite
+ * Run: node --env-file=.env dev-server.js
+ */
+
+import express    from 'express';
+import { createServer } from 'http';
+import { Server }       from 'socket.io';
+import rateLimit        from 'express-rate-limit';
+import bcrypt           from 'bcryptjs';
+import Database         from 'better-sqlite3';
+import { fileURLToPath } from 'url';
+import { dirname, join }  from 'path';
+import {
+  generateKeyPairSync,
+  randomBytes,
+  timingSafeEqual,
+  createCipheriv,
+  createDecipheriv,
+  scryptSync,
+} from 'crypto';
+import {
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  sendAndConfirmTransaction,
+  LAMPORTS_PER_SOL,
+} from '@solana/web3.js';
+
+const SOLANA_RPC = process.env.SOLANA_RPC ?? 'https://api.devnet.solana.com';
+const connection = new Connection(SOLANA_RPC, 'confirmed');
+console.log(`[solana] RPC → ${SOLANA_RPC}`);
+
+// Prize wallet — funded separately; pays out SOL prizes to winners
+let PRIZE_KEYPAIR = null;
+if (process.env.PRIZE_WALLET_SECRET) {
+  try {
+    const raw = Buffer.from(process.env.PRIZE_WALLET_SECRET, 'hex');
+    PRIZE_KEYPAIR = Keypair.fromSecretKey(raw);
+    console.log(`[prize] wallet → ${PRIZE_KEYPAIR.publicKey.toBase58().slice(0, 12)}…`);
+  } catch { console.error('[prize] PRIZE_WALLET_SECRET invalid — SOL prize claims disabled'); }
+} else {
+  console.warn('[prize] PRIZE_WALLET_SECRET not set — SOL prize claims will fail');
+}
+
+let HOUSE_PUBKEY = null;
+if (process.env.HOUSE_WALLET) {
+  try { HOUSE_PUBKEY = new PublicKey(process.env.HOUSE_WALLET); console.log(`[sweep] house wallet → ${process.env.HOUSE_WALLET.slice(0, 12)}…`); }
+  catch { console.error('[sweep] HOUSE_WALLET is not a valid Solana address — sweeps disabled'); }
+} else {
+  console.warn('[sweep] HOUSE_WALLET not set — bid revenue will not be collected');
+}
+
+const PORT         = process.env.PORT ?? 3007;
+const PROD_ORIGIN  = process.env.FRONTEND_URL ?? null; // e.g. https://solbid.vercel.app
+const CORS_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  ...(PROD_ORIGIN ? [PROD_ORIGIN] : []),
+];
+
+// ─── Express app ──────────────────────────────────────────────
+const app        = express();
+const httpServer = createServer(app);
+
+app.use(express.json());
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && CORS_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin',  origin);
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+  }
+  if (req.method === 'OPTIONS') { res.sendStatus(204); return; }
+  next();
+});
+
+app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+// ─── Vault ─────────────────────────────────────────────────────
+const IS_PROD = process.env.NODE_ENV === 'production';
+
+if (!process.env.VAULT_MASTER_KEY) {
+  if (IS_PROD) {
+    console.error('\n  ✗  VAULT_MASTER_KEY is not set. Refusing to start in production.\n');
+    process.exit(1);
+  }
+  console.warn('\n  ⚠  VAULT_MASTER_KEY not set — using insecure dev default.\n     Set it in .env before going to production.\n');
+}
+
+const MASTER_KEY = scryptSync(
+  process.env.VAULT_MASTER_KEY ?? 'dev-only-insecure-key',
+  'solbid-vault-salt-v1',
+  32,
+);
+
+// ─── Database ──────────────────────────────────────────────────
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DATA_DIR  = process.env.DATA_DIR ?? __dirname;   // Railway: set DATA_DIR=/data (volume)
+const db = new Database(join(DATA_DIR, 'solbid.db'));
+db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id              TEXT PRIMARY KEY,
+    username        TEXT NOT NULL UNIQUE,
+    email           TEXT,
+    deposit_address TEXT NOT NULL,
+    credits         INTEGER NOT NULL DEFAULT 50,
+    password_hash   TEXT NOT NULL,
+    enc_ct          TEXT NOT NULL,
+    enc_iv          TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS transactions (
+    id         TEXT PRIMARY KEY,
+    user_id    TEXT NOT NULL REFERENCES users(id),
+    type       TEXT NOT NULL,
+    item       TEXT,
+    auction_id TEXT,
+    credits    INTEGER NOT NULL,
+    sol        REAL,
+    sig        TEXT,
+    ts         INTEGER NOT NULL
+  );
+
+
+  CREATE TABLE IF NOT EXISTS winners (
+    id             TEXT PRIMARY KEY,
+    auction_id     TEXT NOT NULL,
+    user_id        TEXT NOT NULL REFERENCES users(id),
+    item_name      TEXT NOT NULL,
+    prize_type     TEXT NOT NULL,
+    prize_data     TEXT NOT NULL,
+    final_price    REAL NOT NULL,
+    purchase_price REAL NOT NULL DEFAULT 0,
+    purchased      INTEGER NOT NULL DEFAULT 0,
+    purchase_sig   TEXT,
+    ts             INTEGER NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_tx_user_ts   ON transactions(user_id, ts DESC);
+  CREATE INDEX IF NOT EXISTS idx_win_user      ON winners(user_id);
+`);
+try { db.exec('ALTER TABLE transactions ADD COLUMN auction_id TEXT'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE winners ADD COLUMN purchase_price REAL NOT NULL DEFAULT 0'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE winners ADD COLUMN purchased INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE winners ADD COLUMN purchase_sig TEXT'); } catch { /* already exists */ }
+// drop old columns if migrating from claimed→purchased schema (SQLite can't drop cols, just ignore)
+
+// ─── Prepared statements ───────────────────────────────────────
+const stmt = {
+  insertUser: db.prepare(`
+    INSERT INTO users (id, username, email, deposit_address, credits, password_hash, enc_ct, enc_iv)
+    VALUES (@id, @username, @email, @deposit_address, @credits, @password_hash, @enc_ct, @enc_iv)
+  `),
+  upsertBot: db.prepare(`
+    INSERT INTO users (id, username, email, deposit_address, credits, password_hash, enc_ct, enc_iv)
+    VALUES (@id, @username, @email, @deposit_address, @credits, @password_hash, @enc_ct, @enc_iv)
+    ON CONFLICT(username) DO UPDATE SET credits = 9999
+  `),
+  getUserById:       db.prepare('SELECT * FROM users WHERE id = ?'),
+  getUserByUsername: db.prepare('SELECT * FROM users WHERE username = ? COLLATE NOCASE'),
+  usernameExists:    db.prepare('SELECT 1 FROM users WHERE username = ? COLLATE NOCASE'),
+  updateCredits:     db.prepare('UPDATE users SET credits = @credits WHERE id = @id'),
+  insertTx: db.prepare(`
+    INSERT INTO transactions (id, user_id, type, item, auction_id, credits, sol, sig, ts)
+    VALUES (@id, @user_id, @type, @item, @auction_id, @credits, @sol, @sig, @ts)
+  `),
+  getTxByUser:        db.prepare('SELECT * FROM transactions WHERE user_id = ? ORDER BY ts DESC LIMIT 100'),
+  depositedSolByUser: db.prepare("SELECT COALESCE(SUM(sol), 0) as total FROM transactions WHERE user_id = ? AND type = 'deposit'"),
+  insertWinner: db.prepare(`
+    INSERT INTO winners (id, auction_id, user_id, item_name, prize_type, prize_data, final_price, ts)
+    VALUES (@id, @auction_id, @user_id, @item_name, @prize_type, @prize_data, @final_price, @ts)
+  `),
+  getWinsByUser:  db.prepare('SELECT * FROM winners WHERE user_id = ? ORDER BY ts DESC'),
+  getWinById:     db.prepare('SELECT * FROM winners WHERE id = ?'),
+  markPurchased:  db.prepare('UPDATE winners SET purchased = 1, purchase_sig = @sig WHERE id = @id'),
+};
+
+// Migration: reset legacy users who got the old 50-credit bonus back to 5
+{
+  const r = db.prepare(`
+    UPDATE users SET credits = 5
+    WHERE id NOT LIKE 'bot-%'
+      AND credits > 5
+      AND NOT EXISTS (SELECT 1 FROM transactions WHERE user_id = users.id AND type = 'deposit')
+  `).run();
+  if (r.changes > 0) console.log(`[migration] reset ${r.changes} legacy user(s) to 5 credits`);
+}
+
+// Atomic bid: deduct credit + record tx in one SQLite transaction
+const doBid = db.transaction((userId, creditsAfter, txRow) => {
+  stmt.updateCredits.run({ id: userId, credits: creditsAfter });
+  stmt.insertTx.run(txRow);
+});
+
+function rowToUser(row) {
+  if (!row) return null;
+  return {
+    id:             row.id,
+    username:       row.username,
+    email:          row.email ?? null,
+    depositAddress: row.deposit_address,
+    credits:        row.credits,
+    passwordHash:   row.password_hash,
+    _enc:           { ct: row.enc_ct, iv: row.enc_iv },
+  };
+}
+
+// ─── Wallet helpers ────────────────────────────────────────────
+const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function base58Encode(buf) {
+  const bytes  = Buffer.from(buf);
+  const digits = [0];
+  for (let i = 0; i < bytes.length; i++) {
+    let carry = bytes[i];
+    for (let j = 0; j < digits.length; j++) {
+      carry    += digits[j] << 8;
+      digits[j] = carry % 58;
+      carry     = Math.floor(carry / 58);
+    }
+    while (carry > 0) { digits.push(carry % 58); carry = Math.floor(carry / 58); }
+  }
+  let result = '';
+  for (let i = 0; i < bytes.length && bytes[i] === 0; i++) result += '1';
+  for (let i = digits.length - 1; i >= 0; i--) result += BASE58[digits[i]];
+  return result;
+}
+
+function generateWallet() {
+  const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+  const privDER = privateKey.export({ type: 'pkcs8', format: 'der' });
+  const pubDER  = publicKey.export({  type: 'spki',  format: 'der' });
+  const seed    = Buffer.from(privDER.slice(16, 48));
+  const rawPub  = pubDER.slice(12, 44);
+  const secretKey = Buffer.concat([seed, rawPub]);
+  seed.fill(0);
+  if (Buffer.isBuffer(privDER)) privDER.fill(0);
+  return { pubkey: base58Encode(rawPub), secretKey };
+}
+
+function encryptSecret(secretKey) {
+  const iv         = randomBytes(12);
+  const cipher     = createCipheriv('aes-256-gcm', MASTER_KEY, iv);
+  const ciphertext = Buffer.concat([cipher.update(secretKey), cipher.final()]);
+  const authTag    = cipher.getAuthTag();
+  return {
+    ct: Buffer.concat([ciphertext, authTag]).toString('hex'),
+    iv: iv.toString('hex'),
+  };
+}
+
+function decryptSecret(enc) {
+  const raw      = Buffer.from(enc.ct, 'hex');
+  const iv       = Buffer.from(enc.iv, 'hex');
+  const decipher = createDecipheriv('aes-256-gcm', MASTER_KEY, iv);
+  decipher.setAuthTag(raw.slice(-16));
+  return Buffer.concat([decipher.update(raw.slice(0, -16)), decipher.final()]);
+}
+
+function sanitizeUser(user) {
+  const { _enc: _e, passwordHash: _p, ...pub } = user;
+  return pub;
+}
+
+// ─── User store ────────────────────────────────────────────────
+const tokens = new Map(); // token → userId (session — in memory only)
+
+async function makeUser(username, passwordHash, email = null) {
+  const wallet = generateWallet();
+  const enc    = encryptSecret(wallet.secretKey);
+  wallet.secretKey.fill(0);
+  const id = `user-${randomBytes(4).toString('hex')}`;
+  stmt.insertUser.run({
+    id,
+    username,
+    email:           email ?? null,
+    deposit_address: wallet.pubkey,
+    credits:         5,
+    password_hash:   passwordHash,
+    enc_ct:          enc.ct,
+    enc_iv:          enc.iv,
+  });
+  console.log(`[vault] wallet generated for ${username} → ${wallet.pubkey.slice(0, 12)}…`);
+  return rowToUser(stmt.getUserById.get(id));
+}
+
+function makeToken(userId) {
+  const t = randomBytes(32).toString('hex');
+  tokens.set(t, userId);
+  return t;
+}
+
+function userFromHeader(authHeader) {
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  const incoming = authHeader.slice(7);
+  for (const [tok, userId] of tokens) {
+    try {
+      if (timingSafeEqual(Buffer.from(tok), Buffer.from(incoming))) {
+        return rowToUser(stmt.getUserById.get(userId));
+      }
+    } catch { /* length mismatch */ }
+  }
+  return null;
+}
+
+// ─── Auth middleware ───────────────────────────────────────────
+function requireAuth(req, res, next) {
+  const user = userFromHeader(req.headers.authorization);
+  if (!user) { res.status(401).json({ message: 'Unauthorized' }); return; }
+  req.user = user;
+  next();
+}
+
+// ─── Rate limiting ─────────────────────────────────────────────
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { message: 'Too many attempts — try again in 15 minutes' },
+  standardHeaders: true, legacyHeaders: false,
+});
+
+const withdrawLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { message: 'Too many withdrawal attempts — slow down' },
+  standardHeaders: true, legacyHeaders: false,
+});
+
+// ─── Auth routes ───────────────────────────────────────────────
+app.post('/api/auth/register', authLimiter, async (req, res) => {
+  const { username, password, email } = req.body;
+  if (!username || !password)
+    return res.status(400).json({ message: 'Username and password are required' });
+  if (username.length < 3 || username.length > 24)
+    return res.status(400).json({ message: 'Username must be 3–24 characters' });
+  if (!/^[a-zA-Z0-9_]+$/.test(username))
+    return res.status(400).json({ message: 'Username may only contain letters, numbers, and underscores' });
+  if (stmt.usernameExists.get(username))
+    return res.status(409).json({ message: 'Username already taken' });
+  if (password.length < 8)
+    return res.status(400).json({ message: 'Password must be at least 8 characters' });
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    return res.status(400).json({ message: 'Invalid email address' });
+
+  const passwordHash = await bcrypt.hash(password, 12);
+  const user  = await makeUser(username, passwordHash, email || null);
+  const token = makeToken(user.id);
+  console.log(`[auth] registered ${username}`);
+  res.status(201).json({ token, user: sanitizeUser(user) });
+});
+
+app.post('/api/auth/login', authLimiter, async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password)
+    return res.status(400).json({ message: 'Username and password are required' });
+
+  const user = rowToUser(stmt.getUserByUsername.get(username));
+
+  // Always run bcrypt compare to prevent user-enumeration via timing
+  const dummyHash = '$2a$12$invalidhashpaddingtopreventinenumerationattacks00000000';
+  const match = user
+    ? await bcrypt.compare(password, user.passwordHash)
+    : await bcrypt.compare(password, dummyHash).then(() => false);
+
+  if (!match) return res.status(401).json({ message: 'Invalid username or password' });
+
+  const token = makeToken(user.id);
+  console.log(`[auth] login ${username}`);
+  res.json({ token, user: sanitizeUser(user) });
+});
+
+app.get('/api/me', requireAuth, (req, res) => {
+  res.json({ user: sanitizeUser(req.user) });
+});
+
+// Internal signing endpoint — only the settlement worker calls this.
+app.post('/api/internal/sign', (req, res) => {
+  if (req.headers['x-internal-token'] !== (process.env.INTERNAL_TOKEN ?? 'dev-internal')) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const { userId, message } = req.body;
+  const user = rowToUser(stmt.getUserById.get(userId));
+  if (!user?._enc) return res.status(404).json({ message: 'Wallet not found' });
+
+  let secretKey;
+  try {
+    secretKey = decryptSecret(user._enc);
+    // Production: use @solana/web3.js Keypair + sign() here
+    res.json({ signature: 'signing-stub-replace-with-solana-web3' });
+  } finally {
+    secretKey?.fill(0);
+  }
+});
+
+// Withdraw — real on-chain SOL transfer from user's custodial wallet
+app.post('/api/withdraw', requireAuth, withdrawLimiter, async (req, res) => {
+  const { amountCredits, destinationAddress } = req.body;
+  const user = req.user;
+
+  if (!amountCredits || amountCredits < 1)
+    return res.status(400).json({ message: 'Minimum 1 credit' });
+  if (user.credits < amountCredits)
+    return res.status(400).json({ message: 'Insufficient credits' });
+
+  let destination;
+  try { destination = new PublicKey(destinationAddress); }
+  catch { return res.status(400).json({ message: 'Invalid Solana address' }); }
+
+  const lamports   = Math.round(amountCredits * 0.01 * LAMPORTS_PER_SOL);
+  const fromPubkey = new PublicKey(user.depositAddress);
+  console.log(`[withdraw] checking balance for ${user.username} at ${user.depositAddress}`);
+  const balance    = await connection.getBalance(fromPubkey).catch((e) => { console.error('[withdraw] getBalance failed:', e.message); return 0; });
+  const FEE_BUFFER = 5000;
+  if (balance < lamports + FEE_BUFFER) {
+    const hasSol = (balance / LAMPORTS_PER_SOL).toFixed(4);
+    return res.status(400).json({ message: `Insufficient on-chain balance. Deposit address holds ${hasSol} SOL.` });
+  }
+
+  let secretKey;
+  try {
+    secretKey = decryptSecret(user._enc);
+    const keypair = Keypair.fromSecretKey(secretKey);
+    const tx = new Transaction().add(
+      SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: destination, lamports })
+    );
+    const sig = await sendAndConfirmTransaction(connection, tx, [keypair]);
+
+    const creditsAfter = user.credits - amountCredits;
+    const solAmount    = (amountCredits * 0.01).toFixed(4);
+    doBid(user.id, creditsAfter, {
+      id:         `tx-${Date.now()}-${randomBytes(4).toString('hex')}`,
+      user_id:    user.id,
+      type:       'withdraw',
+      item:       null,
+      auction_id: null,
+      credits:    -amountCredits,
+      sol:        parseFloat(solAmount),
+      sig,
+      ts:         Date.now(),
+    });
+    console.log(`[withdraw] ${user.username} → ${solAmount} SOL | ${sig}`);
+    res.json({ ok: true, solAmount, remainingCredits: creditsAfter, sig });
+  } catch (err) {
+    console.error('[withdraw] failed:', err.message);
+    res.status(500).json({ message: 'Transaction failed: ' + err.message });
+  } finally {
+    secretKey?.fill(0);
+  }
+});
+
+app.get('/api/balance', requireAuth, async (req, res) => {
+  try {
+    const pubkey   = new PublicKey(req.user.depositAddress);
+    const lamports = await connection.getBalance(pubkey);
+    res.json({ lamports, sol: lamports / LAMPORTS_PER_SOL });
+  } catch {
+    res.json({ lamports: 0, sol: 0 });
+  }
+});
+
+app.get('/api/transactions', requireAuth, (req, res) => {
+  const rows = stmt.getTxByUser.all(req.user.id);
+  const transactions = rows.map(r => ({
+    id: r.id, type: r.type, item: r.item, auctionId: r.auction_id,
+    credits: r.credits, sol: r.sol, sig: r.sig, ts: r.ts,
+  }));
+  res.json({ transactions });
+});
+
+app.get('/api/auctions', requireAuth, (req, res) => {
+  const list = [...auctions.values()].map((a) => ({
+    auctionId:    a.auctionId,
+    item:         a.item,
+    currentPrice: a.currentPrice,
+    endsAtMs:     a.endsAtMs,
+    status:       a.status,
+    totalBids:    a.totalBids,
+    leaderName:   a.leaderName,
+    snapTimerMs:  a.snapTimerMs,
+  }));
+  res.json({ auctions: list });
+});
+
+// ─── Winner / prize routes ──────────────────────────────────────
+app.get('/api/my-wins', requireAuth, (req, res) => {
+  const rows = stmt.getWinsByUser.all(req.user.id);
+  const wins = rows.map((r) => ({
+    id:            r.id,
+    auctionId:     r.auction_id,
+    itemName:      r.item_name,
+    prize:         JSON.parse(r.prize_data),
+    finalPrice:    r.final_price,
+    purchasePrice: r.purchase_price ?? r.final_price,
+    purchased:     !!(r.purchased),
+    purchaseSig:   r.purchase_sig ?? null,
+    ts:            r.ts,
+  }));
+  res.json({ wins });
+});
+
+// Winner pays purchasePrice SOL from their deposit wallet → house wallet, then prize unlocks
+app.post('/api/wins/:id/purchase', requireAuth, async (req, res) => {
+  const row = stmt.getWinById.get(req.params.id);
+  if (!row)                        return res.status(404).json({ message: 'Win not found' });
+  if (row.user_id !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
+  if (row.purchased)               return res.status(400).json({ message: 'Already purchased' });
+
+  const purchasePrice = row.purchase_price ?? row.final_price;
+  const lamports      = Math.round(purchasePrice * LAMPORTS_PER_SOL);
+
+  if (!HOUSE_PUBKEY)
+    return res.status(503).json({ message: 'House wallet not configured — contact support' });
+
+  // Check winner has enough SOL on-chain
+  const user    = req.user;
+  const fromPub = new PublicKey(user.depositAddress);
+  const balance = await connection.getBalance(fromPub).catch(() => 0);
+  const FEE     = 5000;
+  if (balance < lamports + FEE)
+    return res.status(400).json({
+      message: `Insufficient balance. You need ${purchasePrice.toFixed(4)} SOL in your deposit wallet (current: ${(balance / LAMPORTS_PER_SOL).toFixed(4)} SOL).`
+    });
+
+  let secretKey;
+  try {
+    secretKey = decryptSecret(user._enc);
+    const keypair = Keypair.fromSecretKey(secretKey);
+    const tx = new Transaction().add(
+      SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: HOUSE_PUBKEY, lamports })
+    );
+    const sig = await sendAndConfirmTransaction(connection, tx, [keypair]);
+    stmt.markPurchased.run({ id: row.id, sig });
+    console.log(`[purchase] ${user.username} purchased "${row.item_name}" for ${purchasePrice} SOL | ${sig}`);
+    return res.json({ ok: true, prize: JSON.parse(row.prize_data), sig });
+  } catch (e) {
+    console.error('[purchase] failed:', e.message);
+    return res.status(500).json({ message: 'Payment failed: ' + e.message });
+  } finally {
+    secretKey?.fill(0);
+  }
+});
+
+// ─── Admin routes ──────────────────────────────────────────────
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? 'dev-admin';
+
+function requireAdmin(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header?.startsWith('Bearer ') || header.slice(7) !== ADMIN_TOKEN)
+    return res.status(403).json({ message: 'Forbidden' });
+  next();
+}
+
+app.get('/api/admin/auctions', requireAdmin, (req, res) => {
+  const list = [...auctions.values()].map((a) => ({
+    auctionId:   a.auctionId,
+    item:        a.item,
+    status:      a.status,
+    totalBids:   a.totalBids,
+    endsAtMs:    a.endsAtMs,
+    snapTimerMs: a.snapTimerMs,
+    _durationMs: a._durationMs,
+    prize:       a.prize ?? null,
+  }));
+  res.json({ auctions: list });
+});
+
+app.post('/api/admin/auction', requireAdmin, (req, res) => {
+  const { name, image, retailValue, startAt, durationMinutes, snapTimerSeconds, prizeType, prizeAmount, prizeCode, prizeDescription } = req.body;
+  if (!name || !image || !retailValue || !durationMinutes)
+    return res.status(400).json({ message: 'name, image, retailValue and durationMinutes are required' });
+
+  const id          = `auction-${randomBytes(4).toString('hex')}`;
+  const durationMs  = Math.round(durationMinutes * 60 * 1000);
+  const snapMs      = Math.round((snapTimerSeconds ?? 15) * 1000);
+  const startAtMs   = startAt ? new Date(startAt).getTime() : Date.now();
+  const delayMs     = Math.max(0, startAtMs - Date.now());
+
+  const prize = prizeType === 'sol'      ? { type: 'sol',      amount: Number(prizeAmount) }
+              : prizeType === 'digital'  ? { type: 'digital',  code: prizeCode }
+              : prizeType === 'physical' ? { type: 'physical', description: prizeDescription }
+              : null;
+
+  const auction = makeAuction(id, { name, image, retailValue: Number(retailValue) }, durationMs, delayMs, snapMs, prize);
+  auctions.set(id, auction);
+
+  console.log(`[admin] created auction ${id}: "${name}" starts in ${Math.round(delayMs/1000)}s, runs ${durationMinutes}min`);
+  res.status(201).json({ auctionId: id });
+});
+
+app.patch('/api/admin/auction/:id', requireAdmin, (req, res) => {
+  const auction = auctions.get(req.params.id);
+  if (!auction) return res.status(404).json({ message: 'Auction not found' });
+  if (auction.status === 'active')
+    return res.status(400).json({ message: 'Cannot edit an active auction' });
+
+  const { name, image, retailValue, startAt, durationMinutes, snapTimerSeconds, prizeType, prizeAmount, prizeCode, prizeDescription } = req.body;
+  if (name)             auction.item.name       = name;
+  if (image)            auction.item.image      = image;
+  if (retailValue)      auction.item.retailValue = Number(retailValue);
+  if (durationMinutes)  auction._durationMs     = Math.round(durationMinutes * 60 * 1000);
+  if (snapTimerSeconds) auction.snapTimerMs      = Math.round(snapTimerSeconds * 1000);
+  if (startAt) {
+    const startAtMs  = new Date(startAt).getTime();
+    const delayMs    = Math.max(0, startAtMs - Date.now());
+    auction._delayMs = delayMs;
+    auction.endsAtMs = startAtMs + auction._durationMs;
+    auction.status   = delayMs > 0 ? 'scheduled' : 'active';
+  }
+  if (prizeType) {
+    auction.prize = prizeType === 'sol'      ? { type: 'sol',      amount: Number(prizeAmount) }
+                  : prizeType === 'digital'  ? { type: 'digital',  code: prizeCode }
+                  : prizeType === 'physical' ? { type: 'physical', description: prizeDescription }
+                  : null;
+  }
+  console.log(`[admin] updated auction ${req.params.id}`);
+  res.json({ ok: true });
+});
+
+app.delete('/api/admin/auction/:id', requireAdmin, (req, res) => {
+  const auction = auctions.get(req.params.id);
+  if (!auction) return res.status(404).json({ message: 'Auction not found' });
+  if (auction.status === 'active') {
+    io.to(req.params.id).emit('auction-ended', { winnerId: null, winnerName: null, finalPrice: auction.currentPrice });
+  }
+  auctions.delete(req.params.id);
+  console.log(`[admin] deleted auction ${req.params.id}`);
+  res.json({ ok: true });
+});
+
+// ─── Auction state ─────────────────────────────────────────────
+const auctions = new Map();
+let   bidSeq   = 0;
+
+function makeAuction(id, item, durationMs, delayMs = 0, snapTimerMs = 15_000, prize = null) {
+  return {
+    auctionId:    id,
+    item,
+    currentPrice: 0.00,
+    leaderId:     null,
+    leaderName:   null,
+    endsAtMs:     Date.now() + delayMs + durationMs,
+    status:       delayMs > 0 ? 'scheduled' : 'active',
+    totalBids:    0,
+    snapTimerMs,
+    prize,        // { type: 'sol'|'digital'|'physical', amount?, code?, description? }
+    _durationMs:  durationMs,
+    _delayMs:     delayMs,
+  };
+}
+
+const THIRTY_MIN = 30 * 60 * 1000;
+
+auctions.set('auction-001', makeAuction('auction-001', {
+  name: 'Apple MacBook Pro 14"',
+  image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&q=80',
+  retailValue: 1999,
+}, THIRTY_MIN, 0, 15_000, { type: 'physical', description: 'Apple MacBook Pro 14" — we will contact you to arrange delivery.' }));
+
+auctions.set('auction-002', makeAuction('auction-002', {
+  name: 'PlayStation 5 Console',
+  image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=600&q=80',
+  retailValue: 499,
+}, THIRTY_MIN, 4 * 60 * 1000, 15_000, { type: 'physical', description: 'PlayStation 5 Console — we will contact you to arrange delivery.' }));
+
+auctions.set('auction-003', makeAuction('auction-003', {
+  name: 'iPhone 15 Pro Max',
+  image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600&q=80',
+  retailValue: 1199,
+}, THIRTY_MIN, 9 * 60 * 1000, 15_000, { type: 'physical', description: 'iPhone 15 Pro Max — we will contact you to arrange delivery.' }));
+
+// ─── Bidding ────────────────────────────────────────────────────
+// user object passed in is the live socket snapshot; credits updated in-place
+// so credits-update event fires the correct value immediately
+function tryBid(auctionId, user, displayName) {
+  const a = auctions.get(auctionId);
+  if (!a)                         return { ok: false, reason: 'NOT_FOUND' };
+  if (a.status !== 'active')      return { ok: false, reason: 'AUCTION_ENDED' };
+  if (Date.now() >= a.endsAtMs)   return { ok: false, reason: 'TIMER_EXPIRED' };
+  if (a.leaderId === user.id)     return { ok: false, reason: 'ALREADY_LEADER' };
+  if (user.credits < 1)           return { ok: false, reason: 'INSUFFICIENT_CREDITS' };
+
+  const creditsAfter = user.credits - 1;
+  a.currentPrice     = parseFloat((a.currentPrice + 0.01).toFixed(2));
+  a.leaderId         = user.id;
+  a.leaderName       = displayName;
+  a.totalBids       += 1;
+  a.endsAtMs         = Math.max(Date.now() + a.snapTimerMs, a.endsAtMs);
+  bidSeq++;
+
+  doBid(user.id, creditsAfter, {
+    id:         `tx-${Date.now()}-${randomBytes(4).toString('hex')}`,
+    user_id:    user.id,
+    type:       'bid',
+    item:       a.item.name,
+    auction_id: auctionId,
+    credits:    -1,
+    sol:        null,
+    sig:        null,
+    ts:         Date.now(),
+  });
+
+  user.credits = creditsAfter; // keep socket snapshot in sync
+  return { ok: true, sequence: bidSeq };
+}
+
+// ─── Socket.io ─────────────────────────────────────────────────
+const io = new Server(httpServer, {
+  cors: { origin: CORS_ORIGINS, credentials: true },
+});
+
+io.use((socket, next) => {
+  const incoming = socket.handshake.auth?.token;
+  if (!incoming) return next(new Error('Authentication required'));
+
+  let resolvedUser = null;
+  for (const [tok, userId] of tokens) {
+    try {
+      if (timingSafeEqual(Buffer.from(tok), Buffer.from(incoming))) {
+        resolvedUser = rowToUser(stmt.getUserById.get(userId));
+        break;
+      }
+    } catch { /* length mismatch */ }
+  }
+
+  if (!resolvedUser) return next(new Error('Invalid token'));
+  socket.data.user = resolvedUser;
+  next();
+});
+
+io.on('connection', (socket) => {
+  const { user } = socket.data;
+
+  socket.on('join-auction', (auctionId) => {
+    const auction = auctions.get(auctionId);
+    if (!auction) return;
+    socket.join(auctionId);
+    socket.emit('auction-sync', {
+      auction,
+      serverTimeMs: Date.now(),
+      userCredits:  user.credits,
+    });
+  });
+
+  socket.on('place-bid', ({ auctionId }) => {
+    const result = tryBid(auctionId, user, user.username);
+    if (!result.ok) { socket.emit('bid-rejected', { reason: result.reason }); return; }
+
+    const a     = auctions.get(auctionId);
+    const event = { u: user.id, n: user.username, p: a.currentPrice, t: a.endsAtMs, s: result.sequence, ts: Date.now() };
+    io.to(auctionId).emit('bid-placed', event);
+    socket.emit('bid-confirmed');
+    socket.emit('credits-update', user.credits);
+  });
+
+  socket.on('leave-auction', (id) => socket.leave(id));
+  socket.on('ping-check', (cb) => { if (typeof cb === 'function') cb(); });
+});
+
+// ─── Auction lifecycle ─────────────────────────────────────────
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, a] of auctions) {
+    if (a.status === 'scheduled' && now >= (a.endsAtMs - a._durationMs)) {
+      a.status = 'active';
+      io.to(id).emit('auction-sync', { auction: a, serverTimeMs: now, userCredits: 0 });
+      console.log(`[auction] ${a.item.name} → LIVE`);
+    }
+    if (a.status === 'active' && now >= a.endsAtMs) {
+      a.status = 'ended';
+      // Record winner in DB (only real users, not bots)
+      if (a.leaderId && !a.leaderId.startsWith('bot-') && a.prize) {
+        try {
+          stmt.insertWinner.run({
+            id:             `win-${randomBytes(4).toString('hex')}`,
+            auction_id:     a.auctionId,
+            user_id:        a.leaderId,
+            item_name:      a.item.name,
+            prize_type:     a.prize.type,
+            prize_data:     JSON.stringify(a.prize),
+            final_price:    a.currentPrice,
+            purchase_price: a.currentPrice, // winner pays this many SOL (1:1 with dollar price)
+            ts:             now,
+          });
+          console.log(`[auction] winner recorded: ${a.leaderName} wins "${a.item.name}"`);
+        } catch (e) { console.error('[auction] failed to record winner:', e.message); }
+      }
+      io.to(id).emit('auction-ended', { winnerId: a.leaderId, winnerName: a.leaderName, finalPrice: a.currentPrice });
+      console.log(`[auction] ${a.item.name} ended — winner: ${a.leaderName ?? 'none'} at $${a.currentPrice.toFixed(2)}`);
+    }
+  }
+}, 500);
+
+
+// ─── Deposit detection + house sweep ───────────────────────────
+// Single loop per 15s: credits incoming SOL, sweeps bid-spent SOL to house.
+const allNonBots = db.prepare("SELECT id, deposit_address, credits FROM users WHERE id NOT LIKE 'bot-%'");
+const addCredits  = db.prepare('UPDATE users SET credits = @credits WHERE id = @id');
+
+async function sweepToHouse(row, balance) {
+  if (!HOUSE_PUBKEY) return;
+  const withdrawable = Math.round(row.credits * 0.01 * LAMPORTS_PER_SOL);
+  const FEE_BUFFER   = 10_000; // reserve for tx fee
+  const sweepable    = balance - withdrawable - FEE_BUFFER;
+  if (sweepable < 10_000) return; // < 0.00001 SOL — not worth a tx
+
+  let secretKey;
+  try {
+    const user = rowToUser(stmt.getUserById.get(row.id));
+    secretKey  = decryptSecret(user._enc);
+    const keypair = Keypair.fromSecretKey(secretKey);
+    const tx = new Transaction().add(
+      SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: HOUSE_PUBKEY, lamports: sweepable })
+    );
+    const sig = await sendAndConfirmTransaction(connection, tx, [keypair]);
+    console.log(`[sweep] ${row.id} → ${(sweepable / LAMPORTS_PER_SOL).toFixed(4)} SOL | ${sig}`);
+  } catch (e) {
+    console.error(`[sweep] ${row.id} failed:`, e.message);
+  } finally {
+    secretKey?.fill(0);
+  }
+}
+
+setInterval(async () => {
+  const users = allNonBots.all();
+  for (const row of users) {
+    try {
+      const balance = await connection.getBalance(new PublicKey(row.deposit_address));
+
+      // ── Deposit detection ──
+      const { total }       = stmt.depositedSolByUser.get(row.id);
+      const alreadyCredited = Math.round(total * LAMPORTS_PER_SOL);
+      if (balance > alreadyCredited) {
+        const lamportsDiff  = balance - alreadyCredited;
+        const creditsEarned = Math.floor(lamportsDiff / LAMPORTS_PER_SOL * 100);
+        if (creditsEarned >= 1) {
+          const newCredits = row.credits + creditsEarned;
+          db.transaction(() => {
+            addCredits.run({ id: row.id, credits: newCredits });
+            stmt.insertTx.run({
+              id:         `tx-${Date.now()}-${randomBytes(4).toString('hex')}`,
+              user_id:    row.id,
+              type:       'deposit',
+              item:       null,
+              auction_id: null,
+              credits:    creditsEarned,
+              sol:        parseFloat((lamportsDiff / LAMPORTS_PER_SOL).toFixed(4)),
+              sig:        null,
+              ts:         Date.now(),
+            });
+          })();
+          console.log(`[deposit] ${row.id} +${creditsEarned} credits (+${(lamportsDiff / LAMPORTS_PER_SOL).toFixed(4)} SOL)`);
+          row.credits += creditsEarned; // keep row in sync for sweep calc below
+        }
+      }
+
+      // ── House sweep (bid-spent SOL) ──
+      await sweepToHouse(row, balance);
+    } catch { /* RPC hiccup — skip this user this round */ }
+  }
+}, 15_000);
+
+// ─── Static frontend (production) ─────────────────────────────
+if (IS_PROD) {
+  const distPath = join(__dirname, 'dist');
+  app.use(express.static(distPath));
+  app.get('*', (_req, res) => res.sendFile(join(distPath, 'index.html')));
+}
+
+// ─── Start ─────────────────────────────────────────────────────
+httpServer.listen(PORT, () => {
+  console.log(`\n  solBid dev server → http://localhost:${PORT}`);
+  console.log(`  DB → solbid.db | 3 auctions running.\n`);
+});
