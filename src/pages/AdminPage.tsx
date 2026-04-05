@@ -91,7 +91,8 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
       await api(token, '/api/admin/auction', {
         method: 'POST',
         body: JSON.stringify({
-          name, image, retailValue: Number(retailValue), startAt,
+          name, image, retailValue: Number(retailValue),
+          startAt: startAt ? new Date(startAt).toISOString() : null,
           durationMinutes: Number(durationMin), snapTimerSeconds: Number(snapSec),
           prizeType, prizeAmount, prizeCode, prizeDescription: prizeDesc,
         }),
