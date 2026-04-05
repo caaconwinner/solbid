@@ -318,6 +318,74 @@ function AuctionList({ token, auctions, onRefresh }: {
   );
 }
 
+// ─── User credits manager ──────────────────────────────────────
+function UserCredits({ token }: { token: string }) {
+  const [users,   setUsers]   = useState<{ id: string; username: string; credits: number }[]>([]);
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const load = () => api(token, '/api/admin/users').then(({ users: u }) => setUsers(u));
+  useEffect(() => { load(); }, []);
+
+  const adjust = async (id: string, username: string) => {
+    const amount = parseInt(amounts[id] ?? '0');
+    if (!amount || isNaN(amount)) return toast.error('Enter a number');
+    setLoading(id);
+    try {
+      const { credits } = await api(token, `/api/admin/user/${id}/credits`, {
+        method: 'POST',
+        body: JSON.stringify({ amount }),
+      });
+      toast.success(`${username} now has ${credits} credits`);
+      setAmounts((a) => ({ ...a, [id]: '' }));
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  return (
+    <div>
+      <h2 className="admin-section-title">User Credits</h2>
+      <table className="tx-table" style={{ width: '100%' }}>
+        <thead>
+          <tr><th>Username</th><th>Credits</th><th>Adjust</th><th></th></tr>
+        </thead>
+        <tbody>
+          {users.map((u) => (
+            <tr key={u.id}>
+              <td>{u.username}</td>
+              <td><strong>{u.credits}</strong></td>
+              <td>
+                <input
+                  className="form-input"
+                  type="number"
+                  style={{ width: 90, padding: '4px 8px' }}
+                  placeholder="+10 / -5"
+                  value={amounts[u.id] ?? ''}
+                  onChange={(e) => setAmounts((a) => ({ ...a, [u.id]: e.target.value }))}
+                />
+              </td>
+              <td>
+                <button
+                  className="btn-primary"
+                  style={{ padding: '4px 12px', fontSize: 13 }}
+                  disabled={loading === u.id}
+                  onClick={() => adjust(u.id, u.username)}
+                >
+                  Apply
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // ─── Page ──────────────────────────────────────────────────────
 export function AdminPage() {
   const [token,    setToken]    = useState(() => localStorage.getItem(STORAGE_KEY) ?? '');
@@ -350,6 +418,10 @@ export function AdminPage() {
       <section className="dash-section">
         <h2 className="admin-section-title">All Auctions <button className="btn-ghost" style={{ fontSize: 12, padding: '2px 8px' }} onClick={load}>Refresh</button></h2>
         <AuctionList token={token} auctions={auctions} onRefresh={load} />
+      </section>
+
+      <section className="dash-section">
+        <UserCredits token={token} />
       </section>
     </div>
   );

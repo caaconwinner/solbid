@@ -647,6 +647,22 @@ app.delete('/api/admin/auction/:id', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+app.get('/api/admin/users', requireAdmin, (req, res) => {
+  const rows = db.prepare('SELECT id, username, credits FROM users ORDER BY username').all();
+  res.json({ users: rows });
+});
+
+app.post('/api/admin/user/:id/credits', requireAdmin, (req, res) => {
+  const { amount } = req.body;
+  if (!Number.isInteger(amount)) return res.status(400).json({ message: 'amount must be an integer' });
+  const row = stmt.getUserById.get(req.params.id);
+  if (!row) return res.status(404).json({ message: 'User not found' });
+  const newCredits = Math.max(0, row.credits + amount);
+  stmt.updateCredits.run({ credits: newCredits, id: row.id });
+  console.log(`[admin] ${amount > 0 ? '+' : ''}${amount} credits → ${row.username} (now ${newCredits})`);
+  res.json({ credits: newCredits });
+});
+
 // ─── Auction state ─────────────────────────────────────────────
 const auctions = new Map();
 let   bidSeq   = 0;
