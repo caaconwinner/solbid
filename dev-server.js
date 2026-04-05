@@ -399,10 +399,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
     ? await bcrypt.compare(password, user.passwordHash)
     : await bcrypt.compare(password, dummyHash).then(() => false);
 
-  if (!match) {
-    console.log(`[auth] login FAIL ${username} hashPrefix=${user?.passwordHash?.slice(0,20) ?? 'no-user'}`);
-    return res.status(401).json({ message: 'Invalid username or password' });
-  }
+  if (!match) return res.status(401).json({ message: 'Invalid username or password' });
 
   const token = makeToken(user.id);
   console.log(`[auth] login ${username}`);
@@ -442,11 +439,7 @@ app.post('/api/auth/reset-password', authLimiter, async (req, res) => {
   if (!row || !row.reset_expires || Date.now() > row.reset_expires)
     return res.status(400).json({ message: 'Invalid or expired reset link' });
   const hash = await bcrypt.hash(password, 12);
-  const result = stmt.clearResetToken.run({ hash, id: row.id });
-  const verify = await bcrypt.compare(password, hash);
-  const stored = stmt.getUserByToken.get(token);
-  const reread = db.prepare('SELECT password_hash FROM users WHERE id = ?').get(row.id);
-  console.log(`[reset-pw] user=${row.username} id=${row.id} changes=${result.changes} selfVerify=${verify} storedNull=${!stored} rereadHash=${reread?.password_hash?.slice(0,20)}`);
+  stmt.clearResetToken.run({ hash, id: row.id });
   res.json({ ok: true });
 });
 
