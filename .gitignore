@@ -3,3 +3,5 @@ dist/
 solbid.db
 .env
 *.local
+solbid.db-shm
+solbid.db-wal
