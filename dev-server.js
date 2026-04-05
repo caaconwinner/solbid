@@ -868,7 +868,7 @@ setInterval(async () => {
 if (IS_PROD) {
   const distPath = join(__dirname, 'dist');
   app.use(express.static(distPath));
-  app.get('*', (_req, res) => res.sendFile(join(distPath, 'index.html')));
+  app.get('/{*splat}', (_req, res) => res.sendFile(join(distPath, 'index.html')));
 }
 
 // ─── Start ─────────────────────────────────────────────────────
