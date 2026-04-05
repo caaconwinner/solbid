@@ -411,9 +411,7 @@ app.post('/api/withdraw', requireAuth, withdrawLimiter, async (req, res) => {
   const user = req.user;
 
   if (!amountCredits || amountCredits < 1)
-    return res.status(400).json({ message: 'Minimum 1 credit' });
-  if (user.credits < amountCredits)
-    return res.status(400).json({ message: 'Insufficient credits' });
+    return res.status(400).json({ message: 'Minimum 1 credit (0.01 SOL)' });
 
   let destination;
   try { destination = new PublicKey(destinationAddress); }
@@ -438,15 +436,17 @@ app.post('/api/withdraw', requireAuth, withdrawLimiter, async (req, res) => {
     );
     const sig = await sendAndConfirmTransaction(connection, tx, [keypair]);
 
-    const creditsAfter = user.credits - amountCredits;
-    const solAmount    = (amountCredits * 0.01).toFixed(4);
+    // Deduct credits up to what the user has (excess SOL may be un-swept house revenue)
+    const creditsDeducted = Math.min(amountCredits, user.credits);
+    const creditsAfter    = user.credits - creditsDeducted;
+    const solAmount       = (amountCredits * 0.01).toFixed(4);
     doBid(user.id, creditsAfter, {
       id:         `tx-${Date.now()}-${randomBytes(4).toString('hex')}`,
       user_id:    user.id,
       type:       'withdraw',
       item:       null,
       auction_id: null,
-      credits:    -amountCredits,
+      credits:    -creditsDeducted,
       sol:        parseFloat(solAmount),
       sig,
       ts:         Date.now(),

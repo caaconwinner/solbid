@@ -16,20 +16,17 @@ function fmtDate(ts: number) {
 // ─── Withdraw modal ──────────────────���─────────────────────────
 interface WithdrawModalProps {
   maxSol: number;
-  userCredits: number;
   onConfirm: (dest: string, credits: number) => void;
   onClose: () => void;
   loading: boolean;
 }
-function WithdrawModal({ maxSol, userCredits, onConfirm, onClose, loading }: WithdrawModalProps) {
+function WithdrawModal({ maxSol, onConfirm, onClose, loading }: WithdrawModalProps) {
   const [dest, setDest]   = useState('');
   const [sol, setSol]     = useState('');
 
   const solNum     = parseFloat(sol);
   const FEE_SOL    = 0.000010;
-  const creditsCap = userCredits * 0.01;                          // max SOL backed by credits
-  const maxSolNet  = Math.min(maxSol - FEE_SOL, creditsCap);      // true withdrawable max
-  const maxSolNet4 = Math.max(0, Math.floor(maxSolNet / 0.01) * 0.01); // snapped to 0.01 boundary
+  const maxSolNet4 = Math.max(0, Math.floor((maxSol - FEE_SOL) / 0.01) * 0.01);
   const credits   = sol && !isNaN(solNum) ? Math.floor(solNum / 0.01) : 0;
   const err = sol
     ? isNaN(solNum) || solNum <= 0 ? 'Enter a valid amount'
@@ -365,7 +362,6 @@ export function DashboardPage() {
       {showWithdraw && (
         <WithdrawModal
           maxSol={solBalance ?? 0}
-          userCredits={user.credits}
           onConfirm={handleWithdraw}
           onClose={() => setShowWithdraw(false)}
           loading={withdrawing}
