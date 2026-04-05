@@ -448,7 +448,7 @@ app.post('/api/account/change-password', requireAuth, async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) return res.status(400).json({ message: 'Both fields required' });
   if (newPassword.length < 8) return res.status(400).json({ message: 'New password must be at least 8 characters' });
-  const valid = await bcrypt.compare(currentPassword, req.user.password_hash);
+  const valid = await bcrypt.compare(currentPassword, req.user.passwordHash);
   if (!valid) return res.status(400).json({ message: 'Current password is incorrect' });
   const hash = await bcrypt.hash(newPassword, 12);
   stmt.updatePassword.run({ hash, id: req.user.id });

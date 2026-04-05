@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { DepositAddress } from '../components/DepositAddress';
+import { PasswordInput } from '../components/PasswordInput';
 import type { Transaction, Win } from '../types';
 
 function fmtDate(ts: number) {
@@ -280,10 +281,10 @@ function AccountSettings({ token, user }: { token: string; user: any }) {
 
       <form onSubmit={savePw} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <label className="form-label">Change password</label>
-        <input className="form-input" type="password" value={curPw}
-          onChange={(e) => setCurPw(e.target.value)} placeholder="Current password" required />
-        <input className="form-input" type="password" value={newPw}
-          onChange={(e) => setNewPw(e.target.value)} placeholder="New password (min 8 chars)" minLength={8} required />
+        <PasswordInput value={curPw} onChange={setCurPw} placeholder="Current password"
+          autoComplete="current-password" required />
+        <PasswordInput value={newPw} onChange={setNewPw} placeholder="New password (min 8 chars)"
+          autoComplete="new-password" minLength={8} required />
         <button className="btn-primary" type="submit" disabled={saving} style={{ alignSelf: 'flex-start' }}>
           Change password
         </button>

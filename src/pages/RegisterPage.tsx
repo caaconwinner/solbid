@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { PasswordInput } from '../components/PasswordInput';
 
 export function RegisterPage() {
   const { register } = useAuth();
@@ -52,11 +53,9 @@ export function RegisterPage() {
 
           <div className="form-group">
             <label className="form-label">Password</label>
-            <input
-              className="form-input"
-              type="password"
+            <PasswordInput
               value={pw}
-              onChange={(e) => setPw(e.target.value)}
+              onChange={setPw}
               placeholder="Min. 8 characters"
               autoComplete="new-password"
               minLength={8}
@@ -66,11 +65,9 @@ export function RegisterPage() {
 
           <div className="form-group">
             <label className="form-label">Confirm password</label>
-            <input
-              className="form-input"
-              type="password"
+            <PasswordInput
               value={pw2}
-              onChange={(e) => setPw2(e.target.value)}
+              onChange={setPw2}
               placeholder="••••••••"
               autoComplete="new-password"
               required

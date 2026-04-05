@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { PasswordInput } from '../components/PasswordInput';
 
 export function LoginPage() {
   const { login }   = useAuth();
@@ -48,11 +49,9 @@ export function LoginPage() {
 
           <div className="form-group">
             <label className="form-label">Password</label>
-            <input
-              className="form-input"
-              type="password"
+            <PasswordInput
               value={pw}
-              onChange={(e) => setPw(e.target.value)}
+              onChange={setPw}
               placeholder="••••••••"
               autoComplete="current-password"
               required

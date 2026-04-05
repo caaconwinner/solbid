@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { api } from '../api';
+import { PasswordInput } from '../components/PasswordInput';
 
 export function ResetPasswordPage() {
   const [params]    = useSearchParams();
@@ -39,13 +40,13 @@ export function ResetPasswordPage() {
       <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div className="form-group">
           <label className="form-label">New password</label>
-          <input className="form-input" type="password" value={password}
-            onChange={(e) => setPassword(e.target.value)} minLength={8} required autoFocus />
+          <PasswordInput value={password} onChange={setPassword} minLength={8} required autoFocus
+            placeholder="Min. 8 characters" autoComplete="new-password" />
         </div>
         <div className="form-group">
           <label className="form-label">Confirm new password</label>
-          <input className="form-input" type="password" value={password2}
-            onChange={(e) => setPassword2(e.target.value)} minLength={8} required />
+          <PasswordInput value={password2} onChange={setPassword2} minLength={8} required
+            placeholder="••••••••" autoComplete="new-password" />
         </div>
         <button className="btn-primary" type="submit" disabled={loading}>
           {loading ? 'Saving…' : 'Reset password'}
