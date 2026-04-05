@@ -7,8 +7,9 @@ export function LoginPage() {
   const navigate    = useNavigate();
   const [username, setUsername] = useState('');
   const [pw, setPw]             = useState('');
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [error,    setError]    = useState('');
+  const [loading,  setLoading]  = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -19,6 +20,7 @@ export function LoginPage() {
       navigate('/');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
+      setShowForgot(true);
     } finally {
       setLoading(false);
     }
@@ -57,7 +59,14 @@ export function LoginPage() {
             />
           </div>
 
-          {error && <p className="form-error">{error}</p>}
+          {error && (
+            <p className="form-error">
+              {error}
+              {showForgot && (
+                <> — <Link to="/forgot-password" style={{ color: 'var(--orange)' }}>Forgot password?</Link></>
+              )}
+            </p>
+          )}
 
           <button className="btn-primary btn-full" type="submit" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}
