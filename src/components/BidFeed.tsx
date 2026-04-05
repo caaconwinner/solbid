@@ -94,7 +94,7 @@ export function BidFeed({ bids, userId }: Props) {
 
   return (
     <div className="bid-feed-wrap">
-      <div className="bid-feed-header">Live Bids</div>
+      <div className="bid-feed-header">Last 10 Bids</div>
       <div
         ref={containerRef}
         className="bid-feed"

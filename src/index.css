@@ -568,13 +568,16 @@ a:hover { text-decoration: underline; }
 }
 .timer[data-urgent='true']   { background: var(--orange-dim); border-color: var(--orange); }
 .timer[data-critical='true'] { background: var(--red-dim); border-color: var(--red); animation: pulse 0.6s ease-in-out infinite; }
+.timer[data-ended='true']    { background: var(--surface); border-color: var(--border); animation: none; opacity: 0.5; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.65; } }
 .timer-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-muted); }
 .timer[data-urgent='true']   .timer-label { color: var(--orange); }
 .timer[data-critical='true'] .timer-label { color: var(--red); }
+.timer[data-ended='true']    .timer-label { color: var(--text-muted); }
 .timer-value { font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--text); }
 .timer[data-urgent='true']   .timer-value { color: var(--orange); }
 .timer[data-critical='true'] .timer-value { color: var(--red); }
+.timer[data-ended='true']    .timer-value { color: var(--text-muted); }
 
 /* ─── Leader Bar ─────────────────────────────────────────────── */
 .leader-bar {

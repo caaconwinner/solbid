@@ -68,7 +68,7 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange }: Props) {
 
       <div className="live-state">
         <PriceDisplay price={auction.currentPrice} />
-        <Timer endsAtMs={auction.endsAtMs} clockDrift={clockDrift} />
+        <Timer endsAtMs={auction.endsAtMs} clockDrift={clockDrift} ended={ended} />
       </div>
 
       <div className="leader-bar" data-outbid={outbid}>
@@ -95,13 +95,20 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange }: Props) {
 
       {ended && (
         <div className="winner-banner" data-own={auction.leaderId === userId}>
-          {auction.leaderId === userId
-            ? '🎉 You won this auction!'
-            : `${auction.leaderName} won at $${auction.currentPrice.toFixed(2)}`}
+          {auction.leaderId === userId ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+              <span>🎉 You won this auction!</span>
+              <Link to="/account" className="btn-primary" style={{ fontSize: 14, padding: '6px 16px' }}>
+                Claim →
+              </Link>
+            </div>
+          ) : (
+            `${auction.leaderName} won at $${auction.currentPrice.toFixed(2)}`
+          )}
         </div>
       )}
 
-      <BidFeed bids={bids} userId={userId} />
+      <BidFeed bids={bids.slice(0, 10)} userId={userId} />
     </div>
   );
 }
