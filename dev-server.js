@@ -352,6 +352,7 @@ const authLimiter = rateLimit({
   max: 20,
   message: { message: 'Too many attempts — try again in 15 minutes' },
   standardHeaders: true, legacyHeaders: false,
+  validate: { trustProxy: false },
 });
 
 const withdrawLimiter = rateLimit({
@@ -359,6 +360,7 @@ const withdrawLimiter = rateLimit({
   max: 5,
   message: { message: 'Too many withdrawal attempts — slow down' },
   standardHeaders: true, legacyHeaders: false,
+  validate: { trustProxy: false },
 });
 
 // ─── Auth routes ───────────────────────────────────────────────
