@@ -171,6 +171,7 @@ try { db.exec('ALTER TABLE users ADD COLUMN reset_expires INTEGER'); } catch { /
 try { db.exec('ALTER TABLE winners ADD COLUMN purchase_price REAL NOT NULL DEFAULT 0'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE winners ADD COLUMN purchased INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE winners ADD COLUMN purchase_sig TEXT'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE users ADD COLUMN bonus_credits INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
 // drop old columns if migrating from claimed→purchased schema (SQLite can't drop cols, just ignore)
 
 // ─── Prepared statements ───────────────────────────────────────
@@ -188,6 +189,8 @@ const stmt = {
   getUserByUsername: db.prepare('SELECT * FROM users WHERE username = ? COLLATE NOCASE'),
   usernameExists:    db.prepare('SELECT 1 FROM users WHERE username = ? COLLATE NOCASE'),
   updateCredits:     db.prepare('UPDATE users SET credits = @credits WHERE id = @id'),
+  updateBonusCredits: db.prepare('UPDATE users SET bonus_credits = @bonus WHERE id = @id'),
+  addBonusAll:       db.prepare(`UPDATE users SET bonus_credits = bonus_credits + @amount WHERE id NOT LIKE 'bot-%'`),
   insertTx: db.prepare(`
     INSERT INTO transactions (id, user_id, type, item, auction_id, credits, sol, sig, ts)
     VALUES (@id, @user_id, @type, @item, @auction_id, @credits, @sol, @sig, @ts)
@@ -223,8 +226,9 @@ const stmt = {
 }
 
 // Atomic bid: deduct credit + record tx in one SQLite transaction
-const doBid = db.transaction((userId, creditsAfter, txRow) => {
+const doBid = db.transaction((userId, creditsAfter, bonusAfter, txRow) => {
   stmt.updateCredits.run({ id: userId, credits: creditsAfter });
+  stmt.updateBonusCredits.run({ id: userId, bonus: bonusAfter });
   stmt.insertTx.run(txRow);
 });
 
@@ -236,6 +240,7 @@ function rowToUser(row) {
     email:          row.email ?? null,
     depositAddress: row.deposit_address,
     credits:        row.credits,
+    bonusCredits:   row.bonus_credits ?? 0,
     passwordHash:   row.password_hash,
     _enc:           { ct: row.enc_ct, iv: row.enc_iv },
   };
@@ -517,7 +522,7 @@ app.post('/api/withdraw', requireAuth, withdrawLimiter, async (req, res) => {
     const creditsDeducted = Math.min(amountCredits, user.credits);
     const creditsAfter    = user.credits - creditsDeducted;
     const solAmount       = (amountCredits * 0.01).toFixed(4);
-    doBid(user.id, creditsAfter, {
+    doBid(user.id, creditsAfter, user.bonusCredits, {
       id:         `tx-${Date.now()}-${randomBytes(4).toString('hex')}`,
       user_id:    user.id,
       type:       'withdraw',
@@ -725,7 +730,7 @@ app.delete('/api/admin/auction/:id', requireAdmin, (req, res) => {
 });
 
 app.get('/api/admin/users', requireAdmin, (req, res) => {
-  const rows = db.prepare('SELECT id, username, credits FROM users ORDER BY username').all();
+  const rows = db.prepare('SELECT id, username, credits, bonus_credits FROM users ORDER BY username').all();
   res.json({ users: rows });
 });
 
@@ -734,10 +739,18 @@ app.post('/api/admin/user/:id/credits', requireAdmin, (req, res) => {
   if (!Number.isInteger(amount)) return res.status(400).json({ message: 'amount must be an integer' });
   const row = stmt.getUserById.get(req.params.id);
   if (!row) return res.status(404).json({ message: 'User not found' });
-  const newCredits = Math.max(0, row.credits + amount);
-  stmt.updateCredits.run({ credits: newCredits, id: row.id });
-  console.log(`[admin] ${amount > 0 ? '+' : ''}${amount} credits → ${row.username} (now ${newCredits})`);
-  res.json({ credits: newCredits });
+  const newBonus = Math.max(0, (row.bonus_credits ?? 0) + amount);
+  stmt.updateBonusCredits.run({ bonus: newBonus, id: row.id });
+  console.log(`[admin] ${amount > 0 ? '+' : ''}${amount} bonus credits → ${row.username} (now ${newBonus})`);
+  res.json({ bonusCredits: newBonus });
+});
+
+app.post('/api/admin/credits/all', requireAdmin, (req, res) => {
+  const { amount } = req.body;
+  if (!Number.isInteger(amount) || amount <= 0) return res.status(400).json({ message: 'amount must be a positive integer' });
+  const result = stmt.addBonusAll.run({ amount });
+  console.log(`[admin] +${amount} bonus credits → all ${result.changes} users`);
+  res.json({ ok: true, usersAffected: result.changes });
 });
 
 // ─── Auction state ─────────────────────────────────────────────
@@ -788,9 +801,12 @@ function tryBid(auctionId, user, displayName) {
   if (a.status !== 'active')      return { ok: false, reason: 'AUCTION_ENDED' };
   if (Date.now() >= a.endsAtMs)   return { ok: false, reason: 'TIMER_EXPIRED' };
   if (a.leaderId === user.id)     return { ok: false, reason: 'ALREADY_LEADER' };
-  if (user.credits < 1)           return { ok: false, reason: 'INSUFFICIENT_CREDITS' };
+  if (user.credits + user.bonusCredits < 1) return { ok: false, reason: 'INSUFFICIENT_CREDITS' };
 
-  const creditsAfter = user.credits - 1;
+  // Deduct bonus credits first, then real credits
+  const bonusUsed    = Math.min(1, user.bonusCredits);
+  const bonusAfter   = user.bonusCredits - bonusUsed;
+  const creditsAfter = user.credits - (1 - bonusUsed);
   a.currentPrice     = parseFloat((a.currentPrice + 0.01).toFixed(2));
   a.leaderId         = user.id;
   a.leaderName       = displayName;
@@ -798,7 +814,7 @@ function tryBid(auctionId, user, displayName) {
   a.endsAtMs         = Math.max(Date.now() + a.snapTimerMs, a.endsAtMs);
   bidSeq++;
 
-  doBid(user.id, creditsAfter, {
+  doBid(user.id, creditsAfter, bonusAfter, {
     id:         `tx-${Date.now()}-${randomBytes(4).toString('hex')}`,
     user_id:    user.id,
     type:       'bid',
@@ -810,7 +826,8 @@ function tryBid(auctionId, user, displayName) {
     ts:         Date.now(),
   });
 
-  user.credits = creditsAfter; // keep socket snapshot in sync
+  user.credits      = creditsAfter;      // keep socket snapshot in sync
+  user.bonusCredits = bonusAfter;
   persistAuction(a);
   return { ok: true, sequence: bidSeq };
 }
@@ -854,7 +871,7 @@ io.on('connection', (socket) => {
     socket.emit('auction-sync', {
       auction,
       serverTimeMs: Date.now(),
-      userCredits:  user.credits,
+      userCredits:  user.credits + user.bonusCredits,
     });
     await broadcastViewers(auctionId);
   });
@@ -867,7 +884,7 @@ io.on('connection', (socket) => {
     const event = { u: user.id, n: user.username, p: a.currentPrice, t: a.endsAtMs, s: result.sequence, ts: Date.now() };
     io.to(auctionId).emit('bid-placed', event);
     socket.emit('bid-confirmed');
-    socket.emit('credits-update', user.credits);
+    socket.emit('credits-update', { real: user.credits, bonus: user.bonusCredits });
   });
 
   socket.on('leave-auction', async (id) => {

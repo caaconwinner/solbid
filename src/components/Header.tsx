@@ -40,7 +40,7 @@ export function Header() {
             <div className="header-right">
               <div className="header-credits" data-pulse={pulse}>
                 <span className={`ping-dot ping-dot--${status}`} title={`${status}${pingLabel ? ` · ${pingLabel}` : ''}`} />
-                <span className="credits-value">{user.credits}</span>
+                <span className="credits-value">{user.credits + (user.bonusCredits ?? 0)}</span>
                 <span className="credits-label">credits</span>
               </div>
               <button className="btn-ghost" onClick={logout}>Sign out</button>

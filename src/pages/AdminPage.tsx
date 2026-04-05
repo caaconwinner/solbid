@@ -320,9 +320,10 @@ function AuctionList({ token, auctions, onRefresh }: {
 
 // ─── User credits manager ──────────────────────────────────────
 function UserCredits({ token }: { token: string }) {
-  const [users,   setUsers]   = useState<{ id: string; username: string; credits: number }[]>([]);
-  const [amounts, setAmounts] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState<string | null>(null);
+  const [users,     setUsers]     = useState<{ id: string; username: string; credits: number; bonus_credits: number }[]>([]);
+  const [amounts,   setAmounts]   = useState<Record<string, string>>({});
+  const [allAmount, setAllAmount] = useState('');
+  const [loading,   setLoading]   = useState<string | null>(null);
 
   const load = () => api(token, '/api/admin/users').then(({ users: u }) => setUsers(u));
   useEffect(() => { load(); }, []);
@@ -332,12 +333,31 @@ function UserCredits({ token }: { token: string }) {
     if (!amount || isNaN(amount)) return toast.error('Enter a number');
     setLoading(id);
     try {
-      const { credits } = await api(token, `/api/admin/user/${id}/credits`, {
+      const { bonusCredits } = await api(token, `/api/admin/user/${id}/credits`, {
         method: 'POST',
         body: JSON.stringify({ amount }),
       });
-      toast.success(`${username} now has ${credits} credits`);
+      toast.success(`${username}: bonus credits now ${bonusCredits}`);
       setAmounts((a) => ({ ...a, [id]: '' }));
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const giveAll = async () => {
+    const amount = parseInt(allAmount);
+    if (!amount || isNaN(amount) || amount <= 0) return toast.error('Enter a positive number');
+    setLoading('all');
+    try {
+      const { usersAffected } = await api(token, '/api/admin/credits/all', {
+        method: 'POST',
+        body: JSON.stringify({ amount }),
+      });
+      toast.success(`+${amount} bonus credits given to ${usersAffected} users`);
+      setAllAmount('');
       load();
     } catch (e: any) {
       toast.error(e.message);
@@ -349,15 +369,38 @@ function UserCredits({ token }: { token: string }) {
   return (
     <div>
       <h2 className="admin-section-title">User Credits</h2>
+
+      {/* Give to all */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
+        <input
+          className="form-input"
+          type="number"
+          min="1"
+          style={{ width: 120, padding: '6px 10px' }}
+          placeholder="Amount"
+          value={allAmount}
+          onChange={(e) => setAllAmount(e.target.value)}
+        />
+        <button
+          className="btn-primary"
+          disabled={loading === 'all'}
+          onClick={giveAll}
+        >
+          Give bonus credits to ALL users
+        </button>
+        <span style={{ fontSize: 12, color: 'var(--muted)' }}>bid-only, not redeemable for SOL</span>
+      </div>
+
       <table className="tx-table" style={{ width: '100%' }}>
         <thead>
-          <tr><th>Username</th><th>Credits</th><th>Adjust</th><th></th></tr>
+          <tr><th>Username</th><th>SOL credits</th><th>Bonus credits</th><th>Add bonus</th><th></th></tr>
         </thead>
         <tbody>
           {users.map((u) => (
             <tr key={u.id}>
               <td>{u.username}</td>
-              <td><strong>{u.credits}</strong></td>
+              <td>{u.credits}</td>
+              <td style={{ color: 'var(--orange)' }}>{u.bonus_credits}</td>
               <td>
                 <input
                   className="form-input"

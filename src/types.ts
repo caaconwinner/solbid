@@ -39,6 +39,7 @@ export interface User {
   email: string | null;   // optional — only set if user provided it for password recovery
   depositAddress: string;
   credits: number;
+  bonusCredits: number;
 }
 
 export interface Transaction {

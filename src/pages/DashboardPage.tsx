@@ -362,9 +362,19 @@ export function DashboardPage() {
         <h2 className="dash-section-title">Bid Credits</h2>
         <div className="dash-credits-card">
           <div className="dash-credits-amount">
-            <span className="dash-credits-number">{user.credits}</span>
+            <span className="dash-credits-number">{user.credits + (user.bonusCredits ?? 0)}</span>
             <span className="dash-credits-label">credits available</span>
           </div>
+          {(user.bonusCredits ?? 0) > 0 && (
+            <div style={{ display: 'flex', gap: 16, marginTop: 4, fontSize: 13 }}>
+              <span style={{ color: 'var(--text)' }}>
+                <strong>{user.credits}</strong> <span style={{ color: 'var(--muted)' }}>SOL-backed (withdrawable)</span>
+              </span>
+              <span style={{ color: 'var(--text)' }}>
+                <strong>{user.bonusCredits}</strong> <span style={{ color: 'var(--orange)' }}>bonus (bid only)</span>
+              </span>
+            </div>
+          )}
           <p className="dash-credits-hint">Each bid costs 1 credit (0.01 SOL).</p>
           <div className="dash-sol-balance">
             <span className="dash-sol-label">On-chain balance</span>

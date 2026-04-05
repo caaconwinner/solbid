@@ -99,7 +99,7 @@ export function useAuction(auctionId: string, currentUserId: string) {
         toast(`${bid.n} bid — $${bid.p.toFixed(2)}`, { duration: 2000 });
       }
     };
-    const onCredits     = (credits: number)       => dispatch({ type: 'CREDITS_UPDATE', credits });
+    const onCredits     = ({ real, bonus }: { real: number; bonus: number }) => dispatch({ type: 'CREDITS_UPDATE', credits: real + bonus });
     const onConfirmed   = ()                       => dispatch({ type: 'BID_CONFIRMED' });
     const onRejected    = ()                       => {
       dispatch({ type: 'BID_REJECTED' });

@@ -59,8 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const onCredits = (credits: number) => {
-      setUser((u) => u ? { ...u, credits } : u);
+    const onCredits = ({ real, bonus }: { real: number; bonus: number }) => {
+      setUser((u) => u ? { ...u, credits: real, bonusCredits: bonus } : u);
     };
     socket.on('credits-update', onCredits);
     return () => { socket.off('credits-update', onCredits); };
