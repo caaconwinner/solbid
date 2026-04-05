@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { api } from '../api';
-import { updateSocketAuth } from '../socket';
+import { socket, updateSocketAuth } from '../socket';
 import type { User } from '../types';
 
 interface AuthCtx {
@@ -57,6 +57,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { user: u } = await api.me(token);
     setUser(u);
   };
+
+  useEffect(() => {
+    const onCredits = (credits: number) => {
+      setUser((u) => u ? { ...u, credits } : u);
+    };
+    socket.on('credits-update', onCredits);
+    return () => { socket.off('credits-update', onCredits); };
+  }, []);
 
   return (
     <Ctx.Provider value={{ user, token, isLoading, login, register, logout, refreshCredits }}>
