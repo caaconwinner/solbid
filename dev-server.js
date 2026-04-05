@@ -82,7 +82,7 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 // ─── Email ─────────────────────────────────────────────────────
 const resend   = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const FROM     = process.env.RESEND_FROM ?? 'solBid <noreply@solbid.app>';
+const FROM     = process.env.RESEND_FROM ?? 'pennyBid <noreply@penny.bid>';
 const SITE_URL = process.env.FRONTEND_URL ?? 'http://localhost:5173';
 
 async function sendEmail(to, subject, html) {
@@ -419,7 +419,7 @@ app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
     const expires = Date.now() + 60 * 60 * 1000; // 1 hour
     stmt.setResetToken.run({ token, expires, id: row.id });
     const link = `${SITE_URL}/reset-password?token=${token}`;
-    await sendEmail(email, 'Reset your solBid password', `
+    await sendEmail(email, 'Reset your pennyBid password', `
       <p>Hi ${row.username},</p>
       <p>Click the link below to reset your password. It expires in 1 hour.</p>
       <p><a href="${link}">${link}</a></p>
@@ -911,7 +911,7 @@ setInterval(() => {
           });
           console.log(`[auction] winner recorded: ${a.leaderName} wins "${a.item.name}"`);
           const winnerRow = stmt.getUserById.get(a.leaderId);
-          sendEmail(winnerRow?.email, `You won ${a.item.name}! — solBid`, `
+          sendEmail(winnerRow?.email, `You won ${a.item.name}! — pennyBid`, `
             <p>Hi ${a.leaderName},</p>
             <p>Congratulations! You won the auction for <strong>${a.item.name}</strong>.</p>
             <p>The final price was <strong>$${a.currentPrice.toFixed(2)}</strong>.</p>
@@ -988,7 +988,7 @@ setInterval(async () => {
           console.log(`[deposit] ${row.id} +${creditsEarned} credits (+${(lamportsDiff / LAMPORTS_PER_SOL).toFixed(4)} SOL)`);
           row.credits += creditsEarned;
           const solDeposited = (lamportsDiff / LAMPORTS_PER_SOL).toFixed(4);
-          sendEmail(row.email, 'Deposit confirmed — solBid', `
+          sendEmail(row.email, 'Deposit confirmed — pennyBid', `
             <p>Hi ${row.username},</p>
             <p>Your deposit of <strong>${solDeposited} SOL</strong> has been confirmed.</p>
             <p>You received <strong>${creditsEarned} bid credits</strong>. Your total is now <strong>${newCredits} credits</strong>.</p>

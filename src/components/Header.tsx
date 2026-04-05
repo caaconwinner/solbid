@@ -27,7 +27,7 @@ export function Header() {
     <header className="header">
       <div className="header-inner">
         <Link to="/" className="header-logo">
-          sol<strong>Bid</strong>
+          penny<strong>Bid</strong>
         </Link>
 
         {user && (

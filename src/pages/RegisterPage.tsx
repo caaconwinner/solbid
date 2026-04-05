@@ -30,7 +30,7 @@ export function RegisterPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <div className="auth-logo">sol<strong>Bid</strong></div>
+        <div className="auth-logo">penny<strong>Bid</strong></div>
         <h1 className="auth-title">Create account</h1>
         <p className="auth-subtitle">A Solana wallet is generated automatically for you.</p>
 
