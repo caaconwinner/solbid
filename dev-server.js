@@ -472,16 +472,20 @@ app.get('/api/transactions', requireAuth, (req, res) => {
   res.json({ transactions });
 });
 
-app.get('/api/auctions', requireAuth, (req, res) => {
-  const list = [...auctions.values()].map((a) => ({
-    auctionId:    a.auctionId,
-    item:         a.item,
-    currentPrice: a.currentPrice,
-    endsAtMs:     a.endsAtMs,
-    status:       a.status,
-    totalBids:    a.totalBids,
-    leaderName:   a.leaderName,
-    snapTimerMs:  a.snapTimerMs,
+app.get('/api/auctions', requireAuth, async (req, res) => {
+  const list = await Promise.all([...auctions.values()].map(async (a) => {
+    const sockets = await io.in(a.auctionId).allSockets();
+    return {
+      auctionId:    a.auctionId,
+      item:         a.item,
+      currentPrice: a.currentPrice,
+      endsAtMs:     a.endsAtMs,
+      status:       a.status,
+      totalBids:    a.totalBids,
+      leaderName:   a.leaderName,
+      snapTimerMs:  a.snapTimerMs,
+      viewers:      sockets.size,
+    };
   }));
   res.json({ auctions: list });
 });
@@ -735,7 +739,12 @@ io.use((socket, next) => {
 io.on('connection', (socket) => {
   const { user } = socket.data;
 
-  socket.on('join-auction', (auctionId) => {
+  const broadcastViewers = async (auctionId) => {
+    const sockets = await io.in(auctionId).allSockets();
+    io.to(auctionId).emit('viewers-update', sockets.size);
+  };
+
+  socket.on('join-auction', async (auctionId) => {
     const auction = auctions.get(auctionId);
     if (!auction) return;
     socket.join(auctionId);
@@ -744,6 +753,7 @@ io.on('connection', (socket) => {
       serverTimeMs: Date.now(),
       userCredits:  user.credits,
     });
+    await broadcastViewers(auctionId);
   });
 
   socket.on('place-bid', ({ auctionId }) => {
@@ -757,7 +767,18 @@ io.on('connection', (socket) => {
     socket.emit('credits-update', user.credits);
   });
 
-  socket.on('leave-auction', (id) => socket.leave(id));
+  socket.on('leave-auction', async (id) => {
+    socket.leave(id);
+    await broadcastViewers(id);
+  });
+
+  socket.on('disconnect', async () => {
+    for (const [id] of auctions) {
+      const sockets = await io.in(id).allSockets();
+      if (sockets.size > 0) io.to(id).emit('viewers-update', sockets.size);
+    }
+  });
+
   socket.on('ping-check', (cb) => { if (typeof cb === 'function') cb(); });
 });
 

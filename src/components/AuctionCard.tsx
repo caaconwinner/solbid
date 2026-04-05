@@ -56,6 +56,9 @@ export function AuctionCard({ auction }: Props) {
 
         <div className="card-footer">
           <span className="card-bids">{auction.totalBids} bids</span>
+          {auction.viewers != null && auction.viewers > 0 && (
+            <span className="card-viewers">👁 {auction.viewers}</span>
+          )}
           <span className="card-retail">Retail ${auction.item.retailValue.toLocaleString()}</span>
         </div>
 

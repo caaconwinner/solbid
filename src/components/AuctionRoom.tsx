@@ -13,7 +13,7 @@ interface Props {
 }
 
 export function AuctionRoom({ auctionId, userId, onCreditsChange }: Props) {
-  const { auction, bids, userCredits, clockDrift, isConnected, bidResult, placeBid } =
+  const { auction, bids, userCredits, clockDrift, isConnected, bidResult, viewers, placeBid } =
     useAuction(auctionId, userId);
 
   useEffect(() => { onCreditsChange?.(userCredits); }, [userCredits]);
@@ -59,7 +59,10 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange }: Props) {
           <p className="item-retail">
             Retail value: <strong>${auction.item.retailValue.toLocaleString()}</strong>
           </p>
-          <p className="item-bids">{auction.totalBids} bids placed</p>
+          <p className="item-bids">
+            {auction.totalBids} bids placed
+            {viewers > 0 && <span className="item-viewers"> · 👁 {viewers} watching</span>}
+          </p>
         </div>
       </div>
 

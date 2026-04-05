@@ -73,4 +73,5 @@ export interface AuctionListing {
   status: 'scheduled' | 'active' | 'ended' | 'settled';
   totalBids: number;
   leaderName: string | null;
+  viewers?: number;
 }

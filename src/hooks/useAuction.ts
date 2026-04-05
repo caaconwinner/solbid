@@ -10,6 +10,7 @@ interface State {
   clockDrift:  number;
   isConnected: boolean;
   bidResult:   BidResult;
+  viewers:     number;
 }
 
 type Action =
@@ -21,7 +22,8 @@ type Action =
   | { type: 'OPTIMISTIC_BID' }
   | { type: 'BID_CONFIRMED' }
   | { type: 'BID_REJECTED' }
-  | { type: 'AUCTION_ENDED';  winnerId: string | null; winnerName: string | null; finalPrice: number };
+  | { type: 'AUCTION_ENDED';  winnerId: string | null; winnerName: string | null; finalPrice: number }
+  | { type: 'VIEWERS_UPDATE'; viewers: number };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -70,13 +72,14 @@ function reducer(state: State, action: Action): State {
     case 'OPTIMISTIC_BID':  return { ...state, bidResult: 'optimistic', userCredits: state.userCredits - 1 };
     case 'BID_CONFIRMED':   return { ...state, bidResult: 'ok' };
     case 'BID_REJECTED':    return { ...state, bidResult: 'rejected', userCredits: state.userCredits + 1 };
+    case 'VIEWERS_UPDATE':  return { ...state, viewers: action.viewers };
     default: return state;
   }
 }
 
 const initial: State = {
   auction: null, bids: [], userCredits: 0,
-  clockDrift: 0, isConnected: false, bidResult: null,
+  clockDrift: 0, isConnected: false, bidResult: null, viewers: 0,
 };
 
 export function useAuction(auctionId: string, currentUserId: string) {
@@ -115,6 +118,7 @@ export function useAuction(auctionId: string, currentUserId: string) {
     socket.on('bid-confirmed',  onConfirmed);
     socket.on('bid-rejected',   onRejected);
     socket.on('auction-ended',  onEnded);
+    socket.on('viewers-update', (n: number) => dispatch({ type: 'VIEWERS_UPDATE', viewers: n }));
 
     if (socket.connected) joinAuction();
     else socket.connect();
