@@ -8,10 +8,25 @@ interface Props {
 export function DepositAddress({ address }: Props) {
   const [copied, setCopied] = useState(false);
 
-  const copy = async () => {
-    await navigator.clipboard.writeText(address);
+  const copy = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(address).catch(() => fallbackCopy());
+    } else {
+      fallbackCopy();
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const fallbackCopy = () => {
+    const el = document.createElement('textarea');
+    el.value = address;
+    el.style.position = 'fixed';
+    el.style.opacity = '0';
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
   };
 
   return (
