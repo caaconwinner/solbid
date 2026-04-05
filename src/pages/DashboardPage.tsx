@@ -16,23 +16,25 @@ function fmtDate(ts: number) {
 // ─── Withdraw modal ──────────────────���─────────────────────────
 interface WithdrawModalProps {
   maxSol: number;
+  userCredits: number;
   onConfirm: (dest: string, credits: number) => void;
   onClose: () => void;
   loading: boolean;
 }
-function WithdrawModal({ maxSol, onConfirm, onClose, loading }: WithdrawModalProps) {
+function WithdrawModal({ maxSol, userCredits, onConfirm, onClose, loading }: WithdrawModalProps) {
   const [dest, setDest]   = useState('');
   const [sol, setSol]     = useState('');
 
-  const solNum    = parseFloat(sol);
-  const FEE_SOL   = 0.000010; // ~10000 lamports buffer — covers fee + rent
-  const maxCredits = Math.floor((maxSol - FEE_SOL) / 0.01);
-  const maxSolNet  = maxCredits * 0.01; // snapped to credit boundary, never triggers rounding error
+  const solNum     = parseFloat(sol);
+  const FEE_SOL    = 0.000010;
+  const creditsCap = userCredits * 0.01;                          // max SOL backed by credits
+  const maxSolNet  = Math.min(maxSol - FEE_SOL, creditsCap);      // true withdrawable max
+  const maxSolNet4 = Math.max(0, Math.floor(maxSolNet / 0.01) * 0.01); // snapped to 0.01 boundary
   const credits   = sol && !isNaN(solNum) ? Math.floor(solNum / 0.01) : 0;
   const err = sol
     ? isNaN(solNum) || solNum <= 0 ? 'Enter a valid amount'
     : credits < 1                  ? 'Minimum 0.01 SOL (1 credit)'
-    : solNum > maxSolNet           ? `Max ${maxSolNet.toFixed(4)} SOL`
+    : solNum > maxSolNet4          ? `Max ${maxSolNet4.toFixed(4)} SOL`
     : ''
     : '';
 
@@ -62,13 +64,13 @@ function WithdrawModal({ maxSol, onConfirm, onClose, loading }: WithdrawModalPro
               className="form-input"
               type="number"
               min={0.01}
-              max={maxSolNet}
+              max={maxSolNet4}
               step={0.01}
               value={sol}
               onChange={(e) => setSol(e.target.value)}
-              placeholder={`min 0.01 · max ${maxSolNet.toFixed(4)}`}
+              placeholder={`min 0.01 · max ${maxSolNet4.toFixed(4)}`}
             />
-            <button className="btn-max" onClick={() => setSol(maxSolNet.toFixed(4))} type="button">
+            <button className="btn-max" onClick={() => setSol(maxSolNet4.toFixed(4))} type="button">
               MAX
             </button>
           </div>
@@ -81,7 +83,7 @@ function WithdrawModal({ maxSol, onConfirm, onClose, loading }: WithdrawModalPro
           <button
             className="btn-primary"
             onClick={() => onConfirm(dest.trim(), credits)}
-            disabled={loading || !dest.trim() || !!err || credits < 1}
+            disabled={loading || !dest.trim() || !!err || credits < 1 || maxSolNet4 <= 0}
           >
             {loading ? 'Sending…' : `Withdraw ${sol || '0'} SOL`}
           </button>
@@ -363,6 +365,7 @@ export function DashboardPage() {
       {showWithdraw && (
         <WithdrawModal
           maxSol={solBalance ?? 0}
+          userCredits={user.credits}
           onConfirm={handleWithdraw}
           onClose={() => setShowWithdraw(false)}
           loading={withdrawing}
