@@ -245,6 +245,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     if (!token) return;
+    refreshCredits();
     loadTxs(token);
     api.balance(token).then(({ sol }) => setSolBalance(sol));
     // Refresh balance every 15s to match server polling interval
