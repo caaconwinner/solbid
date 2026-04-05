@@ -439,7 +439,8 @@ app.post('/api/auth/reset-password', authLimiter, async (req, res) => {
   if (!row || !row.reset_expires || Date.now() > row.reset_expires)
     return res.status(400).json({ message: 'Invalid or expired reset link' });
   const hash = await bcrypt.hash(password, 12);
-  stmt.clearResetToken.run({ hash, id: row.id });
+  const result = stmt.clearResetToken.run({ hash, id: row.id });
+  console.log(`[reset-pw] user=${row.username} id=${row.id} changes=${result.changes}`);
   res.json({ ok: true });
 });
 
