@@ -14,8 +14,10 @@ interface AdminAuction {
   prize:       { type: string; amount?: number; code?: string; description?: string } | null;
 }
 
+const BASE = import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? '' : 'http://localhost:3007');
+
 function api(token: string, path: string, opts?: RequestInit) {
-  return fetch(`${import.meta.env.VITE_API_URL}${path}`, {
+  return fetch(`${BASE}${path}`, {
     ...opts,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...opts?.headers },
   }).then(async (r) => {
