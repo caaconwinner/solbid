@@ -144,6 +144,11 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_tx_user_ts   ON transactions(user_id, ts DESC);
   CREATE INDEX IF NOT EXISTS idx_win_user      ON winners(user_id);
+
+  CREATE TABLE IF NOT EXISTS auctions_persist (
+    id           TEXT PRIMARY KEY,
+    data         TEXT NOT NULL
+  );
 `);
 try { db.exec('ALTER TABLE transactions ADD COLUMN auction_id TEXT'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE winners ADD COLUMN purchase_price REAL NOT NULL DEFAULT 0'); } catch { /* already exists */ }
@@ -179,6 +184,9 @@ const stmt = {
   getWinsByUser:  db.prepare('SELECT * FROM winners WHERE user_id = ? ORDER BY ts DESC'),
   getWinById:     db.prepare('SELECT * FROM winners WHERE id = ?'),
   markPurchased:  db.prepare('UPDATE winners SET purchased = 1, purchase_sig = @sig WHERE id = @id'),
+  upsertAuction:  db.prepare('INSERT OR REPLACE INTO auctions_persist (id, data) VALUES (@id, @data)'),
+  deleteAuction:  db.prepare('DELETE FROM auctions_persist WHERE id = ?'),
+  allAuctions:    db.prepare('SELECT * FROM auctions_persist'),
 };
 
 // Migration: reset legacy users who got the old 50-credit bonus back to 5
@@ -591,6 +599,7 @@ app.post('/api/admin/auction', requireAdmin, (req, res) => {
 
   const auction = makeAuction(id, { name, image, retailValue: Number(retailValue) }, durationMs, delayMs, snapMs, prize);
   auctions.set(id, auction);
+  persistAuction(auction);
 
   console.log(`[admin] created auction ${id}: "${name}" starts in ${Math.round(delayMs/1000)}s, runs ${durationMinutes}min`);
   res.status(201).json({ auctionId: id });
@@ -621,6 +630,7 @@ app.patch('/api/admin/auction/:id', requireAdmin, (req, res) => {
                   : prizeType === 'physical' ? { type: 'physical', description: prizeDescription }
                   : null;
   }
+  persistAuction(auction);
   console.log(`[admin] updated auction ${req.params.id}`);
   res.json({ ok: true });
 });
@@ -632,6 +642,7 @@ app.delete('/api/admin/auction/:id', requireAdmin, (req, res) => {
     io.to(req.params.id).emit('auction-ended', { winnerId: null, winnerName: null, finalPrice: auction.currentPrice });
   }
   auctions.delete(req.params.id);
+  removePersistedAuction(req.params.id);
   console.log(`[admin] deleted auction ${req.params.id}`);
   res.json({ ok: true });
 });
@@ -651,31 +662,29 @@ function makeAuction(id, item, durationMs, delayMs = 0, snapTimerMs = 15_000, pr
     status:       delayMs > 0 ? 'scheduled' : 'active',
     totalBids:    0,
     snapTimerMs,
-    prize,        // { type: 'sol'|'digital'|'physical', amount?, code?, description? }
+    prize,
     _durationMs:  durationMs,
     _delayMs:     delayMs,
   };
 }
 
-const THIRTY_MIN = 30 * 60 * 1000;
+function persistAuction(a) {
+  stmt.upsertAuction.run({ id: a.auctionId, data: JSON.stringify(a) });
+}
 
-auctions.set('auction-001', makeAuction('auction-001', {
-  name: 'Apple MacBook Pro 14"',
-  image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&q=80',
-  retailValue: 1999,
-}, THIRTY_MIN, 0, 15_000, { type: 'physical', description: 'Apple MacBook Pro 14" — we will contact you to arrange delivery.' }));
+function removePersistedAuction(id) {
+  stmt.deleteAuction.run(id);
+}
 
-auctions.set('auction-002', makeAuction('auction-002', {
-  name: 'PlayStation 5 Console',
-  image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=600&q=80',
-  retailValue: 499,
-}, THIRTY_MIN, 4 * 60 * 1000, 15_000, { type: 'physical', description: 'PlayStation 5 Console — we will contact you to arrange delivery.' }));
-
-auctions.set('auction-003', makeAuction('auction-003', {
-  name: 'iPhone 15 Pro Max',
-  image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600&q=80',
-  retailValue: 1199,
-}, THIRTY_MIN, 9 * 60 * 1000, 15_000, { type: 'physical', description: 'iPhone 15 Pro Max — we will contact you to arrange delivery.' }));
+// Load persisted auctions from DB
+const persistedRows = stmt.allAuctions.all();
+for (const row of persistedRows) {
+  try {
+    const a = JSON.parse(row.data);
+    auctions.set(a.auctionId, a);
+  } catch { /* corrupt row — skip */ }
+}
+console.log(`[auctions] loaded ${auctions.size} auction(s) from DB`);
 
 // ─── Bidding ────────────────────────────────────────────────────
 // user object passed in is the live socket snapshot; credits updated in-place
@@ -709,6 +718,7 @@ function tryBid(auctionId, user, displayName) {
   });
 
   user.credits = creditsAfter; // keep socket snapshot in sync
+  persistAuction(a);
   return { ok: true, sequence: bidSeq };
 }
 
@@ -788,6 +798,7 @@ setInterval(() => {
   for (const [id, a] of auctions) {
     if (a.status === 'scheduled' && now >= (a.endsAtMs - a._durationMs)) {
       a.status = 'active';
+      persistAuction(a);
       io.to(id).emit('auction-sync', { auction: a, serverTimeMs: now, userCredits: 0 });
       console.log(`[auction] ${a.item.name} → LIVE`);
     }
@@ -810,6 +821,7 @@ setInterval(() => {
           console.log(`[auction] winner recorded: ${a.leaderName} wins "${a.item.name}"`);
         } catch (e) { console.error('[auction] failed to record winner:', e.message); }
       }
+      persistAuction(a);
       io.to(id).emit('auction-ended', { winnerId: a.leaderId, winnerName: a.leaderName, finalPrice: a.currentPrice });
       console.log(`[auction] ${a.item.name} ended — winner: ${a.leaderName ?? 'none'} at $${a.currentPrice.toFixed(2)}`);
     }
