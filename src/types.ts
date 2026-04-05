@@ -48,6 +48,7 @@ export interface Transaction {
   auctionId?: string;
   credits: number;   // negative = spent/withdrawn, positive = received
   sol?: number;
+  sig?: string;
   ts: number;
 }
 

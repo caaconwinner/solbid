@@ -52,4 +52,16 @@ export const api = {
     req<{ ok: boolean; prize: Win['prize']; sig?: string }>(
       'POST', `/api/wins/${winId}/purchase`, {}, token,
     ),
+
+  forgotPassword: (email: string) =>
+    req<{ ok: boolean }>('POST', '/api/auth/forgot-password', { email }),
+
+  resetPassword: (token: string, password: string) =>
+    req<{ ok: boolean }>('POST', '/api/auth/reset-password', { token, password }),
+
+  changePassword: (token: string, currentPassword: string, newPassword: string) =>
+    req<{ ok: boolean }>('POST', '/api/account/change-password', { currentPassword, newPassword }, token),
+
+  updateEmail: (token: string, email: string) =>
+    req<{ ok: boolean }>('POST', '/api/account/update-email', { email }, token),
 };

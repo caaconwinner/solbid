@@ -8,6 +8,7 @@ import { createServer } from 'http';
 import { Server }       from 'socket.io';
 import rateLimit        from 'express-rate-limit';
 import bcrypt           from 'bcryptjs';
+import { Resend }       from 'resend';
 import Database         from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 import { dirname, join }  from 'path';
@@ -78,6 +79,20 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+// ─── Email ─────────────────────────────────────────────────────
+const resend   = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const FROM     = process.env.RESEND_FROM ?? 'solBid <noreply@solbid.app>';
+const SITE_URL = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+
+async function sendEmail(to, subject, html) {
+  if (!resend) { console.warn('[email] RESEND_API_KEY not set — skipping email to', to); return; }
+  if (!to) return;
+  try {
+    await resend.emails.send({ from: FROM, to, subject, html });
+    console.log(`[email] sent "${subject}" → ${to}`);
+  } catch (e) { console.error('[email] failed:', e.message); }
+}
 
 // ─── Vault ─────────────────────────────────────────────────────
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -151,6 +166,8 @@ db.exec(`
   );
 `);
 try { db.exec('ALTER TABLE transactions ADD COLUMN auction_id TEXT'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE users ADD COLUMN reset_token TEXT'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE users ADD COLUMN reset_expires INTEGER'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE winners ADD COLUMN purchase_price REAL NOT NULL DEFAULT 0'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE winners ADD COLUMN purchased INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE winners ADD COLUMN purchase_sig TEXT'); } catch { /* already exists */ }
@@ -184,9 +201,14 @@ const stmt = {
   getWinsByUser:  db.prepare('SELECT * FROM winners WHERE user_id = ? ORDER BY ts DESC'),
   getWinById:     db.prepare('SELECT * FROM winners WHERE id = ?'),
   markPurchased:  db.prepare('UPDATE winners SET purchased = 1, purchase_sig = @sig WHERE id = @id'),
-  upsertAuction:  db.prepare('INSERT OR REPLACE INTO auctions_persist (id, data) VALUES (@id, @data)'),
-  deleteAuction:  db.prepare('DELETE FROM auctions_persist WHERE id = ?'),
-  allAuctions:    db.prepare('SELECT * FROM auctions_persist'),
+  upsertAuction:    db.prepare('INSERT OR REPLACE INTO auctions_persist (id, data) VALUES (@id, @data)'),
+  deleteAuction:    db.prepare('DELETE FROM auctions_persist WHERE id = ?'),
+  allAuctions:      db.prepare('SELECT * FROM auctions_persist'),
+  setResetToken:    db.prepare('UPDATE users SET reset_token = @token, reset_expires = @expires WHERE id = @id'),
+  getUserByToken:   db.prepare('SELECT * FROM users WHERE reset_token = ?'),
+  clearResetToken:  db.prepare('UPDATE users SET reset_token = NULL, reset_expires = NULL, password_hash = @hash WHERE id = @id'),
+  updateEmail:      db.prepare('UPDATE users SET email = @email WHERE id = @id'),
+  updatePassword:   db.prepare('UPDATE users SET password_hash = @hash WHERE id = @id'),
 };
 
 // Migration: reset legacy users who got the old 50-credit bonus back to 5
@@ -384,6 +406,59 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 
 app.get('/api/me', requireAuth, (req, res) => {
   res.json({ user: sanitizeUser(req.user) });
+});
+
+// ─── Password reset ─────────────────────────────────────────────
+app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: 'Email required' });
+  const row = db.prepare('SELECT * FROM users WHERE email = ? COLLATE NOCASE').get(email);
+  // Always respond OK to prevent email enumeration
+  if (row) {
+    const token   = randomBytes(32).toString('hex');
+    const expires = Date.now() + 60 * 60 * 1000; // 1 hour
+    stmt.setResetToken.run({ token, expires, id: row.id });
+    const link = `${SITE_URL}/reset-password?token=${token}`;
+    await sendEmail(email, 'Reset your solBid password', `
+      <p>Hi ${row.username},</p>
+      <p>Click the link below to reset your password. It expires in 1 hour.</p>
+      <p><a href="${link}">${link}</a></p>
+      <p>If you didn't request this, ignore this email.</p>
+    `);
+  }
+  res.json({ ok: true });
+});
+
+app.post('/api/auth/reset-password', authLimiter, async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) return res.status(400).json({ message: 'Token and password required' });
+  if (password.length < 8) return res.status(400).json({ message: 'Password must be at least 8 characters' });
+  const row = stmt.getUserByToken.get(token);
+  if (!row || !row.reset_expires || Date.now() > row.reset_expires)
+    return res.status(400).json({ message: 'Invalid or expired reset link' });
+  const hash = await bcrypt.hash(password, 12);
+  stmt.clearResetToken.run({ hash, id: row.id });
+  res.json({ ok: true });
+});
+
+// ─── Account settings ───────────────────────────────────────────
+app.post('/api/account/change-password', requireAuth, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) return res.status(400).json({ message: 'Both fields required' });
+  if (newPassword.length < 8) return res.status(400).json({ message: 'New password must be at least 8 characters' });
+  const valid = await bcrypt.compare(currentPassword, req.user.password_hash);
+  if (!valid) return res.status(400).json({ message: 'Current password is incorrect' });
+  const hash = await bcrypt.hash(newPassword, 12);
+  stmt.updatePassword.run({ hash, id: req.user.id });
+  res.json({ ok: true });
+});
+
+app.post('/api/account/update-email', requireAuth, async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: 'Email required' });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ message: 'Invalid email' });
+  stmt.updateEmail.run({ email, id: req.user.id });
+  res.json({ ok: true });
 });
 
 // Internal signing endpoint — only the settlement worker calls this.
@@ -835,6 +910,14 @@ setInterval(() => {
             ts:             now,
           });
           console.log(`[auction] winner recorded: ${a.leaderName} wins "${a.item.name}"`);
+          const winnerRow = stmt.getUserById.get(a.leaderId);
+          sendEmail(winnerRow?.email, `You won ${a.item.name}! — solBid`, `
+            <p>Hi ${a.leaderName},</p>
+            <p>Congratulations! You won the auction for <strong>${a.item.name}</strong>.</p>
+            <p>The final price was <strong>$${a.currentPrice.toFixed(2)}</strong>.</p>
+            <p>You can purchase the item for <strong>${a.currentPrice.toFixed(4)} SOL</strong> from your account page.</p>
+            <p><a href="${SITE_URL}/account">Claim your item →</a></p>
+          `);
         } catch (e) { console.error('[auction] failed to record winner:', e.message); }
       }
       persistAuction(a);
@@ -903,7 +986,14 @@ setInterval(async () => {
             });
           })();
           console.log(`[deposit] ${row.id} +${creditsEarned} credits (+${(lamportsDiff / LAMPORTS_PER_SOL).toFixed(4)} SOL)`);
-          row.credits += creditsEarned; // keep row in sync for sweep calc below
+          row.credits += creditsEarned;
+          const solDeposited = (lamportsDiff / LAMPORTS_PER_SOL).toFixed(4);
+          sendEmail(row.email, 'Deposit confirmed — solBid', `
+            <p>Hi ${row.username},</p>
+            <p>Your deposit of <strong>${solDeposited} SOL</strong> has been confirmed.</p>
+            <p>You received <strong>${creditsEarned} bid credits</strong>. Your total is now <strong>${newCredits} credits</strong>.</p>
+            <p><a href="${SITE_URL}">Go bid now →</a></p>
+          `);
         }
       }
 

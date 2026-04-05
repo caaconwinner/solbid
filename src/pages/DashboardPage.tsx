@@ -115,8 +115,17 @@ function TxTable({ rows }: { rows: Transaction[] }) {
                     ? <Link to={`/auction/${tx.auctionId}`}>{tx.item}</Link>
                     : tx.item
                 )}
-                {tx.type === 'withdraw' && `${tx.sol?.toFixed(4)} SOL`}
-                {tx.type === 'deposit'  && `${tx.sol?.toFixed(4)} SOL`}
+                {(tx.type === 'withdraw' || tx.type === 'deposit') && (
+                  <>
+                    {tx.sol?.toFixed(4)} SOL{' '}
+                    {tx.sig && (
+                      <a href={`https://solscan.io/tx/${tx.sig}`} target="_blank" rel="noreferrer"
+                         style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                        solscan ↗
+                      </a>
+                    )}
+                  </>
+                )}
               </td>
               <td className={`tx-credits ${tx.credits < 0 ? 'tx-neg' : 'tx-pos'}`}>
                 {tx.credits > 0 ? `+${tx.credits}` : tx.credits}
@@ -226,6 +235,59 @@ function WonAuctions({ token }: { token: string }) {
           <p className="win-card-date">{fmtDate(win.ts)}</p>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── Account Settings ───────────────────────────────────────────
+function AccountSettings({ token, user }: { token: string; user: any }) {
+  const [email,    setEmail]    = useState(user.email ?? '');
+  const [curPw,    setCurPw]    = useState('');
+  const [newPw,    setNewPw]    = useState('');
+  const [saving,   setSaving]   = useState(false);
+
+  const saveEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.updateEmail(token, email);
+      toast.success('Email updated');
+    } catch (e: any) { toast.error(e.message); }
+    finally { setSaving(false); }
+  };
+
+  const savePw = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.changePassword(token, curPw, newPw);
+      toast.success('Password changed');
+      setCurPw(''); setNewPw('');
+    } catch (e: any) { toast.error(e.message); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <form onSubmit={saveEmail} style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+        <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+          <label className="form-label">Email address</label>
+          <input className="form-input" type="email" value={email}
+            onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+        </div>
+        <button className="btn-primary" type="submit" disabled={saving}>Save</button>
+      </form>
+
+      <form onSubmit={savePw} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <label className="form-label">Change password</label>
+        <input className="form-input" type="password" value={curPw}
+          onChange={(e) => setCurPw(e.target.value)} placeholder="Current password" required />
+        <input className="form-input" type="password" value={newPw}
+          onChange={(e) => setNewPw(e.target.value)} placeholder="New password (min 8 chars)" minLength={8} required />
+        <button className="btn-primary" type="submit" disabled={saving} style={{ alignSelf: 'flex-start' }}>
+          Change password
+        </button>
+      </form>
     </div>
   );
 }
@@ -342,6 +404,12 @@ export function DashboardPage() {
         {tab === 'funds' && <TxTable rows={funds} />}
         {tab === 'bids'  && <TxTable rows={bids} />}
         {tab === 'wins'  && token && <WonAuctions token={token} />}
+      </section>
+
+      {/* Account settings */}
+      <section className="dash-section">
+        <h2 className="dash-section-title">Account Settings</h2>
+        <AccountSettings token={token!} user={user} />
       </section>
 
       {/* How it works */}

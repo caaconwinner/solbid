@@ -6,9 +6,11 @@ import { HomePage }     from './pages/HomePage';
 import { AuctionPage }  from './pages/AuctionPage';
 import { LoginPage }    from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { DashboardPage }from './pages/DashboardPage';
-import { AdminPage }    from './pages/AdminPage';
-import { ReactNode }    from 'react';
+import { DashboardPage }      from './pages/DashboardPage';
+import { AdminPage }           from './pages/AdminPage';
+import { ForgotPasswordPage }  from './pages/ForgotPasswordPage';
+import { ResetPasswordPage }   from './pages/ResetPasswordPage';
+import { ReactNode }           from 'react';
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -25,8 +27,10 @@ function AppRoutes() {
     <>
       <Header />
       <Routes>
-        <Route path="/login"    element={user ? <Navigate to="/" replace /> : <LoginPage />} />
-        <Route path="/register" element={user ? <Navigate to="/" replace /> : <RegisterPage />} />
+        <Route path="/login"          element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+        <Route path="/register"       element={user ? <Navigate to="/" replace /> : <RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password"  element={<ResetPasswordPage />} />
         <Route path="/" element={<Protected><HomePage /></Protected>} />
         <Route path="/auction/:auctionId" element={<Protected><AuctionPage /></Protected>} />
         <Route path="/account" element={<Protected><DashboardPage /></Protected>} />
