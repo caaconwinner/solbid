@@ -111,6 +111,18 @@ a:hover { text-decoration: underline; }
 .credits-value { font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--green); }
 .credits-label { font-size: 11px; color: var(--text-muted); }
 
+.header-user {
+  display: flex;
+  align-items: center;
+  background: var(--green-dim);
+  box-shadow: inset 0 0 0 1px rgba(0, 232, 122, 0.25);
+  border-radius: 20px;
+  padding: 4px 12px;
+  transition: box-shadow 0.15s;
+}
+.header-user:hover { box-shadow: inset 0 0 0 1px rgba(0, 232, 122, 0.5); }
+.header-username { font-size: 13px; font-weight: 700; color: var(--green); }
+
 /* ─── Buttons ───────────────────────────────────────────────── */
 .btn-outline {
   background: transparent;
