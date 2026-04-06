@@ -34,7 +34,7 @@ function PumpFunMock() {
     <div className="penny-mock-pumpfun">
       <div className="penny-mock-pumpfun-header">
         <span className="penny-mock-pumpfun-dot" />
-        pump.fun developer rewards
+        <span style={{ color: 'var(--green)' }}>pump</span>.<span style={{ color: 'var(--green)' }}>fun</span> developer rewards
       </div>
       <div className="penny-mock-pumpfun-row">
         <span className="penny-mock-pumpfun-label">Trading volume (24h)</span>
@@ -163,7 +163,7 @@ export function PennyTokenPage() {
 
         {/* ── Step 2: pump.fun dev rewards → prize pool ── */}
         <Step n={2}
-          title="pump.fun developer rewards fund the prize pool"
+          title={<><span style={{ color: 'var(--green)' }}>pump</span>.<span style={{ color: 'var(--green)' }}>fun</span> developer rewards fund the prize pool</>}
           body="pennyBid earns developer rewards from pump.fun every time $penny is traded. These rewards flow directly into the auction prize pool — meaning every trade on the open market makes prizes bigger for bidders.">
           <PumpFunMock />
         </Step>
