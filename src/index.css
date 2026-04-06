@@ -1136,3 +1136,92 @@ a:hover { text-decoration: underline; }
   .hiw-bid-arrow { transform: rotate(90deg); }
   .hiw-packs { justify-content: center; }
 }
+
+/* ─── Mobile layout fixes (phone only, ≤ 600px) ─────────────── */
+
+/* New utility classes */
+.winner-banner-inner {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+}
+.settings-email-form {
+  display: flex; gap: 8px; align-items: flex-end;
+}
+.credits-breakdown {
+  display: flex; gap: 16px; margin-top: 4px; font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  /* ── Header ── */
+  .nav-link--secondary { display: none; }
+  .header-inner { gap: 8px; }
+  .header-nav   { gap: 2px; }
+  .header-right { gap: 8px; }
+  .credits-label { display: none; }
+  .btn-ghost { font-size: 12px; padding: 5px 10px; }
+
+  /* ── Pages / layout ── */
+  .page-narrow { padding: 16px 16px 48px; }
+  .dash-section { margin-bottom: 24px; }
+  .dash-credits-card { padding: 16px; }
+  .dash-credits-number { font-size: 32px; }
+
+  /* ── Credits breakdown (bonus) ── */
+  .credits-breakdown { flex-direction: column; gap: 4px; }
+
+  /* ── Account settings email form ── */
+  .settings-email-form { flex-direction: column; align-items: stretch; }
+  .settings-email-form .btn-primary { width: 100%; }
+
+  /* ── Tabs ── */
+  .tx-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 0; }
+  .tx-tab { font-size: 12px; padding: 10px 10px; white-space: nowrap; flex-shrink: 0; }
+
+  /* ── Transaction table → card list ── */
+  .tx-table-wrap { overflow-x: visible; }
+  .tx-table thead { display: none; }
+  .tx-table, .tx-table tbody { display: flex; flex-direction: column; gap: 6px; }
+  .tx-table tr {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+  }
+  .tx-table td { display: block; padding: 0; border: none; background: transparent !important; }
+  .tx-time   { order: 10; width: 100%; font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .tx-detail { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .tx-credits { margin-left: auto; }
+
+  /* ── Withdraw modal ── */
+  .modal-overlay { padding: 0; align-items: flex-end; background: rgba(0,0,0,0.7); }
+  .modal-card {
+    border-radius: 16px 16px 0 0;
+    padding: 24px 20px 36px;
+    width: 100%;
+    max-width: 100%;
+  }
+  .modal-actions { flex-direction: column-reverse; gap: 8px; }
+  .modal-actions .btn-primary,
+  .modal-actions .btn-ghost { width: 100%; justify-content: center; }
+  .btn-withdraw { width: 100%; margin-top: 4px; }
+
+  /* ── Auction room ── */
+  .winner-banner-inner { flex-direction: column; gap: 10px; }
+  .live-state { gap: 8px; }
+  .item-image-wrap { height: 160px; }
+  .bid-button { width: 100%; }
+  .leader-bar { font-size: 13px; padding: 8px 12px; }
+
+  /* ── Win cards ── */
+  .win-card-header { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .win-card { padding: 14px; }
+
+  /* ── Home page ── */
+  .home-layout { flex-direction: column; }
+  .home-sidebar { width: 100%; position: static; }
+  .section-title { font-size: 13px; }
+
+  /* ── How It Works ── */
+  .hiw-step { padding: 20px 16px 18px; }
+  .hiw-hero { padding: 40px 16px 32px; }
+}

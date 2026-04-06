@@ -35,7 +35,7 @@ export function Header() {
             <nav className="header-nav">
               <NavLink to="/"              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} end>Auctions</NavLink>
               <NavLink to="/account"       className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Account</NavLink>
-              <NavLink to="/how-it-works"  className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>How it works</NavLink>
+              <NavLink to="/how-it-works"  className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>How it works</NavLink>
             </nav>
 
             <div className="header-right">

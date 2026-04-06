@@ -270,7 +270,7 @@ function AccountSettings({ token, user }: { token: string; user: any }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <form onSubmit={saveEmail} style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+      <form onSubmit={saveEmail} className="settings-email-form">
         <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
           <label className="form-label">Email address</label>
           <input className="form-input" type="email" value={email}
@@ -366,7 +366,7 @@ export function DashboardPage() {
             <span className="dash-credits-label">credits available</span>
           </div>
           {(user.bonusCredits ?? 0) > 0 && (
-            <div style={{ display: 'flex', gap: 16, marginTop: 4, fontSize: 13 }}>
+            <div className="credits-breakdown">
               <span style={{ color: 'var(--text)' }}>
                 <strong>{user.credits}</strong> <span style={{ color: 'var(--muted)' }}>SOL-backed (withdrawable)</span>
               </span>

@@ -96,7 +96,7 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange }: Props) {
       {ended && (
         <div className="winner-banner" data-own={auction.leaderId === userId}>
           {auction.leaderId === userId ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+            <div className="winner-banner-inner">
               <span>🎉 You won this auction!</span>
               <Link to="/account" className="btn-primary" style={{ fontSize: 14, padding: '6px 16px' }}>
                 Claim →
