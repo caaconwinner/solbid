@@ -507,7 +507,7 @@ a:hover { text-decoration: underline; }
   gap: clamp(20px, 2vw, 48px);
 }
 .home-sidebar {
-  width: clamp(200px, 16vw, 300px);
+  width: clamp(220px, 18vw, 300px);
   flex-shrink: 0;
   position: sticky;
   top: 80px;
@@ -537,25 +537,53 @@ a:hover { text-decoration: underline; }
 .hiw-list strong { color: var(--text); }
 .home-auctions { flex: 1; min-width: 0; }
 
-/* ─── Sidebar compact steps ──────────────────────────────────── */
-.hs-steps { display: flex; flex-direction: column; gap: 2px; }
-.hs-step {
-  border-radius: 10px;
-  padding: 10px 12px;
-  border: 1px solid transparent;
-  transition: border-color 0.2s, background 0.2s;
-}
-.hs-step:hover { background: var(--surface-2); border-color: var(--border); }
-.hs-step-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-.hs-step-num {
-  min-width: 20px; height: 20px; border-radius: 50%;
-  background: var(--orange); color: #fff;
-  font-size: 11px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.hs-step-icon { font-size: 15px; }
-.hs-step-title { font-size: 13px; font-weight: 600; color: var(--text); }
-.hs-step-body { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0 0 0 28px; }
+/* ─── Sidebar HIW flow ───────────────────────────────────────── */
+.hs-flow { display: flex; flex-direction: column; align-items: center; }
+.hs-arrow { display: flex; justify-content: center; margin: 2px 0; }
+
+.hs-card { width: 100%; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px 12px; }
+.hs-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.hs-card-num { min-width: 20px; height: 20px; border-radius: 50%; background: var(--orange); color: #fff; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hs-card-title { font-size: 12px; font-weight: 700; color: var(--text); }
+.hs-card-visual { display: flex; flex-direction: column; gap: 8px; }
+.hs-note { font-size: 10px; color: var(--text-muted); line-height: 1.5; }
+
+/* deposit packs */
+.hs-deposit-row { display: flex; gap: 6px; }
+.hs-pack { flex: 1; background: var(--surface-3); border: 1px solid var(--border); border-radius: 7px; padding: 6px 4px; text-align: center; }
+.hs-pack--active { border-color: var(--orange); background: var(--orange-dim); }
+.hs-pack-num { font-size: 16px; font-weight: 800; color: var(--text); }
+.hs-pack-lbl { font-size: 9px; color: var(--text-muted); margin-bottom: 2px; }
+.hs-pack-sol { font-size: 10px; font-weight: 600; color: var(--orange); }
+
+/* mini auction cards */
+.hs-mini-cards { display: flex; gap: 6px; }
+.hs-mini-card { flex: 1; background: var(--surface-3); border: 1px solid var(--border); border-radius: 7px; padding: 6px 4px; text-align: center; }
+.hs-mini-card--active { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange); }
+.hs-mini-img { font-size: 20px; margin-bottom: 4px; }
+.hs-mini-name { font-size: 9px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.hs-mini-price { font-size: 12px; font-weight: 800; color: var(--orange); }
+.hs-mini-timer { font-size: 9px; color: var(--text-muted); font-family: var(--mono); margin-top: 2px; }
+
+/* bid demo */
+.hs-bid-demo { display: flex; align-items: center; gap: 6px; }
+.hs-bid-arrow { color: var(--orange); font-size: 14px; }
+.hs-timer { flex: 1; background: var(--surface-3); border: 1px solid var(--border); border-radius: 7px; padding: 6px; text-align: center; }
+.hs-timer--critical { border-color: var(--red); }
+.hs-timer-lbl { font-size: 9px; color: var(--text-muted); margin-bottom: 2px; }
+.hs-timer-val { font-size: 16px; font-weight: 800; color: var(--text); font-family: var(--mono); }
+.hs-timer--critical .hs-timer-val { color: var(--red); }
+
+/* winner */
+.hs-winner-card { display: flex; align-items: center; gap: 8px; background: var(--surface-3); border-radius: 7px; padding: 8px 10px; }
+.hs-winner-icon { font-size: 22px; }
+.hs-winner-name { font-size: 12px; font-weight: 700; color: var(--gold); }
+.hs-winner-price { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+/* raffle */
+.hs-raffle { background: var(--surface-3); border-radius: 7px; padding: 8px 10px; text-align: center; }
+.hs-raffle-drum { font-size: 13px; font-weight: 700; color: var(--text); }
+.hs-raffle-sub { font-size: 11px; color: var(--orange); margin-top: 2px; }
 @media (max-width: 700px) {
   .home-layout { flex-direction: column; }
   .home-sidebar { width: 100%; position: static; }

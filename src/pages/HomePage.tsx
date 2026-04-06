@@ -4,6 +4,122 @@ import { api } from '../api';
 import { AuctionCard } from '../components/AuctionCard';
 import type { AuctionListing } from '../types';
 
+// ── Sidebar HIW components ───────────────────────────────────────
+function SideArrow() {
+  return (
+    <div className="hs-arrow">
+      <svg width="16" height="28" viewBox="0 0 16 28" fill="none">
+        <line x1="8" y1="0" x2="8" y2="18" stroke="var(--orange)" strokeWidth="1.5" strokeDasharray="3 2"/>
+        <polygon points="8,28 2,16 14,16" fill="var(--orange)" />
+      </svg>
+    </div>
+  );
+}
+
+function StepCard({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+  return (
+    <div className="hs-card">
+      <div className="hs-card-head">
+        <span className="hs-card-num">{n}</span>
+        <span className="hs-card-title">{title}</span>
+      </div>
+      <div className="hs-card-visual">{children}</div>
+    </div>
+  );
+}
+
+function SidebarHIW() {
+  return (
+    <div className="hs-flow">
+      <StepCard n={1} title="Deposit SOL">
+        <div className="hs-deposit-row">
+          <div className="hs-pack">
+            <div className="hs-pack-num">10</div>
+            <div className="hs-pack-lbl">credits</div>
+            <div className="hs-pack-sol">0.10 SOL</div>
+          </div>
+          <div className="hs-pack hs-pack--active">
+            <div className="hs-pack-num">50</div>
+            <div className="hs-pack-lbl">credits</div>
+            <div className="hs-pack-sol">0.50 SOL</div>
+          </div>
+          <div className="hs-pack">
+            <div className="hs-pack-num">100</div>
+            <div className="hs-pack-lbl">credits</div>
+            <div className="hs-pack-sol">1.00 SOL</div>
+          </div>
+        </div>
+        <div className="hs-note">1 credit = 0.01 SOL · unspent credits always withdrawable</div>
+      </StepCard>
+
+      <SideArrow />
+
+      <StepCard n={2} title="Pick an auction">
+        <div className="hs-mini-cards">
+          <div className="hs-mini-card">
+            <div className="hs-mini-img">🎮</div>
+            <div className="hs-mini-name">PS5</div>
+            <div className="hs-mini-price">$0.13</div>
+            <div className="hs-mini-timer">2:47</div>
+          </div>
+          <div className="hs-mini-card hs-mini-card--active">
+            <div className="hs-mini-img">📱</div>
+            <div className="hs-mini-name">iPhone</div>
+            <div className="hs-mini-price">$0.07</div>
+            <div className="hs-mini-timer">14:22</div>
+          </div>
+          <div className="hs-mini-card">
+            <div className="hs-mini-img">⌚</div>
+            <div className="hs-mini-name">Watch</div>
+            <div className="hs-mini-price">$0.24</div>
+            <div className="hs-mini-timer">0:09</div>
+          </div>
+        </div>
+      </StepCard>
+
+      <SideArrow />
+
+      <StepCard n={3} title="Bid — timer resets">
+        <div className="hs-bid-demo">
+          <div className="hs-timer hs-timer--critical">
+            <div className="hs-timer-lbl">Time left</div>
+            <div className="hs-timer-val">0:05</div>
+          </div>
+          <div className="hs-bid-arrow">→</div>
+          <div className="hs-timer">
+            <div className="hs-timer-lbl">Time left</div>
+            <div className="hs-timer-val">0:15</div>
+          </div>
+        </div>
+        <div className="hs-note">Each bid costs 1 credit &amp; raises price $0.01</div>
+      </StepCard>
+
+      <SideArrow />
+
+      <StepCard n={4} title="Last bidder wins">
+        <div className="hs-winner-card">
+          <div className="hs-winner-icon">🏆</div>
+          <div className="hs-winner-info">
+            <div className="hs-winner-name">shadow99 won!</div>
+            <div className="hs-winner-price">PS5 — final price $1.43</div>
+          </div>
+        </div>
+      </StepCard>
+
+      <SideArrow />
+
+      <StepCard n={5} title="Cashback raffle">
+        <div className="hs-raffle">
+          <div className="hs-raffle-drum">🎰 shadow99</div>
+          <div className="hs-raffle-sub">+12 bonus credits</div>
+        </div>
+        <div className="hs-note">One random bidder wins credits back at auction end</div>
+      </StepCard>
+    </div>
+  );
+}
+
+// ── Page ────────────────────────────────────────────────────────
 export function HomePage() {
   const { token }                           = useAuth();
   const [auctions, setAuctions]             = useState<AuctionListing[]>([]);
@@ -65,24 +181,7 @@ export function HomePage() {
     <div className="page home-layout">
       <aside className="home-sidebar">
         <h3 className="hiw-title">How it works</h3>
-        <div className="hs-steps">
-          {[
-            { n: 1, icon: '💳', title: 'Deposit SOL',       body: 'Send SOL to your deposit address. Credits appear within ~15 seconds.' },
-            { n: 2, icon: '🎯', title: 'Pick an auction',   body: 'Browse live auctions. Each starts at $0.01.' },
-            { n: 3, icon: '⚡', title: 'Place bids',        body: '1 bid = 1 credit = 0.01 SOL. Each bid raises the price $0.01 & resets the timer.' },
-            { n: 4, icon: '🏆', title: 'Last bidder wins',  body: 'When the timer hits 0, the last bidder wins the right to purchase at the final price.' },
-            { n: 5, icon: '🎰', title: 'Cashback raffle',   body: 'One random bidder wins their bid count back as bonus credits at auction end.' },
-          ].map(({ n, icon, title, body }) => (
-            <div key={n} className="hs-step">
-              <div className="hs-step-head">
-                <span className="hs-step-num">{n}</span>
-                <span className="hs-step-icon">{icon}</span>
-                <span className="hs-step-title">{title}</span>
-              </div>
-              <p className="hs-step-body">{body}</p>
-            </div>
-          ))}
-        </div>
+        <SidebarHIW />
       </aside>
 
       <div className="home-auctions">
