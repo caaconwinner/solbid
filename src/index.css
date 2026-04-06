@@ -1622,6 +1622,188 @@ a:hover { text-decoration: underline; }
 .hiw-cta .btn-primary,
 .hiw-cta .btn-outline { font-size: 15px; padding: 14px 28px; min-width: 220px; text-align: center; }
 
+/* ─── $penny nav link ────────────────────────────────────────── */
+.nav-link--penny { color: var(--orange) !important; font-weight: 700; }
+.nav-link--penny:hover { color: #ffb347 !important; }
+.nav-link--penny.active { border-bottom-color: var(--orange); }
+
+/* ─── $penny token page ──────────────────────────────────────── */
+.penny-hero-token {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+.penny-token-coin { font-size: 56px; line-height: 1; }
+.penny-token-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+.penny-token-stat-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.5px; margin-bottom: 4px; }
+.penny-token-stat-val { font-size: 14px; font-weight: 700; color: var(--text); }
+
+/* pump.fun mock */
+.penny-mock-pumpfun {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+}
+.penny-mock-pumpfun-header {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.penny-mock-pumpfun-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  display: inline-block;
+}
+.penny-mock-pumpfun-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.penny-mock-pumpfun-label { color: var(--text-muted); }
+.penny-mock-pumpfun-val { font-weight: 600; color: var(--text); font-family: var(--font-mono); }
+.penny-mock-pumpfun-row--highlight {
+  background: rgba(0,232,122,0.06);
+  border: 1px solid rgba(0,232,122,0.15);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  margin-top: 4px;
+}
+.penny-mock-pumpfun-val--green { color: var(--green); }
+
+/* revenue split mock */
+.penny-mock-split {
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.penny-mock-split-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.penny-mock-split-bar {
+  display: flex;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  height: 72px;
+  border: 1px solid var(--border);
+}
+.penny-mock-split-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.penny-mock-split-half--burn { background: rgba(255,120,0,0.12); }
+.penny-mock-split-half--ops  { background: var(--surface-2); }
+.penny-mock-split-pct { font-size: 20px; font-weight: 800; color: var(--text); }
+.penny-mock-split-label { font-size: 11px; color: var(--text-muted); }
+.penny-mock-split-notes { display: flex; gap: 12px; }
+.penny-mock-split-note {
+  flex: 1;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+}
+.penny-mock-split-note--burn { background: rgba(255,120,0,0.06); border: 1px solid rgba(255,120,0,0.15); }
+.penny-mock-split-note--ops  { background: var(--surface-2); border: 1px solid var(--border); }
+
+/* credit compare mock */
+.penny-mock-compare {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.penny-mock-compare-card {
+  flex: 1;
+  min-width: 160px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface-2);
+}
+.penny-mock-compare-card--penny { border-color: var(--orange); background: rgba(255,120,0,0.06); }
+.penny-mock-compare-method { font-size: 13px; font-weight: 700; color: var(--text); }
+.penny-mock-compare-rate { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+.penny-mock-compare-tag { font-size: 11px; padding: 4px 8px; border-radius: var(--radius-sm); }
+.penny-mock-compare-tag--refund { background: rgba(0,232,122,0.08); color: var(--green); }
+.penny-mock-compare-tag--burn   { background: rgba(255,120,0,0.1); color: var(--orange); }
+.penny-mock-compare-vs { font-size: 12px; color: var(--text-dim); font-weight: 700; }
+
+/* raffle mock */
+.penny-mock-raffle {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 320px;
+}
+.penny-mock-raffle-drum {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.penny-mock-raffle-winner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.penny-mock-raffle-emoji { font-size: 32px; }
+.penny-mock-raffle-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.penny-mock-raffle-amount { font-size: 18px; }
+
+/* summary cards */
+.penny-summary {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 48px;
+  padding-top: 40px;
+  border-top: 1px solid var(--border);
+}
+.penny-summary-item {
+  flex: 1;
+  min-width: 180px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.penny-summary-icon { font-size: 24px; }
+.penny-summary-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.penny-summary-body { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
 @media (max-width: 600px) {
   .hiw-cards-row { justify-content: center; }
   .hiw-mock-card { width: 140px; }
