@@ -1,5 +1,9 @@
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useTimer } from '../hooks/useTimer';
+import { useAuth } from '../context/AuthContext';
+import { socket } from '../socket';
 import type { AuctionListing } from '../types';
 
 interface Props {
@@ -24,9 +28,43 @@ function MiniTimer({ endsAtMs, status }: { endsAtMs: number; status: string }) {
 }
 
 export function AuctionCard({ auction }: Props) {
-  const navigate = useNavigate();
-  const active = auction.status === 'active';
-  const ended  = auction.status === 'ended' || auction.status === 'settled';
+  const navigate  = useNavigate();
+  const { user }  = useAuth();
+  const active    = auction.status === 'active';
+  const ended     = auction.status === 'ended' || auction.status === 'settled';
+  const [pending, setPending] = useState(false);
+  const joinedRef = useRef(false);
+
+  // Join auction room so we receive bid-confirmed/rejected
+  useEffect(() => {
+    if (!active) return;
+    if (!joinedRef.current) {
+      socket.emit('join-auction', auction.auctionId);
+      joinedRef.current = true;
+    }
+  }, [active, auction.auctionId]);
+
+  const placeBid = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (pending || !user || (user.credits + (user.bonusCredits ?? 0)) < 1) return;
+    setPending(true);
+
+    const onConfirmed = () => { setPending(false); toast.success('Bid placed!', { duration: 1500 }); };
+    const onRejected  = ({ reason }: { reason?: string } = {}) => {
+      setPending(false);
+      if (reason === 'ALREADY_LEADER') toast('You are already the winning bid!', { icon: '👑', duration: 3000 });
+      else toast.error('Bid rejected');
+    };
+
+    socket.once('bid-confirmed', onConfirmed);
+    socket.once('bid-rejected',  onRejected);
+    socket.emit('place-bid', { auctionId: auction.auctionId });
+
+    // Fallback timeout
+    setTimeout(() => { setPending(false); socket.off('bid-confirmed', onConfirmed); socket.off('bid-rejected', onRejected); }, 5000);
+  };
+
+  const credits = user ? user.credits + (user.bonusCredits ?? 0) : 0;
 
   return (
     <div
@@ -64,9 +102,17 @@ export function AuctionCard({ auction }: Props) {
           <span className="card-retail">Retail ${auction.item.retailValue.toLocaleString()}</span>
         </div>
 
-        <div className="card-enter">
-          {active ? 'Enter Auction →' : 'View Auction →'}
-        </div>
+        {active ? (
+          <button
+            className={`card-bid-btn ${pending ? 'card-bid-btn--pending' : ''}`}
+            onClick={placeBid}
+            disabled={pending || credits < 1}
+          >
+            {pending ? 'Bidding…' : credits < 1 ? 'No credits' : `Bid — 1 credit`}
+          </button>
+        ) : (
+          <div className="card-enter">View Auction →</div>
+        )}
       </div>
     </div>
   );
