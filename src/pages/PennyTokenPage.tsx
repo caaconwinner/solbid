@@ -46,7 +46,7 @@ function PumpFunMock() {
       </div>
       <div className="penny-mock-pumpfun-row penny-mock-pumpfun-row--highlight">
         <span className="penny-mock-pumpfun-label">→ Prize pool funded</span>
-        <span className="penny-mock-pumpfun-val penny-mock-pumpfun-val--green">+$3,100 SOL</span>
+        <span className="penny-mock-pumpfun-val penny-mock-pumpfun-val--green">+$3,100</span>
       </div>
     </div>
   );
@@ -170,29 +170,11 @@ export function PennyTokenPage() {
 
         <Arrow />
 
-        {/* ── Step 3: Buy credits with $penny ── */}
+        {/* ── Step 3: Revenue → buybacks & burns ── */}
         <Step n={3}
-          title="Use $penny to buy non-refundable bid credits"
-          body="Alongside the standard SOL credit system, you can buy bid credits with $penny. These credits are non-refundable — burning your $penny permanently on use. A better rate rewards $penny holders for participating.">
-          <CreditCompareMock />
-        </Step>
-
-        <Arrow />
-
-        {/* ── Step 4: Revenue → buybacks & burns ── */}
-        <Step n={4}
           title="50% of all platform revenue goes to buybacks & burns"
           body="Every bid placed on pennyBid generates revenue for the platform. Half of that revenue is used to buy $penny on the open market and burn it permanently — creating constant deflationary pressure as the platform grows.">
           <RevenueSplitMock />
-        </Step>
-
-        <Arrow />
-
-        {/* ── Step 5: Raffle pays $penny ── */}
-        <Step n={5}
-          title="Cashback raffle rewards paid in $penny"
-          body="At the end of every auction, one random bidder wins the cashback raffle. Rewards are paid in $penny tokens — real, tradeable value rather than platform credits. The more you bid, the more entries you get.">
-          <RaffleMock />
         </Step>
 
         {/* ── Summary stats ── */}
@@ -200,7 +182,7 @@ export function PennyTokenPage() {
           <div className="penny-summary-item">
             <div className="penny-summary-icon">🔥</div>
             <div className="penny-summary-title">Deflationary</div>
-            <div className="penny-summary-body">Every $penny credit purchase burns tokens permanently. Revenue buybacks add more burns every day.</div>
+            <div className="penny-summary-body">Revenue buybacks purchase $penny on the open market and burn it permanently every day.</div>
           </div>
           <div className="penny-summary-item">
             <div className="penny-summary-icon">🏆</div>
