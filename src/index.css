@@ -267,7 +267,9 @@ a:hover { text-decoration: underline; }
 .lp-side-card:hover {
   border-color: var(--orange);
   transform: translateY(-2px);
+  text-decoration: none;
 }
+.lp-side-card, .lp-side-card * { text-decoration: none; }
 
 .lp-side-card-label {
   font-size: 10px;
