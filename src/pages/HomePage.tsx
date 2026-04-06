@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
@@ -100,22 +100,27 @@ export function HomePage() {
   const [auctions, setAuctions]             = useState<AuctionListing[]>([]);
   const [loading, setLoading]               = useState(false);
   const [error, setError]                   = useState('');
+  const hasDataRef                          = useRef(false);
 
   useEffect(() => {
     if (!token) return;
 
     setLoading(true);
     setError('');
+    hasDataRef.current = false;
 
     const fetchAuctions = () =>
       api.auctions(token as string)
         .then(({ auctions: a }) => {
           setAuctions(a);
+          setError('');
           setLoading(false);
+          hasDataRef.current = true;
         })
         .catch((err) => {
           console.error('[home] auctions fetch failed:', err);
-          setError(err.message ?? 'Failed to load auctions');
+          // Only show error on first load; silently keep stale data if we already have auctions
+          if (!hasDataRef.current) setError(err.message ?? 'Failed to load auctions');
           setLoading(false);
         });
 
