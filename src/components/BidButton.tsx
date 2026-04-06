@@ -2,25 +2,26 @@ import { useState } from 'react';
 import { BidResult } from '../types';
 
 interface Props {
-  credits: number;
-  onBid:   () => void;
-  disabled: boolean;
-  result:   BidResult;
+  credits:     number;
+  onBid:       () => void;
+  disabled:    boolean;
+  result:      BidResult;
+  connecting?: boolean;
 }
 
-export function BidButton({ credits, onBid, disabled, result }: Props) {
+export function BidButton({ credits, onBid, disabled, result, connecting }: Props) {
   // Client-side cooldown prevents double-tap spam while server confirms
   const [cooling, setCooling] = useState(false);
 
   const handleClick = () => {
-    if (cooling || disabled || credits < 1) return;
+    if (cooling || disabled || credits < 1 || connecting) return;
     onBid();
     setCooling(true);
     setTimeout(() => setCooling(false), 600);
   };
 
   const noCredits = credits < 1;
-  const inactive  = disabled || noCredits;
+  const inactive  = disabled || noCredits || !!connecting;
 
   return (
     <div className="bid-action">
@@ -33,7 +34,7 @@ export function BidButton({ credits, onBid, disabled, result }: Props) {
         aria-label="Place a bid"
       >
         <span className="bid-btn-text">
-          {cooling ? 'BIDDING…' : noCredits ? 'NO CREDITS' : 'BID NOW'}
+          {connecting ? 'CONNECTING…' : cooling ? 'BIDDING…' : noCredits ? 'NO CREDITS' : 'BID NOW'}
         </span>
         <span className="bid-btn-cost">−0.01 SOL credit</span>
       </button>

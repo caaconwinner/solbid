@@ -94,6 +94,7 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
           onBid={placeBid}
           disabled={auction.status !== 'active'}
           result={bidResult}
+          connecting={!isConnected && auction.status === 'active'}
         />
       )}
 
