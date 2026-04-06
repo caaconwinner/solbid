@@ -145,28 +145,42 @@ function WonAuctions({ token }: { token: string }) {
   const reload = () => api.myWins(token).then(({ wins: w }) => setWins(w));
   useEffect(() => { reload(); }, [token]);
 
+  const cluster = import.meta.env.VITE_SOLANA_CLUSTER ?? 'devnet';
+  const suffix  = cluster === 'mainnet-beta' ? '' : `?cluster=${cluster}`;
+
+  const showTxToast = (label: string, sig?: string) => {
+    toast.success(
+      <span>
+        {label}{' '}
+        {sig && (
+          <a href={`https://solscan.io/tx/${sig}${suffix}`} target="_blank" rel="noreferrer"
+             style={{ color: 'var(--green)' }}>View on Solscan</a>
+        )}
+      </span>,
+      { duration: 10000 },
+    );
+  };
+
   const purchase = async (win: Win) => {
     setPaying(win.id);
     try {
       const result = await api.purchaseWin(token, win.id);
-      const cluster = import.meta.env.VITE_SOLANA_CLUSTER ?? 'devnet';
-      const suffix  = cluster === 'mainnet-beta' ? '' : `?cluster=${cluster}`;
-      toast.success(
-        <span>
-          Payment confirmed!{' '}
-          {result.sig && (
-            <a href={`https://solscan.io/tx/${result.sig}${suffix}`} target="_blank" rel="noreferrer"
-               style={{ color: 'var(--green)' }}>View on Solscan</a>
-          )}
-        </span>,
-        { duration: 10000 },
-      );
+      showTxToast('Payment confirmed!', result.sig);
       reload();
     } catch (e: any) {
       toast.error(e.message ?? 'Payment failed');
-    } finally {
-      setPaying(null);
-    }
+    } finally { setPaying(null); }
+  };
+
+  const claimSol = async (win: Win) => {
+    setPaying(win.id);
+    try {
+      const result = await api.claimWin(token, win.id);
+      showTxToast(`${result.amount} SOL sent to your deposit wallet!`, result.sig);
+      reload();
+    } catch (e: any) {
+      toast.error(e.message ?? 'Claim failed');
+    } finally { setPaying(null); }
   };
 
   if (wins.length === 0) return <p className="dash-empty">No wins yet — go bid!</p>;
@@ -179,24 +193,34 @@ function WonAuctions({ token }: { token: string }) {
             <span className="win-card-name">{win.itemName}</span>
             <span className="win-card-price">Auction ended at ${win.finalPrice.toFixed(2)}</span>
             {win.purchased
-              ? <span className="win-badge">Purchased</span>
-              : <span className="win-badge win-badge--pending">Awaiting payment</span>}
+              ? <span className="win-badge">{win.prize.type === 'sol' ? 'Claimed' : 'Purchased'}</span>
+              : <span className="win-badge win-badge--pending">{win.prize.type === 'sol' ? 'Claim available' : 'Awaiting payment'}</span>}
           </div>
 
           {!win.purchased ? (
             <div className="win-prize">
-              <p className="win-purchase-info">
-                You won the right to buy this item for{' '}
-                <strong>{win.purchasePrice.toFixed(4)} SOL</strong>.
-                The payment will be drawn from your deposit wallet.
-              </p>
-              <button
-                className="btn-primary"
-                disabled={paying === win.id}
-                onClick={() => purchase(win)}
-              >
-                {paying === win.id ? 'Processing…' : `Pay ${win.purchasePrice.toFixed(4)} SOL & claim item`}
-              </button>
+              {win.prize.type === 'sol' ? (
+                <>
+                  <p className="win-purchase-info">
+                    You won <strong style={{ color: 'var(--green)' }}>{win.prize.amount} SOL</strong>!
+                    Click below to send it directly to your deposit wallet.
+                  </p>
+                  <button className="btn-outline" disabled={paying === win.id} onClick={() => claimSol(win)}>
+                    {paying === win.id ? 'Sending…' : `Claim ${win.prize.amount} SOL →`}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="win-purchase-info">
+                    You won the right to buy this item for{' '}
+                    <strong>{win.purchasePrice.toFixed(4)} SOL</strong>.
+                    The payment will be drawn from your deposit wallet.
+                  </p>
+                  <button className="btn-outline" disabled={paying === win.id} onClick={() => purchase(win)}>
+                    {paying === win.id ? 'Processing…' : `Pay ${win.purchasePrice.toFixed(4)} SOL & claim item`}
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <div className="win-prize">
@@ -214,9 +238,9 @@ function WonAuctions({ token }: { token: string }) {
               )}
               {win.prize.type === 'sol' && (
                 <>
-                  <p className="win-prize-label">SOL prize</p>
+                  <p className="win-prize-label">SOL prize claimed</p>
                   <p className="win-prize-desc" style={{ color: 'var(--green)' }}>
-                    {win.prize.amount} SOL prize — contact support to arrange transfer.
+                    {win.prize.amount} SOL sent to your deposit wallet ✓
                   </p>
                 </>
               )}

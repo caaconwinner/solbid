@@ -53,6 +53,11 @@ export const api = {
       'POST', `/api/wins/${winId}/purchase`, {}, token,
     ),
 
+  claimWin: (token: string, winId: string) =>
+    req<{ ok: boolean; sig: string; amount: number }>(
+      'POST', `/api/wins/${winId}/claim`, {}, token,
+    ),
+
   forgotPassword: (email: string) =>
     req<{ ok: boolean }>('POST', '/api/auth/forgot-password', { email }),
 

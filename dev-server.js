@@ -693,6 +693,38 @@ app.post('/api/wins/:id/purchase', requireAuth, async (req, res) => {
   }
 });
 
+// SOL prize claim — platform (PRIZE_KEYPAIR) sends SOL to winner's deposit address
+app.post('/api/wins/:id/claim', requireAuth, async (req, res) => {
+  const row = stmt.getWinById.get(req.params.id);
+  if (!row)                        return res.status(404).json({ message: 'Win not found' });
+  if (row.user_id !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
+  if (row.purchased)               return res.status(400).json({ message: 'Already claimed' });
+
+  const prize = JSON.parse(row.prize_data);
+  if (prize.type !== 'sol')        return res.status(400).json({ message: 'Not a SOL prize' });
+  if (!PRIZE_KEYPAIR)              return res.status(503).json({ message: 'Prize wallet not configured — contact support' });
+
+  const lamports = Math.round(prize.amount * LAMPORTS_PER_SOL);
+  const toPubkey = new PublicKey(req.user.depositAddress);
+
+  try {
+    const prizeBalance = await connection.getBalance(PRIZE_KEYPAIR.publicKey);
+    if (prizeBalance < lamports + 5000)
+      return res.status(400).json({ message: 'Prize wallet has insufficient funds — contact support' });
+
+    const tx = new Transaction().add(
+      SystemProgram.transfer({ fromPubkey: PRIZE_KEYPAIR.publicKey, toPubkey, lamports })
+    );
+    const sig = await sendAndConfirmTransaction(connection, tx, [PRIZE_KEYPAIR]);
+    stmt.markPurchased.run({ id: row.id, sig });
+    console.log(`[claim] ${req.user.username} claimed ${prize.amount} SOL prize | ${sig}`);
+    return res.json({ ok: true, sig, amount: prize.amount });
+  } catch (e) {
+    console.error('[claim] failed:', e.message);
+    return res.status(500).json({ message: 'Claim failed: ' + e.message });
+  }
+});
+
 // ─── Admin routes ──────────────────────────────────────────────
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN ?? 'dev-admin';
 
