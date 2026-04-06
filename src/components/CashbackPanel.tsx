@@ -13,7 +13,7 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
 
   // Three phases: 'live' (normal rolling), 'spinning' (fast spin animation), 'revealed' (show winner)
   // If winner already present on mount (e.g. page refresh after auction ended), skip to revealed
-  const [phase, setPhase] = useState<'live' | 'spinning' | 'revealed'>(winner ? 'revealed' : 'live');
+  const [phase, setPhase] = useState<'live' | 'spinning' | 'revealed'>((winner || ended) ? 'revealed' : 'live');
   const [animIdx, setAnimIdx] = useState(0);
   const prevWinner = useRef<CashbackWinner | null>(winner);
   const iidRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -33,7 +33,8 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
     if (!winner || prevWinner.current) return;
     prevWinner.current = winner;
 
-    if (eligible.length === 0) { setPhase('revealed'); return; }
+    // Auction already ended when winner data arrived (e.g. page refresh / navigation) — skip animation
+    if (eligible.length === 0 || ended) { setPhase('revealed'); return; }
 
     const winnerId  = winner.userId ?? winner.user_id;
     const winnerIdx = eligible.findIndex(p => p.id === winnerId);
