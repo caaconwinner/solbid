@@ -226,69 +226,150 @@ a:hover { text-decoration: underline; }
   padding: 24px;
 }
 
-/* Three-card login layout */
-.auth-page--trio {
-  align-items: flex-start;
-  padding-top: 60px;
-  gap: 20px;
-  flex-wrap: wrap;
+/* ── Login page grid layout ──────────────────────────────────── */
+.lp-layout {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 24px;
 }
 
-.auth-nav-card {
+.lp-login-card {
+  max-width: 380px;
   width: 100%;
-  max-width: 280px;
+  align-self: stretch;
+}
+
+.lp-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 260px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+/* Shared side card styles */
+.lp-side-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 32px 28px;
+  padding: 24px 22px;
   text-decoration: none;
   color: var(--text);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  flex: 1;
   transition: border-color 0.15s, transform 0.15s;
-  cursor: pointer;
 }
-.auth-nav-card:hover {
+.lp-side-card:hover {
   border-color: var(--orange);
   transform: translateY(-2px);
 }
 
-.auth-nav-card-icon { font-size: 28px; }
-
-.auth-nav-card-title {
-  font-size: 18px;
+.lp-side-card-label {
+  font-size: 10px;
   font-weight: 700;
-  color: var(--text);
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 14px;
 }
 
-.auth-nav-card-body {
-  font-size: 13px;
+.lp-side-card-cta {
+  margin-top: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--orange);
+  padding-top: 12px;
+}
+
+/* How it works card */
+.lp-hiw-book { font-size: 40px; margin-bottom: 12px; }
+
+.lp-hiw-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.lp-hiw-body {
+  font-size: 12px;
   color: var(--text-muted);
   line-height: 1.6;
 }
 
-.auth-nav-card-steps {
+/* Auction preview card */
+.lp-auction-preview {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 10px;
+  flex: 1;
 }
 
-.auth-nav-card-step {
-  font-size: 12px;
-  color: var(--text-muted);
-  padding: 5px 10px;
+.lp-auction-mock-img {
+  font-size: 48px;
+  text-align: center;
+  padding: 16px 0;
   background: var(--surface-2);
   border-radius: var(--radius-sm);
 }
 
-.auth-nav-card-cta {
-  margin-top: auto;
+.lp-auction-img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+.lp-auction-info { display: flex; flex-direction: column; gap: 4px; }
+
+.lp-auction-name {
   font-size: 13px;
   font-weight: 600;
-  color: var(--orange);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
+.lp-auction-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lp-auction-price {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--green);
+  font-family: var(--font-mono);
+}
+
+.lp-auction-timer {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--orange);
+  font-family: var(--font-mono);
+}
+.lp-auction-timer[data-urgent='true'] { color: var(--red); }
+
+.lp-auction-status--upcoming {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+.lp-auction-status--ended {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
+.lp-auction-bids { font-size: 11px; color: var(--text-muted); }
 
 /* Public auctions page */
 .pub-auctions-page {

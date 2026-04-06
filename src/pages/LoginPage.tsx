@@ -1,8 +1,87 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { PasswordInput } from '../components/PasswordInput';
+import { api } from '../api';
+import { useTimer } from '../hooks/useTimer';
+import type { AuctionListing } from '../types';
 
+// ── Mini live timer for the auction preview card ─────────────────
+function MiniTimer({ endsAtMs, status }: { endsAtMs: number; status: string }) {
+  const ms      = useTimer(status === 'active' ? endsAtMs : null, 0);
+  const seconds = ms / 1000;
+  if (status === 'scheduled') return <span className="lp-auction-status lp-auction-status--upcoming">UPCOMING</span>;
+  if (status === 'ended' || status === 'settled') return <span className="lp-auction-status lp-auction-status--ended">ENDED</span>;
+  const urgent = seconds <= 15;
+  return (
+    <span className="lp-auction-timer" data-urgent={urgent}>
+      {seconds >= 60
+        ? `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
+        : `${seconds.toFixed(1)}s`}
+    </span>
+  );
+}
+
+// ── Auction preview card (right-bottom) ──────────────────────────
+function AuctionPreviewCard() {
+  const [auction, setAuction] = useState<AuctionListing | null>(null);
+
+  useEffect(() => {
+    const fetch = () =>
+      api.auctionsPublic().then(({ auctions }) => {
+        // prefer live, then upcoming, then any
+        const live = auctions.find(a => a.status === 'active');
+        const upcoming = auctions.find(a => a.status === 'scheduled');
+        setAuction(live ?? upcoming ?? auctions[0] ?? null);
+      }).catch(() => {});
+    fetch();
+    const id = setInterval(fetch, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Static mockup when no auction loaded yet
+  const mockup = !auction;
+
+  return (
+    <Link to="/auctions" className="lp-side-card lp-side-card--auction">
+      <div className="lp-side-card-label">AUCTIONS</div>
+
+      <div className="lp-auction-preview">
+        {mockup ? (
+          <div className="lp-auction-mock-img">🎮</div>
+        ) : (
+          <img
+            className="lp-auction-img"
+            src={auction!.item.image}
+            alt={auction!.item.name}
+          />
+        )}
+
+        <div className="lp-auction-info">
+          <div className="lp-auction-name">
+            {mockup ? 'PS5 Console' : auction!.item.name}
+          </div>
+          <div className="lp-auction-row">
+            <span className="lp-auction-price">
+              ${mockup ? '0.13' : auction!.currentPrice.toFixed(2)}
+            </span>
+            {mockup
+              ? <span className="lp-auction-timer">2:47</span>
+              : <MiniTimer endsAtMs={auction!.endsAtMs} status={auction!.status} />
+            }
+          </div>
+          <div className="lp-auction-bids">
+            {mockup ? '13' : auction!.totalBids} bids placed
+          </div>
+        </div>
+      </div>
+
+      <div className="lp-side-card-cta">View all auctions →</div>
+    </Link>
+  );
+}
+
+// ── Login page ───────────────────────────────────────────────────
 export function LoginPage() {
   const { login }   = useAuth();
   const navigate    = useNavigate();
@@ -28,9 +107,9 @@ export function LoginPage() {
   };
 
   return (
-    <div className="auth-page auth-page--trio">
-      {/* ── Card 1: Login ── */}
-      <div className="auth-card">
+    <div className="lp-layout">
+      {/* ── Left: Login card ── */}
+      <div className="auth-card lp-login-card">
         <div className="auth-logo">penny<strong>Bid</strong></div>
         <h1 className="auth-title">Sign in</h1>
 
@@ -84,35 +163,22 @@ export function LoginPage() {
         </p>
       </div>
 
-      {/* ── Card 2: How it works ── */}
-      <Link to="/how-it-works" className="auth-nav-card">
-        <div className="auth-nav-card-icon">📖</div>
-        <div className="auth-nav-card-title">How it works</div>
-        <div className="auth-nav-card-body">
-          Learn how penny auctions work — bids, timers, winning, and the cashback raffle.
-        </div>
-        <div className="auth-nav-card-steps">
-          <div className="auth-nav-card-step">① Deposit SOL → get bid credits</div>
-          <div className="auth-nav-card-step">② Bid to raise the price by $0.01</div>
-          <div className="auth-nav-card-step">③ Last bidder at 0:00 wins</div>
-        </div>
-        <div className="auth-nav-card-cta">Read more →</div>
-      </Link>
+      {/* ── Right column ── */}
+      <div className="lp-right-col">
+        {/* Top: How it works */}
+        <Link to="/how-it-works" className="lp-side-card lp-side-card--hiw">
+          <div className="lp-side-card-label">LEARN</div>
+          <div className="lp-hiw-book">📖</div>
+          <div className="lp-hiw-title">How it works?</div>
+          <div className="lp-hiw-body">
+            Learn how penny auctions work — bids, timers, and winning.
+          </div>
+          <div className="lp-side-card-cta">Read more →</div>
+        </Link>
 
-      {/* ── Card 3: Auctions ── */}
-      <Link to="/auctions" className="auth-nav-card">
-        <div className="auth-nav-card-icon">🏷️</div>
-        <div className="auth-nav-card-title">Auctions</div>
-        <div className="auth-nav-card-body">
-          Browse live and upcoming auctions — no account needed to watch.
-        </div>
-        <div className="auth-nav-card-steps">
-          <div className="auth-nav-card-step">🟢 Live auctions with real-time prices</div>
-          <div className="auth-nav-card-step">🕐 Upcoming scheduled auctions</div>
-          <div className="auth-nav-card-step">🏆 Recently ended &amp; winners</div>
-        </div>
-        <div className="auth-nav-card-cta">View auctions →</div>
-      </Link>
+        {/* Bottom: Auction preview */}
+        <AuctionPreviewCard />
+      </div>
     </div>
   );
 }
