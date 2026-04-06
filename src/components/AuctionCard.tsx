@@ -48,7 +48,7 @@ export function AuctionCard({ auction }: Props) {
         <div className="card-stats">
           <div className="card-stat">
             <span className="card-stat-label">Current bid</span>
-            <span className="card-stat-value">${auction.currentPrice.toFixed(2)}</span>
+            <span className="card-stat-value card-stat-value--green">${auction.currentPrice.toFixed(2)}</span>
           </div>
           <div className="card-stat">
             <span className="card-stat-label">Time left</span>

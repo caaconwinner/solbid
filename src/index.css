@@ -90,6 +90,12 @@ a:hover { text-decoration: underline; }
   gap: 16px;
   margin-left: auto;
 }
+.header-x-link {
+  color: var(--text-muted);
+  display: flex; align-items: center;
+  transition: color 0.15s;
+}
+.header-x-link:hover { color: var(--text); text-decoration: none; }
 
 .header-credits {
   display: flex;
@@ -358,6 +364,7 @@ a:hover { text-decoration: underline; }
 .card-stat { display: flex; flex-direction: column; gap: 3px; }
 .card-stat-label { font-size: clamp(10px, 0.7vw, 12px); font-weight: 600; letter-spacing: 1px; color: var(--text-muted); }
 .card-stat-value { font-family: var(--mono); font-size: clamp(16px, 1.4vw, 22px); font-weight: 700; color: var(--text); }
+.card-stat-value--green { color: var(--green); }
 
 .card-timer { font-family: var(--mono); font-size: clamp(16px, 1.4vw, 22px); font-weight: 700; color: var(--text); }
 .card-timer[data-urgent='true'] { color: var(--orange); }
@@ -568,7 +575,7 @@ a:hover { text-decoration: underline; }
 .price-display[data-flash='true'] { background: var(--gold-dim); border-color: var(--gold); }
 .price-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-muted); }
 .price-value {
-  font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--text);
+  font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);
   transition: color 0.2s;
 }
 .price-display[data-flash='true'] .price-value { color: var(--gold); }
