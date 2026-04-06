@@ -43,6 +43,9 @@ export function LoginPage() {
               onChange={(e) => setUsername(e.target.value)}
               placeholder="your_username"
               autoComplete="username"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck={false}
               required
             />
           </div>

@@ -25,6 +25,9 @@ export function PasswordInput({ value, onChange, placeholder, autoComplete, minL
         minLength={minLength}
         required={required}
         autoFocus={autoFocus}
+        autoCorrect="off"
+        autoCapitalize="none"
+        spellCheck={false}
         style={{ paddingRight: 40 }}
       />
       <button
