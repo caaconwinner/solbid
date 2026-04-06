@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!token) { setLoading(false); return; }
     api.me(token)
-      .then(({ user: u }) => { setUser(u); updateSocketAuth(token); })
+      .then(({ user: u }) => { setUser(u); setCreditsReady(true); updateSocketAuth(token); })
       .catch(() => { setToken(null); localStorage.removeItem('token'); })
       .finally(() => setLoading(false));
   }, []);
@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) return;
     const { user: u } = await api.me(token);
     setUser(u);
+    setCreditsReady(true);
   };
 
   useEffect(() => {
