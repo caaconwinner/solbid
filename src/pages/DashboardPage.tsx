@@ -274,7 +274,7 @@ function AccountSettings({ token, user }: { token: string; user: any }) {
           <input className="form-input" type="email" value={email}
             onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
         </div>
-        <button className="btn-primary" type="submit" disabled={saving}>Save</button>
+        <button className="btn-outline" type="submit" disabled={saving}>Save</button>
       </form>
 
       <form onSubmit={savePw} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -283,7 +283,7 @@ function AccountSettings({ token, user }: { token: string; user: any }) {
           autoComplete="current-password" required />
         <PasswordInput value={newPw} onChange={setNewPw} placeholder="New password (min 8 chars)"
           autoComplete="new-password" minLength={8} required />
-        <button className="btn-primary" type="submit" disabled={saving} style={{ alignSelf: 'flex-start' }}>
+        <button className="btn-outline" type="submit" disabled={saving} style={{ alignSelf: 'flex-start' }}>
           Change password
         </button>
       </form>
@@ -447,7 +447,7 @@ export function DashboardPage() {
         </ol>
       </section>
 
-      <Link to="/" className="btn-primary" style={{ display: 'inline-block', marginTop: 8 }}>
+      <Link to="/" className="btn-outline" style={{ display: 'inline-block', marginTop: 8 }}>
         Browse Auctions →
       </Link>
 

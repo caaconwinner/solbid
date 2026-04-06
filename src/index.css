@@ -112,6 +112,26 @@ a:hover { text-decoration: underline; }
 .credits-label { font-size: 11px; color: var(--text-muted); }
 
 /* ─── Buttons ───────────────────────────────────────────────── */
+.btn-outline {
+  background: transparent;
+  color: var(--orange);
+  border: 1.5px solid var(--orange);
+  border-radius: var(--radius-sm);
+  padding: 10px 20px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+.btn-outline:hover { background: var(--orange); color: #fff; text-decoration: none; }
+.btn-outline:active { transform: scale(0.98); }
+.btn-outline:disabled { opacity: 0.4; cursor: not-allowed; }
+
 .btn-primary {
   background: var(--orange);
   color: #fff;
@@ -807,9 +827,9 @@ a:hover { text-decoration: underline; }
 /* ─── Withdraw button ────────────────────────────────────────── */
 .btn-withdraw {
   margin-top: 8px;
-  background: none;
-  border: 1px solid var(--border-2);
-  color: var(--text-muted);
+  background: transparent;
+  border: 1.5px solid var(--orange);
+  color: var(--orange);
   border-radius: var(--radius-sm);
   padding: 8px 16px;
   font-size: 13px;
@@ -818,7 +838,7 @@ a:hover { text-decoration: underline; }
   transition: border-color 0.15s, color 0.15s;
   width: fit-content;
 }
-.btn-withdraw:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); }
+.btn-withdraw:hover:not(:disabled) { background: var(--orange); color: #fff; }
 .btn-withdraw:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ─── Transaction table ──────────────────────────────────────── */
@@ -1175,7 +1195,8 @@ a:hover { text-decoration: underline; }
 
 /* CTA */
 .hiw-cta { margin-top: 48px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-.hiw-cta-btn { font-size: 15px; padding: 14px 28px; }
+.hiw-cta .btn-primary,
+.hiw-cta .btn-outline { font-size: 15px; padding: 14px 28px; min-width: 220px; text-align: center; }
 
 @media (max-width: 600px) {
   .hiw-cards-row { justify-content: center; }
