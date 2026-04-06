@@ -39,11 +39,11 @@ export function Header() {
             </nav>
 
             <div className="header-right">
-              <div className="header-credits" data-pulse={pulse}>
+              <Link to="/account#deposit" className="header-credits" data-pulse={pulse} style={{ textDecoration: 'none' }}>
                 <span className={`ping-dot ping-dot--${status}`} title={`${status}${pingLabel ? ` · ${pingLabel}` : ''}`} />
                 <span className="credits-value">{user.credits + (user.bonusCredits ?? 0)}</span>
                 <span className="credits-label">credits</span>
-              </div>
+              </Link>
               <button className="btn-ghost" onClick={logout}>Sign out</button>
             </div>
           </>

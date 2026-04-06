@@ -405,7 +405,7 @@ export function DashboardPage() {
       </section>
 
       {/* Deposit */}
-      <section className="dash-section">
+      <section className="dash-section" id="deposit">
         <h2 className="dash-section-title">Deposit SOL</h2>
         <DepositAddress address={user.depositAddress} />
       </section>
