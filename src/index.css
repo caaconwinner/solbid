@@ -584,15 +584,15 @@ a:hover { text-decoration: underline; }
 .hs-timer--critical .hs-timer-val { color: var(--red); }
 
 /* winner */
-.hs-winner-card { display: flex; align-items: center; gap: 8px; background: var(--surface-3); border-radius: 7px; padding: 8px 10px; }
-.hs-winner-icon { font-size: 22px; }
-.hs-winner-name { font-size: 12px; font-weight: 700; color: var(--gold); }
-.hs-winner-price { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.hs-winner-card { display: flex; align-items: center; gap: 10px; background: var(--surface-3); border-radius: 7px; padding: 12px 14px; }
+.hs-winner-icon { font-size: 32px; }
+.hs-winner-name { font-size: 16px; font-weight: 800; color: var(--gold); }
+.hs-winner-price { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
 
 /* raffle */
-.hs-raffle { background: var(--surface-3); border-radius: 7px; padding: 8px 10px; text-align: center; }
-.hs-raffle-drum { font-size: 13px; font-weight: 700; color: var(--text); }
-.hs-raffle-sub { font-size: 11px; color: var(--orange); margin-top: 2px; }
+.hs-raffle { background: var(--surface-3); border-radius: 7px; padding: 12px 14px; text-align: center; }
+.hs-raffle-drum { font-size: 16px; font-weight: 700; color: var(--text); }
+.hs-raffle-sub { font-size: 14px; color: var(--orange); margin-top: 4px; font-weight: 600; }
 @media (max-width: 700px) {
   .home-layout { flex-direction: column; }
   .home-sidebar { width: 100%; position: static; }

@@ -74,7 +74,7 @@ function SidebarHIW() {
         <div className="hs-winner-card">
           <div className="hs-winner-icon">🏆</div>
           <div className="hs-winner-info">
-            <div className="hs-winner-name">shadow99 won!</div>
+            <div className="hs-winner-name">You won!</div>
             <div className="hs-winner-price">PS5 — final price $1.43</div>
           </div>
         </div>
@@ -84,7 +84,7 @@ function SidebarHIW() {
 
       <StepCard n={5} title="Cashback raffle">
         <div className="hs-raffle">
-          <div className="hs-raffle-drum">🎰 shadow99</div>
+          <div className="hs-raffle-drum">🎰 You won the raffle!</div>
           <div className="hs-raffle-sub">+12 bonus credits</div>
         </div>
         <div className="hs-note">One random bidder wins credits back at auction end</div>
