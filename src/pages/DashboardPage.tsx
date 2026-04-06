@@ -213,11 +213,11 @@ function WonAuctions({ token }: { token: string }) {
                 <>
                   <p className="win-purchase-info">
                     You won the right to buy this item for{' '}
-                    <strong>{win.purchasePrice.toFixed(4)} SOL</strong>.
+                    <strong>{win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL</strong>.
                     The payment will be drawn from your deposit wallet.
                   </p>
                   <button className="btn-outline" disabled={paying === win.id} onClick={() => purchase(win)}>
-                    {paying === win.id ? 'Processing…' : `Pay ${win.purchasePrice.toFixed(4)} SOL & claim item`}
+                    {paying === win.id ? 'Processing…' : `Pay ${win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL & claim item`}
                   </button>
                 </>
               )}

@@ -631,6 +631,8 @@ a:hover { text-decoration: underline; }
   border-radius: 8px;
   padding: 8px;
   transition: border-color 0.2s;
+  cursor: pointer;
+  text-decoration: none;
 }
 .winner-card:hover { border-color: var(--orange); }
 .winner-card-img { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: var(--surface-2); }
@@ -732,13 +734,13 @@ a:hover { text-decoration: underline; }
 /* ─── Leader Bar ─────────────────────────────────────────────── */
 .leader-bar {
   display: flex; align-items: center; gap: 12px;
-  background: var(--surface); border: 1px solid var(--orange);
+  background: var(--surface-2); border: 2px solid var(--orange);
   border-radius: var(--radius); padding: 14px 20px;
-  box-shadow: 0 0 12px rgba(255,98,0,0.1);
+  box-shadow: 0 0 20px rgba(255,98,0,0.2);
 }
-.leader-crown { font-size: 20px; }
-.leader-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--orange); }
-.leader-name  { font-size: 18px; font-weight: 700; color: var(--text); }
+.leader-crown { font-size: 22px; }
+.leader-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--orange); }
+.leader-name  { font-size: 20px; font-weight: 800; color: #ffffff; }
 .leader-name[data-own='true'] { color: var(--green); }
 
 /* ─── Bid Action ─────────────────────────────────────────────── */

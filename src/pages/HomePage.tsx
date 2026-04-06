@@ -204,14 +204,14 @@ export function HomePage() {
           <h3 className="hiw-title">Recent Winners</h3>
           <div className="winners-list">
             {winners.map((a) => (
-              <div key={a.auctionId} className="winner-card">
+              <Link key={a.auctionId} to={`/auction/${a.auctionId}`} className="winner-card">
                 <img className="winner-card-img" src={a.item.image} alt={a.item.name} />
                 <div className="winner-card-info">
                   <div className="winner-card-name">{a.item.name}</div>
                   <div className="winner-card-user">🏆 {a.leaderName}</div>
                   <div className="winner-card-price">${a.currentPrice.toFixed(2)}</div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </aside>
