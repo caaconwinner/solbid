@@ -234,12 +234,15 @@ a:hover { text-decoration: underline; }
   justify-content: center;
   gap: 16px;
   padding: 40px 24px;
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .lp-login-card {
   max-width: 380px;
   width: 100%;
-  align-self: stretch;
 }
 
 .lp-right-col {
@@ -248,7 +251,6 @@ a:hover { text-decoration: underline; }
   gap: 16px;
   width: 260px;
   flex-shrink: 0;
-  align-self: stretch;
 }
 
 /* Shared side card styles */
