@@ -1024,3 +1024,115 @@ a:hover { text-decoration: underline; }
   .item-card    { flex-direction: column; }
   .item-image-wrap { width: 100%; height: 180px; }
 }
+
+/* ─── How It Works page ──────────────────────────────────────── */
+.hiw-page { min-height: 100vh; }
+
+.hiw-hero {
+  text-align: center;
+  padding: 64px 24px 48px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,98,0,0.05) 0%, transparent 100%);
+}
+.hiw-hero-title { font-size: clamp(28px, 5vw, 48px); font-weight: 700; letter-spacing: -1px; color: var(--text); }
+.hiw-hero-title strong { color: var(--orange); }
+.hiw-hero-sub { margin-top: 16px; font-size: 16px; color: var(--text-muted); max-width: 540px; margin-inline: auto; line-height: 1.7; }
+
+.hiw-container { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; display: flex; flex-direction: column; align-items: center; }
+
+/* Step */
+.hiw-step { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 28px 24px; }
+.hiw-step-header { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 24px; }
+.hiw-step-num { min-width: 36px; height: 36px; border-radius: 50%; background: var(--orange); color: #fff; font-weight: 800; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hiw-step-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.hiw-step-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+.hiw-step-visual { border-top: 1px solid var(--border); padding-top: 20px; }
+
+/* Arrow */
+.hiw-arrow { display: flex; justify-content: center; margin: 8px 0; }
+
+/* Mock auction cards */
+.hiw-cards-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.hiw-cards-row--center { justify-content: center; }
+.hiw-mock-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; width: 160px; flex-shrink: 0; transition: border-color 0.2s; }
+.hiw-mock-card[data-highlighted='true'] { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange), 0 4px 20px rgba(255,98,0,0.15); }
+.hiw-mock-card[data-ended='true'] { opacity: 0.7; }
+.hiw-mock-image { height: 64px; background: var(--surface-3); border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 28px; }
+.hiw-mock-name { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 6px; line-height: 1.3; }
+.hiw-mock-price { font-size: 20px; font-weight: 800; color: var(--orange); letter-spacing: -0.5px; }
+.hiw-mock-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 10px; color: var(--text-muted); }
+.hiw-mock-timer { background: var(--surface-3); color: var(--text); padding: 2px 6px; border-radius: 4px; font-family: var(--mono); font-size: 10px; }
+.hiw-mock-ended { color: var(--text-dim); font-size: 10px; }
+.hiw-mock-winner { font-size: 12px; color: var(--gold); font-weight: 600; margin-top: 4px; }
+
+/* Credit packs */
+.hiw-packs { display: flex; gap: 12px; flex-wrap: wrap; }
+.hiw-pack { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; min-width: 90px; }
+.hiw-pack--active { border-color: var(--orange); background: var(--orange-dim); }
+.hiw-pack-credits { font-size: 28px; font-weight: 800; color: var(--text); }
+.hiw-pack-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+.hiw-pack-price { font-size: 13px; font-weight: 600; color: var(--orange); }
+.hiw-pack-note { margin-top: 12px; font-size: 12px; color: var(--text-muted); }
+
+/* Timer mock */
+.hiw-timer { background: var(--surface-2); border: 2px solid var(--border); border-radius: 10px; padding: 12px 20px; text-align: center; min-width: 110px; }
+.hiw-timer--critical { border-color: var(--red); background: var(--red-dim); animation: hiw-pulse-red 0.5s ease-in-out infinite alternate; }
+.hiw-timer--ended { border-color: var(--border); opacity: 0.5; }
+.hiw-timer-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.hiw-timer-value { font-size: 28px; font-weight: 800; font-family: var(--mono); color: var(--text); margin-top: 2px; }
+.hiw-timer--critical .hiw-timer-value { color: var(--red); }
+@keyframes hiw-pulse-red { from { box-shadow: 0 0 0 0 var(--red-dim); } to { box-shadow: 0 0 0 8px transparent; } }
+
+/* Bid demo */
+.hiw-bid-demo { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+.hiw-bid-left, .hiw-bid-right { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.hiw-bid-arrow { font-size: 32px; color: var(--orange); font-weight: 900; }
+.hiw-bid-action { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.hiw-bid-btn { background: var(--orange); color: #fff; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 8px; display: flex; align-items: center; gap: 8px; cursor: default; }
+.hiw-bid-cost { background: rgba(0,0,0,0.3); border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 600; }
+.hiw-bid-badge { background: var(--green-dim); border: 1px solid var(--green); color: var(--green); font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; }
+
+/* Bid feed mock */
+.hiw-feed { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.hiw-feed-header { padding: 10px 14px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+.hiw-feed-row { display: flex; align-items: center; padding: 8px 14px; gap: 10px; font-size: 12px; border-bottom: 1px solid var(--border); }
+.hiw-feed-row:last-child { border-bottom: none; }
+.hiw-feed-you { background: rgba(255,98,0,0.06); }
+.hiw-feed-user { color: var(--text-muted); flex: 1; }
+.hiw-feed-you .hiw-feed-user { color: var(--orange); font-weight: 700; }
+.hiw-feed-price { font-family: var(--mono); font-size: 12px; color: var(--text); font-weight: 600; }
+.hiw-feed-ago { font-size: 11px; color: var(--text-dim); min-width: 52px; text-align: right; }
+
+/* Winner */
+.hiw-winner-note { margin-top: 16px; font-size: 12px; color: var(--text-muted); background: var(--gold-dim); border: 1px solid rgba(255,213,79,0.2); border-radius: 8px; padding: 10px 14px; line-height: 1.6; }
+.hiw-winner-note strong { color: var(--gold); }
+
+/* Claim demo */
+.hiw-claim-demo { display: flex; flex-direction: column; gap: 14px; }
+.hiw-claim-banner { background: var(--gold-dim); border: 1px solid rgba(255,213,79,0.3); color: var(--gold); font-weight: 700; font-size: 15px; padding: 14px 18px; border-radius: 10px; display: flex; align-items: center; gap: 12px; }
+.hiw-claim-btn { background: var(--orange); color: #fff; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 13px; text-decoration: none; margin-left: auto; }
+.hiw-claim-btn:hover { text-decoration: none; filter: brightness(1.1); }
+.hiw-credits-note { display: flex; align-items: center; gap: 10px; }
+.hiw-credits-badge { background: var(--orange-dim); border: 1px solid rgba(255,98,0,0.3); color: var(--orange); font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 20px; }
+.hiw-credits-sub { font-size: 12px; color: var(--text-muted); }
+
+/* FAQ */
+.hiw-faq { width: 100%; margin-top: 56px; }
+.hiw-faq-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 24px; text-align: center; }
+.hiw-faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.hiw-faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+.hiw-faq-q { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.hiw-faq-a { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+/* CTA */
+.hiw-cta { margin-top: 48px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.hiw-cta-btn { font-size: 15px; padding: 14px 28px; }
+
+@media (max-width: 600px) {
+  .hiw-cards-row { justify-content: center; }
+  .hiw-mock-card { width: 140px; }
+  .hiw-faq-grid { grid-template-columns: 1fr; }
+  .hiw-bid-demo { flex-direction: column; }
+  .hiw-bid-arrow { transform: rotate(90deg); }
+  .hiw-packs { justify-content: center; }
+}
