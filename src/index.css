@@ -611,9 +611,37 @@ a:hover { text-decoration: underline; }
 .hs-raffle { background: var(--surface-3); border-radius: 7px; padding: 12px 14px; text-align: center; }
 .hs-raffle-drum { font-size: 16px; font-weight: 700; color: var(--text); }
 .hs-raffle-sub { font-size: 14px; color: var(--orange); margin-top: 4px; font-weight: 600; }
+/* ─── Winners sidebar ────────────────────────────────────────── */
+.winners-sidebar {
+  width: clamp(180px, 14vw, 240px);
+  flex-shrink: 0;
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+.winners-list { display: flex; flex-direction: column; gap: 6px; }
+.winner-card {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  transition: border-color 0.2s;
+}
+.winner-card:hover { border-color: var(--orange); }
+.winner-card-img { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: var(--surface-2); }
+.winner-card-info { min-width: 0; }
+.winner-card-name { font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.winner-card-user { font-size: 10px; color: var(--gold); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.winner-card-price { font-size: 12px; font-weight: 700; color: var(--orange); margin-top: 2px; }
+
 @media (max-width: 700px) {
   .home-layout { flex-direction: column; }
   .home-sidebar { width: 100%; position: static; }
+  .winners-sidebar { display: none; }
 }
 
 /* ─── Offline Banner ─────────────────────────────────────────── */
