@@ -365,24 +365,31 @@ export function DashboardPage() {
             <span className="dash-credits-number">{user.credits + (user.bonusCredits ?? 0)}</span>
             <span className="dash-credits-label">credits available</span>
           </div>
-          <div className="credits-breakdown-grid">
-            {(user.bonusCredits ?? 0) > 0 && (
-              <div className="credits-row credits-row--bonus">
-                <div className="credits-row-left">
-                  <span className="credits-row-count">{user.bonusCredits}</span>
-                  <span className="credits-row-label">bonus credits</span>
+          {(() => {
+            // Withdrawable credits are capped by actual on-chain SOL balance
+            const solBacked  = solBalance !== null ? Math.min(user.credits, Math.floor(solBalance / 0.01)) : user.credits;
+            const bonusTotal = (user.bonusCredits ?? 0) + Math.max(0, user.credits - solBacked);
+            return (
+              <div className="credits-breakdown-grid">
+                {bonusTotal > 0 && (
+                  <div className="credits-row credits-row--bonus">
+                    <div className="credits-row-left">
+                      <span className="credits-row-count">{bonusTotal}</span>
+                      <span className="credits-row-label">bonus credits</span>
+                    </div>
+                    <span className="credits-row-note">Used first · bid-only, not withdrawable</span>
+                  </div>
+                )}
+                <div className="credits-row credits-row--sol">
+                  <div className="credits-row-left">
+                    <span className="credits-row-count credits-row-count--green">{solBacked}</span>
+                    <span className="credits-row-label">your credits</span>
+                  </div>
+                  <span className="credits-row-note">Backed by SOL · withdrawable anytime</span>
                 </div>
-                <span className="credits-row-note">Used first · bid-only, not withdrawable</span>
               </div>
-            )}
-            <div className="credits-row credits-row--sol">
-              <div className="credits-row-left">
-                <span className="credits-row-count">{user.credits}</span>
-                <span className="credits-row-label">your credits</span>
-              </div>
-              <span className="credits-row-note">Backed by SOL · withdrawable anytime</span>
-            </div>
-          </div>
+            );
+          })()}
           <p className="dash-credits-hint">Each bid costs 1 credit (0.01 SOL).</p>
           <div className="dash-sol-balance">
             <span className="dash-sol-label">On-chain balance</span>
