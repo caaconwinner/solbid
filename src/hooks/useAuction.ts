@@ -122,7 +122,10 @@ export function useAuction(auctionId: string, currentUserId: string) {
       dispatch({ type: 'CASHBACK_WINNER', winner });
       const name = winner.username;
       const amt  = winner.creditsRefunded ?? winner.credits_refunded ?? 0;
-      toast(`🎰 ${name} won ${amt} credits back in the cashback raffle!`, { duration: 7000 });
+      // Delay toast to match spin animation duration (~4.5s)
+      setTimeout(() => {
+        toast(`🎰 ${name} won ${amt} credits back in the cashback raffle!`, { duration: 7000 });
+      }, 4600);
     };
 
     socket.on('connect',          joinAuction);
