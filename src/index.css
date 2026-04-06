@@ -730,12 +730,14 @@ a:hover { text-decoration: underline; }
 
 /* ─── Leader Bar ─────────────────────────────────────────────── */
 .leader-bar {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--surface); border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--orange);
   border-radius: var(--radius); padding: 14px 20px;
+  box-shadow: 0 0 12px rgba(255,98,0,0.1);
 }
-.leader-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-muted); }
-.leader-name  { font-size: 15px; font-weight: 600; color: var(--text); }
+.leader-crown { font-size: 20px; }
+.leader-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--orange); }
+.leader-name  { font-size: 18px; font-weight: 700; color: var(--text); }
 .leader-name[data-own='true'] { color: var(--green); }
 
 /* ─── Bid Action ─────────────────────────────────────────────── */

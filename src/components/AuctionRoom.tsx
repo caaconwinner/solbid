@@ -75,7 +75,8 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange }: Props) {
       <div className="leader-bar" data-outbid={outbid}>
         {auction.leaderName ? (
           <>
-            <span className="leader-label">WINNING</span>
+            <span className="leader-crown">👑</span>
+            <span className="leader-label">CURRENT LEADER</span>
             <span className="leader-name" data-own={auction.leaderId === userId}>
               {auction.leaderId === userId ? 'YOU' : auction.leaderName}
             </span>
