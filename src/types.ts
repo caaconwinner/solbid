@@ -62,6 +62,7 @@ export interface User {
   depositAddress: string;
   credits: number;
   bonusCredits: number;
+  refCode: string | null;
 }
 
 export interface Transaction {

@@ -25,8 +25,8 @@ export const api = {
   login: (username: string, password: string) =>
     req<{ token: string; user: User }>('POST', '/api/auth/login', { username, password }),
 
-  register: (username: string, password: string, email?: string) =>
-    req<{ token: string; user: User }>('POST', '/api/auth/register', { username, password, email }),
+  register: (username: string, password: string, email?: string, refCode?: string) =>
+    req<{ token: string; user: User }>('POST', '/api/auth/register', { username, password, email, refCode }),
 
   me: (token: string) =>
     req<{ user: User }>('GET', '/api/me', undefined, token),

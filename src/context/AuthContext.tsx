@@ -9,7 +9,7 @@ interface AuthCtx {
   isLoading: boolean;
   creditsReady: boolean;
   login:    (username: string, password: string) => Promise<void>;
-  register: (username: string, password: string, email?: string) => Promise<void>;
+  register: (username: string, password: string, email?: string, refCode?: string) => Promise<void>;
   logout:   () => void;
   refreshCredits: () => Promise<void>;
 }
@@ -42,8 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     save(t, u);
   };
 
-  const register = async (username: string, pw: string, email?: string) => {
-    const { token: t, user: u } = await api.register(username, pw, email);
+  const register = async (username: string, pw: string, email?: string, refCode?: string) => {
+    const { token: t, user: u } = await api.register(username, pw, email, refCode);
     save(t, u);
   };
 

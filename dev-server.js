@@ -184,12 +184,16 @@ try { db.exec(`
   )
 `); } catch { /* already exists */ }
 // drop old columns if migrating from claimed→purchased schema (SQLite can't drop cols, just ignore)
+try { db.exec('ALTER TABLE users ADD COLUMN ref_code TEXT'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE users ADD COLUMN referred_by TEXT'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE users ADD COLUMN ref_rewarded INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
+try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_ref_code ON users(ref_code)'); } catch { /* already exists */ }
 
 // ─── Prepared statements ───────────────────────────────────────
 const stmt = {
   insertUser: db.prepare(`
-    INSERT INTO users (id, username, email, deposit_address, credits, password_hash, enc_ct, enc_iv)
-    VALUES (@id, @username, @email, @deposit_address, @credits, @password_hash, @enc_ct, @enc_iv)
+    INSERT INTO users (id, username, email, deposit_address, credits, password_hash, enc_ct, enc_iv, ref_code, referred_by)
+    VALUES (@id, @username, @email, @deposit_address, @credits, @password_hash, @enc_ct, @enc_iv, @ref_code, @referred_by)
   `),
   upsertBot: db.prepare(`
     INSERT INTO users (id, username, email, deposit_address, credits, password_hash, enc_ct, enc_iv)
@@ -198,6 +202,7 @@ const stmt = {
   `),
   getUserById:       db.prepare('SELECT * FROM users WHERE id = ?'),
   getUserByUsername: db.prepare('SELECT * FROM users WHERE username = ? COLLATE NOCASE'),
+  getUserByRefCode:  db.prepare('SELECT * FROM users WHERE ref_code = ?'),
   usernameExists:    db.prepare('SELECT 1 FROM users WHERE username = ? COLLATE NOCASE'),
   updateCredits:     db.prepare('UPDATE users SET credits = @credits WHERE id = @id'),
   updateBonusCredits: db.prepare('UPDATE users SET bonus_credits = @bonus WHERE id = @id'),
@@ -261,6 +266,24 @@ const doBid = db.transaction((userId, creditsAfter, bonusAfter, txRow) => {
   stmt.insertTx.run(txRow);
 });
 
+function genRefCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars (I/1/O/0)
+  let code;
+  do {
+    code = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  } while (db.prepare('SELECT 1 FROM users WHERE ref_code = ?').get(code));
+  return code;
+}
+
+// Backfill ref_code for existing users (runs once on startup)
+{
+  const missing = db.prepare("SELECT id FROM users WHERE ref_code IS NULL AND id NOT LIKE 'bot-%'").all();
+  for (const u of missing) {
+    db.prepare('UPDATE users SET ref_code = ? WHERE id = ?').run(genRefCode(), u.id);
+  }
+  if (missing.length) console.log(`[ref] backfilled ref_code for ${missing.length} users`);
+}
+
 function rowToUser(row) {
   if (!row) return null;
   return {
@@ -270,6 +293,7 @@ function rowToUser(row) {
     depositAddress: row.deposit_address,
     credits:        row.credits,
     bonusCredits:   row.bonus_credits ?? 0,
+    refCode:        row.ref_code ?? null,
     passwordHash:   row.password_hash,
     _enc:           { ct: row.enc_ct, iv: row.enc_iv },
   };
@@ -351,7 +375,7 @@ function sanitizeUser(user) {
 // ─── User store ────────────────────────────────────────────────
 const tokens = new Map(); // token → userId (session — in memory only)
 
-async function makeUser(username, passwordHash, email = null) {
+async function makeUser(username, passwordHash, email = null, referredBy = null) {
   const wallet = generateWallet();
   const enc    = encryptSecret(wallet.secretKey);
   wallet.secretKey.fill(0);
@@ -361,10 +385,12 @@ async function makeUser(username, passwordHash, email = null) {
     username,
     email:           email ?? null,
     deposit_address: wallet.pubkey,
-    credits:         5,
+    credits:         0,
     password_hash:   passwordHash,
     enc_ct:          enc.ct,
     enc_iv:          enc.iv,
+    ref_code:        genRefCode(),
+    referred_by:     referredBy ?? null,
   });
   console.log(`[vault] wallet generated for ${username} → ${wallet.pubkey.slice(0, 12)}…`);
   return rowToUser(stmt.getUserById.get(id));
@@ -416,7 +442,7 @@ const withdrawLimiter = rateLimit({
 
 // ─── Auth routes ───────────────────────────────────────────────
 app.post('/api/auth/register', authLimiter, async (req, res) => {
-  const { username, password, email } = req.body;
+  const { username, password, email, refCode } = req.body;
   if (!username || !password)
     return res.status(400).json({ message: 'Username and password are required' });
   if (username.length < 3 || username.length > 24)
@@ -432,10 +458,11 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   if (await checkPwned(password))
     return res.status(400).json({ message: 'This password has appeared in a data breach. Please choose a different password.' });
 
+  const referrer    = refCode ? stmt.getUserByRefCode.get(String(refCode).toUpperCase()) : null;
   const passwordHash = await bcrypt.hash(password, 12);
-  const user  = await makeUser(username, passwordHash, email || null);
+  const user  = await makeUser(username, passwordHash, email || null, referrer?.id ?? null);
   const token = makeToken(user.id);
-  console.log(`[auth] registered ${username}`);
+  console.log(`[auth] registered ${username}${referrer ? ` (ref: ${referrer.username})` : ''}`);
   res.status(201).json({ token, user: sanitizeUser(user) });
 });
 
@@ -1128,6 +1155,10 @@ setInterval(async () => {
         const lamportsDiff  = balance - alreadyCredited;
         const creditsEarned = Math.floor(lamportsDiff / LAMPORTS_PER_SOL * 100);
         if (creditsEarned >= 1) {
+          // Check first-deposit status BEFORE inserting
+          const existingDeposits = db.prepare("SELECT COUNT(*) as cnt FROM transactions WHERE user_id = ? AND type = 'deposit'").get(row.id).cnt;
+          const isFirstDeposit   = existingDeposits === 0;
+
           const newCredits = row.credits + creditsEarned;
           // Fetch deposit tx signature from chain
           let depositSig = null;
@@ -1152,6 +1183,25 @@ setInterval(async () => {
           })();
           console.log(`[deposit] ${row.id} +${creditsEarned} credits (+${(lamportsDiff / LAMPORTS_PER_SOL).toFixed(4)} SOL)`);
           row.credits += creditsEarned;
+
+          // ── First-deposit welcome bonus (≥ 0.28 SOL = 28 credits) ──
+          if (isFirstDeposit && creditsEarned >= 28) {
+            db.prepare('UPDATE users SET bonus_credits = bonus_credits + 3 WHERE id = ?').run(row.id);
+            console.log(`[ref] welcome bonus +3 bonus credits → ${row.id}`);
+          }
+
+          // ── Referral reward (first qualifying deposit ≥ 0.05 SOL = 5 credits) ──
+          if (creditsEarned >= 5) {
+            const refInfo = db.prepare('SELECT referred_by, ref_rewarded FROM users WHERE id = ?').get(row.id);
+            if (refInfo?.referred_by && !refInfo.ref_rewarded) {
+              db.transaction(() => {
+                db.prepare('UPDATE users SET bonus_credits = bonus_credits + 10 WHERE id = ?').run(refInfo.referred_by);
+                db.prepare('UPDATE users SET bonus_credits = bonus_credits + 5, ref_rewarded = 1 WHERE id = ?').run(row.id);
+              })();
+              const referrer = db.prepare('SELECT username FROM users WHERE id = ?').get(refInfo.referred_by);
+              console.log(`[ref] referral reward: +10 bonus → ${refInfo.referred_by} (${referrer?.username}), +5 bonus → ${row.id}`);
+            }
+          }
           const solDeposited = (lamportsDiff / LAMPORTS_PER_SOL).toFixed(4);
           sendEmail(row.email, 'Deposit confirmed — pennyBid', `
             <p>Hi ${row.username},</p>

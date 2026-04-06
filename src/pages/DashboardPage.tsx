@@ -7,6 +7,35 @@ import { DepositAddress } from '../components/DepositAddress';
 import { PasswordInput } from '../components/PasswordInput';
 import type { Transaction, Win } from '../types';
 
+function ReferralCard({ refCode }: { refCode: string }) {
+  const [copied, setCopied] = useState(false);
+  const link = `${window.location.origin}/register?ref=${refCode}`;
+  const copy = () => {
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
+  return (
+    <section className="dash-section">
+      <h2 className="dash-section-title">Refer a friend</h2>
+      <div className="referral-card">
+        <p className="referral-desc">
+          Share your link. When someone signs up and deposits <strong>≥ 0.05 SOL</strong>, you get{' '}
+          <span style={{ color: 'var(--orange)', fontWeight: 700 }}>+10 bonus credits</span> and they get{' '}
+          <span style={{ color: 'var(--orange)', fontWeight: 700 }}>+5 bonus credits</span>.
+        </p>
+        <div className="referral-row">
+          <input className="referral-input" readOnly value={link} onClick={e => (e.target as HTMLInputElement).select()} />
+          <button className="referral-copy-btn" onClick={copy}>
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        <p className="referral-note">First deposit of ≥ 0.28 SOL? You also get +3 welcome bonus credits automatically.</p>
+      </div>
+    </section>
+  );
+}
+
 function fmtDate(ts: number) {
   return new Date(ts).toLocaleString(undefined, {
     month: 'short', day: 'numeric',
@@ -412,6 +441,9 @@ export function DashboardPage() {
         <h2 className="dash-section-title">Deposit SOL</h2>
         <DepositAddress address={user.depositAddress} />
       </section>
+
+      {/* Referral */}
+      {user.refCode && <ReferralCard refCode={user.refCode} />}
 
       {/* Tabbed history */}
       <section className="dash-section">

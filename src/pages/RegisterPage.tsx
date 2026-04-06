@@ -1,11 +1,13 @@
 import { FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { PasswordInput } from '../components/PasswordInput';
 
 export function RegisterPage() {
   const { register } = useAuth();
   const navigate     = useNavigate();
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get('ref') ?? undefined;
   const [username, setUsername] = useState('');
   const [pw, setPw]             = useState('');
   const [pw2, setPw2]           = useState('');
@@ -19,7 +21,7 @@ export function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      await register(username, pw, email || undefined);
+      await register(username, pw, email || undefined, refCode);
       navigate('/');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');
