@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { AuthTabBar } from './AuthPage';
 
 // ── Inline mock auction card ─────────────────────────────────────
 function MockAuction({
@@ -110,6 +111,10 @@ function MockTimer({ seconds, ended }: { seconds: string; ended?: boolean }) {
 export function HowItWorksPage() {
   return (
     <div className="hiw-page">
+      <div className="hiw-tab-nav">
+        <div className="auth-logo" style={{ marginBottom: 0 }}>penny<strong>Bid</strong></div>
+        <AuthTabBar active="hiw" />
+      </div>
       <div className="hiw-hero">
         <h1 className="hiw-hero-title">How penny<strong>Bid</strong> works</h1>
         <p className="hiw-hero-sub">

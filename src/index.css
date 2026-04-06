@@ -304,19 +304,12 @@ a:hover { text-decoration: underline; }
   margin-top: 20px;
 }
 
-/* ─── AuthPage — tabbed wide layout ─────────────────────────── */
-.auth-page--wide { align-items: flex-start; padding-top: 40px; }
-
-.auth-card--tabbed {
-  max-width: 680px;
-  padding: 32px 36px;
-}
-
+/* ─── Auth tab bar (shared on login / how-it-works / auctions) ── */
 .auth-tabs {
   display: flex;
   gap: 4px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .auth-tab-btn {
@@ -330,8 +323,10 @@ a:hover { text-decoration: underline; }
   font-weight: 600;
   letter-spacing: 0.3px;
   margin-bottom: -1px;
-  padding: 8px 14px;
+  padding: 8px 12px;
+  text-decoration: none;
   transition: color 0.15s, border-color 0.15s;
+  display: inline-block;
 }
 .auth-tab-btn:hover { color: var(--text); }
 .auth-tab-btn[data-active='true'] {
@@ -339,95 +334,29 @@ a:hover { text-decoration: underline; }
   color: var(--orange);
 }
 
-.auth-tab-content .auth-title { margin-bottom: 20px; }
-
-/* ─── How It Works tab (inline) ────────────────────────────── */
-.auth-hiw { max-width: 540px; }
-
-.auth-hiw-intro {
-  font-size: 14px;
-  color: var(--text-muted);
-  margin-bottom: 24px;
-  line-height: 1.6;
-}
-.auth-hiw-intro strong { color: var(--orange); font-weight: 900; }
-
-.auth-hiw-steps { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
-
-.auth-hiw-step {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
+/* ─── Public auctions page ──────────────────────────────────── */
+.pub-auctions-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px;
 }
 
-.auth-hiw-step-num {
-  flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--orange);
-  color: #000;
-  font-size: 12px;
-  font-weight: 800;
+.pub-auctions-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-top: 2px;
-}
-
-.auth-hiw-step-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 3px;
-}
-
-.auth-hiw-step-body {
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.auth-hiw-faq {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 16px;
-  margin-bottom: 4px;
-}
-
-.auth-hiw-faq-item {
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.auth-hiw-faq-item strong { color: var(--text); }
-
-/* ─── Auctions tab (public preview) ────────────────────────── */
-.auth-auctions-loading,
-.auth-auctions-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 40px 0;
-  color: var(--text-muted);
-  font-size: 14px;
-}
-
-.auth-auctions-cta {
-  display: flex;
-  gap: 10px;
+  gap: 32px;
   margin-bottom: 24px;
 }
 
-.auth-auctions-section { margin-bottom: 24px; }
+.pub-auctions-cta {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 32px;
+}
 
-.auth-auctions-section-title {
+.pub-auctions-section { margin-bottom: 32px; }
+
+.pub-auctions-section-title {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -439,12 +368,13 @@ a:hover { text-decoration: underline; }
   gap: 8px;
 }
 
-.auth-auctions-grid {
+.pub-auctions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
 }
 
+/* ─── Public auction card ───────────────────────────────────── */
 .pub-auction-card {
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -492,9 +422,16 @@ a:hover { text-decoration: underline; }
   margin-bottom: 4px;
 }
 
-.pub-auction-retail {
-  font-size: 11px;
-  color: var(--text-dim);
+.pub-auction-retail { font-size: 11px; color: var(--text-dim); }
+
+/* ─── HowItWorksPage tab nav ────────────────────────────────── */
+.hiw-tab-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  max-width: 900px;
+  margin: 0 auto 8px;
+  padding: 24px 24px 0;
 }
 
 /* ─── Home / Auction grid ────────────────────────────────────── */
