@@ -995,6 +995,12 @@ setInterval(async () => {
         const creditsEarned = Math.floor(lamportsDiff / LAMPORTS_PER_SOL * 100);
         if (creditsEarned >= 1) {
           const newCredits = row.credits + creditsEarned;
+          // Fetch deposit tx signature from chain
+          let depositSig = null;
+          try {
+            const sigs = await connection.getSignaturesForAddress(new PublicKey(row.deposit_address), { limit: 3 });
+            depositSig = sigs[0]?.signature ?? null;
+          } catch { /* non-critical */ }
           db.transaction(() => {
             addCredits.run({ id: row.id, credits: newCredits });
             stmt.insertTx.run({
@@ -1005,7 +1011,7 @@ setInterval(async () => {
               auction_id: null,
               credits:    creditsEarned,
               sol:        parseFloat((lamportsDiff / LAMPORTS_PER_SOL).toFixed(4)),
-              sig:        null,
+              sig:        depositSig,
               ts:         Date.now(),
             });
           })();
