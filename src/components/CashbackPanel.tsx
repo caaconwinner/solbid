@@ -9,7 +9,8 @@ interface Props {
 }
 
 export function CashbackPanel({ participants, winner, userId, ended }: Props) {
-  const eligible = participants.filter(p => p.real_bids > 0);
+  // All bidders are eligible
+  const eligible = participants;
 
   // Rolling name animation — cycles through eligible bidders while live
   const [rollingIdx, setRollingIdx] = useState(0);
@@ -35,8 +36,8 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
       <div className="cashback-header">
         <span className="cashback-icon">🎰</span>
         <div>
-          <div className="cashback-title">Credit Cashback</div>
-          <div className="cashback-sub">1 random bidder wins bonus credits back</div>
+          <div className="cashback-title">Credit Cashback Raffle</div>
+          <div className="cashback-sub">Every bidder is entered automatically</div>
         </div>
       </div>
 
@@ -56,7 +57,7 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
             <>
               <div className="cashback-drum">
                 <div className={`cashback-drum-name ${spinning ? 'cashback-drum-name--spin' : ''}`}>
-                  {rollingName === userId ? '⭐ You' : rollingName}
+                  {eligible[rollingIdx]?.id === userId ? '⭐ You' : rollingName}
                 </div>
                 <div className="cashback-drum-sub">could win</div>
               </div>
@@ -73,15 +74,19 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
                   </div>
                 ))}
                 {eligible.length > 6 && (
-                  <div className="cashback-more">+{eligible.length - 6} more eligible</div>
+                  <div className="cashback-more">+{eligible.length - 6} more in raffle</div>
                 )}
               </div>
             </>
           ) : (
             <div className="cashback-empty">
-              {ended ? 'No eligible bidders' : 'Bid to enter the raffle'}
+              No bids yet — be the first to enter!
             </div>
           )}
+
+          <div className="cashback-disclaimer">
+            At auction end, 1 random bidder wins back their bid count as bonus credits (non-refundable, bid-only).
+          </div>
         </>
       )}
     </div>

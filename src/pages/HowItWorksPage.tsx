@@ -195,6 +195,40 @@ export function HowItWorksPage() {
           </div>
         </Step>
 
+        <Arrow />
+
+        {/* ── Bonus: Cashback raffle ── */}
+        <Step n={6} title="Cashback raffle — every bidder gets a chance"
+          body="At the end of every auction, one random bidder is picked and wins back their total bid count as bonus credits. You are entered automatically just by bidding — no extra steps needed.">
+          <div className="hiw-cashback-demo">
+            <div className="hiw-cashback-panel">
+              <div className="hiw-cashback-head">🎰 Credit Cashback Raffle</div>
+              <div className="hiw-cashback-drum">shadow99</div>
+              <div className="hiw-cashback-drum-sub">could win</div>
+              <div className="hiw-cashback-rows">
+                {[
+                  { name: '⭐ You',    bids: 8, you: true },
+                  { name: 'shadow99', bids: 12, you: false },
+                  { name: 'xLancer',  bids: 4,  you: false },
+                ].map(r => (
+                  <div key={r.name} className={`hiw-cashback-row ${r.you ? 'hiw-cashback-row--you' : ''}`}>
+                    <span>{r.name}</span><span>{r.bids} bids</span>
+                  </div>
+                ))}
+              </div>
+              <div className="hiw-cashback-note">
+                At auction end, 1 random bidder wins bonus credits equal to their bid count (non-refundable, bid-only).
+              </div>
+            </div>
+            <div className="hiw-cashback-winner">
+              <div className="hiw-cashback-win-emoji">🏅</div>
+              <div className="hiw-cashback-win-name">shadow99</div>
+              <div className="hiw-cashback-win-amount">+12 bonus credits</div>
+              <div className="hiw-cashback-win-sub">Non-refundable · use to bid</div>
+            </div>
+          </div>
+        </Step>
+
         {/* ── FAQ ── */}
         <div className="hiw-faq">
           <h2 className="hiw-faq-title">Common questions</h2>
