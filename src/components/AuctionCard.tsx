@@ -92,10 +92,10 @@ export function AuctionCard({ auction }: Props) {
     <div
       className="auction-card"
       data-ended={ended}
-      onClick={() => navigate(`/auction/${auction.auctionId}`)}
+      onClick={() => navigate(`/auction/${auction.auctionId}`, { state: { auction } })}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && navigate(`/auction/${auction.auctionId}`)}
+      onKeyDown={(e) => e.key === 'Enter' && navigate(`/auction/${auction.auctionId}`, { state: { auction } })}
     >
       <div className="card-image-wrap">
         <img className="card-image" src={auction.item.image} alt={auction.item.name} />

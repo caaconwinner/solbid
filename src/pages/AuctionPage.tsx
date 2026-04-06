@@ -1,13 +1,16 @@
 import { useState } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AuctionRoom } from '../components/AuctionRoom';
 import { DepositAddress } from '../components/DepositAddress';
 import { Link } from 'react-router-dom';
+import type { AuctionListing } from '../types';
 
 export function AuctionPage() {
   const { auctionId } = useParams<{ auctionId: string }>();
   const { user }      = useAuth();
+  const location      = useLocation();
+  const initialAuction = (location.state as { auction?: AuctionListing } | null)?.auction;
   const [liveCredits, setLiveCredits] = useState<number | null>(null);
 
   if (!auctionId || !user) return <Navigate to="/" replace />;
@@ -18,7 +21,7 @@ export function AuctionPage() {
       <div className="auction-page-layout">
       {/* Main auction */}
       <div className="auction-page-main">
-        <AuctionRoom auctionId={auctionId} userId={user.id} onCreditsChange={setLiveCredits} />
+        <AuctionRoom auctionId={auctionId} userId={user.id} onCreditsChange={setLiveCredits} initialAuction={initialAuction} />
       </div>
 
       {/* Account panel */}

@@ -6,16 +6,18 @@ import { BidButton }    from './BidButton';
 import { BidFeed }      from './BidFeed';
 import { CashbackPanel } from './CashbackPanel';
 import { Link }         from 'react-router-dom';
+import type { AuctionListing } from '../types';
 
 interface Props {
   auctionId:        string;
   userId:           string;
   onCreditsChange?: (credits: number) => void;
+  initialAuction?:  AuctionListing;
 }
 
-export function AuctionRoom({ auctionId, userId, onCreditsChange }: Props) {
+export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction }: Props) {
   const { auction, bids, userCredits, clockDrift, isConnected, bidResult, viewers, cashback, placeBid } =
-    useAuction(auctionId, userId);
+    useAuction(auctionId, userId, initialAuction);
 
   useEffect(() => { onCreditsChange?.(userCredits); }, [userCredits]);
 

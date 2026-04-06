@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react';
 import toast from 'react-hot-toast';
 import { socket } from '../socket';
-import { AuctionState, BidEvent, BidResult, CashbackParticipant, CashbackState, CashbackWinner, SyncPayload } from '../types';
+import { AuctionListing, AuctionState, BidEvent, BidResult, CashbackParticipant, CashbackState, CashbackWinner, SyncPayload } from '../types';
 
 interface State {
   auction:     AuctionState | null;
@@ -84,14 +84,19 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-const initial: State = {
-  auction: null, bids: [], userCredits: 0,
-  clockDrift: 0, isConnected: false, bidResult: null, viewers: 0,
-  cashback: { participants: [], winner: null },
-};
+function listingToState(a: AuctionListing): AuctionState {
+  return { auctionId: a.auctionId, item: a.item, currentPrice: a.currentPrice,
+           leaderId: null, leaderName: a.leaderName, endsAtMs: a.endsAtMs,
+           status: a.status, totalBids: a.totalBids };
+}
 
-export function useAuction(auctionId: string, currentUserId: string) {
-  const [state, dispatch] = useReducer(reducer, initial);
+export function useAuction(auctionId: string, currentUserId: string, initialAuction?: AuctionListing) {
+  const [state, dispatch] = useReducer(reducer, undefined, () => ({
+    auction: initialAuction ? listingToState(initialAuction) : null,
+    bids: [], userCredits: 0, clockDrift: 0, isConnected: false,
+    bidResult: null as BidResult, viewers: initialAuction?.viewers ?? 0,
+    cashback: { participants: [], winner: null } as { participants: CashbackParticipant[]; winner: CashbackWinner | null },
+  }));
 
   useEffect(() => {
     function joinAuction() {
