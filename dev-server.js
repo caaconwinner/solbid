@@ -523,12 +523,13 @@ app.post('/api/withdraw', requireAuth, withdrawLimiter, async (req, res) => {
   try { destination = new PublicKey(destinationAddress); }
   catch { return res.status(400).json({ message: 'Invalid Solana address' }); }
 
+  const FEE_BUFFER = 5000; // lamports reserved for tx fee — deducted from sent amount
   const lamports   = Math.round(amountCredits * 0.01 * LAMPORTS_PER_SOL);
+  const sendLamports = lamports - FEE_BUFFER; // user gets slightly less; fee comes out of their request
   const fromPubkey = new PublicKey(user.depositAddress);
   console.log(`[withdraw] checking balance for ${user.username} at ${user.depositAddress}`);
   const balance    = await connection.getBalance(fromPubkey).catch((e) => { console.error('[withdraw] getBalance failed:', e.message); return 0; });
-  const FEE_BUFFER = 5000;
-  if (balance < lamports + FEE_BUFFER) {
+  if (balance < lamports) {
     const hasSol = (balance / LAMPORTS_PER_SOL).toFixed(4);
     return res.status(400).json({ message: `Insufficient on-chain balance. Deposit address holds ${hasSol} SOL.` });
   }
@@ -538,7 +539,7 @@ app.post('/api/withdraw', requireAuth, withdrawLimiter, async (req, res) => {
     secretKey = decryptSecret(user._enc);
     const keypair = Keypair.fromSecretKey(secretKey);
     const tx = new Transaction().add(
-      SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: destination, lamports })
+      SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: destination, lamports: sendLamports })
     );
     const sig = await sendAndConfirmTransaction(connection, tx, [keypair]);
 
