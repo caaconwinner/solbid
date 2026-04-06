@@ -49,9 +49,16 @@ export function AuctionCard({ auction }: Props) {
     if (pending || !user || (user.credits + (user.bonusCredits ?? 0)) < 1) return;
     setPending(true);
 
-    const onConfirmed = () => { setPending(false); toast.success('Bid placed!', { duration: 1500 }); };
+    // Ensure joined before bidding
+    if (!joinedRef.current) {
+      socket.emit('join-auction', auction.auctionId);
+      joinedRef.current = true;
+    }
+
+    const cleanup = () => { socket.off('bid-confirmed', onConfirmed); socket.off('bid-rejected', onRejected); };
+    const onConfirmed = () => { cleanup(); setPending(false); toast.success('Bid placed!', { duration: 1500 }); };
     const onRejected  = ({ reason }: { reason?: string } = {}) => {
-      setPending(false);
+      cleanup(); setPending(false);
       if (reason === 'ALREADY_LEADER') toast('You are already the winning bid!', { icon: '👑', duration: 3000 });
       else toast.error('Bid rejected');
     };
@@ -60,8 +67,7 @@ export function AuctionCard({ auction }: Props) {
     socket.once('bid-rejected',  onRejected);
     socket.emit('place-bid', { auctionId: auction.auctionId });
 
-    // Fallback timeout
-    setTimeout(() => { setPending(false); socket.off('bid-confirmed', onConfirmed); socket.off('bid-rejected', onRejected); }, 5000);
+    setTimeout(() => { cleanup(); setPending(false); }, 2500);
   };
 
   const credits = user ? user.credits + (user.bonusCredits ?? 0) : 0;
