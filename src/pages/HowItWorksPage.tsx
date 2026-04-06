@@ -168,7 +168,7 @@ export function HowItWorksPage() {
 
         {/* ── Step 4: Last bidder wins ── */}
         <Step n={4} title="Last bidder when the timer hits zero wins"
-          body="When the countdown reaches 0 with no new bids, the auction ends. The final bidder wins the item at whatever the current price is — often 90–99% off retail.">
+          body="When the countdown reaches 0 with no new bids, the auction ends. The final bidder wins the right to purchase the item at the final price in SOL — often 90–99% off retail.">
           <div className="hiw-cards-row hiw-cards-row--center">
             <div>
               <MockAuction name="PS5 Console" price="1.43" bids={143} timeLeft="" ended winner="shadow99" />

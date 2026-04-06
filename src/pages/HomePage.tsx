@@ -71,12 +71,12 @@ function SidebarHIW() {
 
       <SideArrow />
 
-      <StepCard n={4} title="Last bidder wins">
+      <StepCard n={4} title="Last bidder wins the right to buy">
         <div className="hs-winner-card">
           <div className="hs-winner-icon">🏆</div>
           <div className="hs-winner-info">
             <div className="hs-winner-name">You won!</div>
-            <div className="hs-winner-price">PS5 — final price $1.43</div>
+            <div className="hs-winner-price">PS5 — purchase at $1.43</div>
           </div>
         </div>
       </StepCard>
