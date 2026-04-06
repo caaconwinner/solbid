@@ -206,7 +206,7 @@ export function HomePage() {
 
       {winners.length > 0 && (
         <aside className="winners-sidebar">
-          <h3 className="hiw-title">Recent Winners</h3>
+          <h3 className="hiw-title">Recent Wins</h3>
           <div className="winners-list">
             {winners.map((a) => (
               <Link key={a.auctionId} to={`/auction/${a.auctionId}`} className="winner-card">
