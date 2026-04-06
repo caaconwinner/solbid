@@ -26,64 +26,10 @@ const LOGO_MONO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="240" heigh
 </svg>`;
 
 const TOKEN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-  <circle cx="60" cy="60" r="56" fill="#ff6200"/>
-  <circle cx="60" cy="60" r="50" fill="#cc4e00"/>
-  <text x="60" y="66" font-family="Inter,system-ui,sans-serif" font-size="22" text-anchor="middle"><tspan font-weight="400" fill="rgba(255,255,255,0.8)">penny</tspan><tspan font-weight="900" fill="#ffffff">Bid</tspan></text>
+  <circle cx="60" cy="60" r="58" fill="#1a1a1a"/>
+  <circle cx="60" cy="60" r="53" fill="none" stroke="#ff6200" stroke-width="5"/>
+  <text x="60" y="72" font-family="Inter,system-ui,sans-serif" font-size="38" font-weight="700" text-anchor="middle"><tspan fill="#ffffff">$</tspan><tspan fill="#ff6200">p</tspan></text>
 </svg>`;
-
-// ── Token icon variations ─────────────────────────────────────────
-const TOKEN_ICONS: { label: string; filename: string; svg: string }[] = [
-  {
-    label: 'Classic Coin',
-    filename: 'pennybid-token-classic.svg',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-  <circle cx="60" cy="60" r="58" fill="#ff6200"/>
-  <circle cx="60" cy="60" r="51" fill="#e05500"/>
-  <circle cx="60" cy="60" r="49" fill="#cc4e00"/>
-  <text x="60" y="56" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="400" fill="rgba(255,255,255,0.75)" text-anchor="middle">penny</text>
-  <text x="60" y="77" font-family="Inter,system-ui,sans-serif" font-size="24" font-weight="900" fill="#ffffff" text-anchor="middle">Bid</text>
-</svg>`,
-  },
-  {
-    label: 'Cent Mark',
-    filename: 'pennybid-token-cent.svg',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-  <circle cx="60" cy="60" r="58" fill="#ff6200"/>
-  <text x="60" y="80" font-family="Inter,system-ui,sans-serif" font-size="66" font-weight="900" fill="#ffffff" text-anchor="middle">¢</text>
-  <text x="60" y="100" font-family="Inter,system-ui,sans-serif" font-size="11" font-weight="600" fill="rgba(255,255,255,0.6)" text-anchor="middle" letter-spacing="2">PENNY</text>
-</svg>`,
-  },
-  {
-    label: 'Dark Coin',
-    filename: 'pennybid-token-dark.svg',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-  <circle cx="60" cy="60" r="58" fill="#111111"/>
-  <circle cx="60" cy="60" r="54" fill="none" stroke="#ff6200" stroke-width="2.5"/>
-  <text x="60" y="56" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="400" fill="rgba(255,255,255,0.6)" text-anchor="middle">penny</text>
-  <text x="60" y="77" font-family="Inter,system-ui,sans-serif" font-size="24" font-weight="900" fill="#ff6200" text-anchor="middle">Bid</text>
-</svg>`,
-  },
-  {
-    label: 'Hex Token',
-    filename: 'pennybid-token-hex.svg',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-  <polygon points="107,87 60,114 13,87 13,33 60,6 107,33" fill="#ff6200"/>
-  <polygon points="100,83 60,106 20,83 20,37 60,14 100,37" fill="#e05500"/>
-  <text x="60" y="56" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="400" fill="rgba(255,255,255,0.7)" text-anchor="middle">penny</text>
-  <text x="60" y="77" font-family="Inter,system-ui,sans-serif" font-size="24" font-weight="900" fill="#ffffff" text-anchor="middle">Bid</text>
-</svg>`,
-  },
-  {
-    label: 'Rounded Square',
-    filename: 'pennybid-token-square.svg',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-  <rect x="4" y="4" width="112" height="112" rx="28" ry="28" fill="#ff6200"/>
-  <rect x="10" y="10" width="100" height="100" rx="22" ry="22" fill="#cc4e00"/>
-  <text x="60" y="52" font-family="Inter,system-ui,sans-serif" font-size="12" font-weight="400" fill="rgba(255,255,255,0.7)" text-anchor="middle">penny</text>
-  <text x="60" y="75" font-family="Inter,system-ui,sans-serif" font-size="26" font-weight="900" fill="#ffffff" text-anchor="middle">Bid</text>
-</svg>`,
-  },
-];
 
 // ── Colour swatch ────────────────────────────────────────────────
 function Swatch({ name, hex, dark }: { name: string; hex: string; dark?: boolean }) {
@@ -225,24 +171,6 @@ export function BrandPage() {
               Google Fonts ↗
             </a>
           </div>
-        </div>
-      </section>
-
-      {/* ── Token icon variations ── */}
-      <section className="brand-section">
-        <h2 className="brand-section-title">Token Icon Variations</h2>
-        <div className="brand-logo-grid">
-          {TOKEN_ICONS.map(({ label, filename, svg }) => (
-            <div key={filename} className="brand-logo-card">
-              <div className="brand-logo-preview" style={{ background: '#1a1a1a', minHeight: 140 }}>
-                <div dangerouslySetInnerHTML={{ __html: svg }} />
-              </div>
-              <div className="brand-logo-footer">
-                <span className="brand-logo-label">{label}</span>
-                <button className="brand-dl-btn" onClick={() => downloadSvg(svg, filename)}>SVG ↓</button>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 
