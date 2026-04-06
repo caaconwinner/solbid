@@ -230,6 +230,12 @@ const stmt = {
   upsertAuction:    db.prepare('INSERT OR REPLACE INTO auctions_persist (id, data) VALUES (@id, @data)'),
   deleteAuction:    db.prepare('DELETE FROM auctions_persist WHERE id = ?'),
   allAuctions:      db.prepare('SELECT * FROM auctions_persist'),
+  getRecentBids:    db.prepare(`
+    SELECT t.user_id, u.username, t.ts
+    FROM transactions t JOIN users u ON t.user_id = u.id
+    WHERE t.auction_id = ? AND t.type = 'bid'
+    ORDER BY t.ts DESC LIMIT 10
+  `),
   setResetToken:    db.prepare('UPDATE users SET reset_token = @token, reset_expires = @expires WHERE id = @id'),
   getUserByToken:   db.prepare('SELECT * FROM users WHERE reset_token = ?'),
   clearResetToken:  db.prepare('UPDATE users SET reset_token = NULL, reset_expires = NULL, password_hash = @hash WHERE id = @id'),
@@ -917,10 +923,16 @@ io.on('connection', (socket) => {
     const auction = auctions.get(auctionId);
     if (!auction) return;
     socket.join(auctionId);
+    const recentBids = stmt.getRecentBids.all(auctionId).map((b, i) => ({
+      u: b.user_id, n: b.username,
+      p: parseFloat((auction.currentPrice - i * 0.01).toFixed(2)),
+      t: auction.endsAtMs, s: 0, ts: b.ts,
+    }));
     socket.emit('auction-sync', {
       auction,
       serverTimeMs: Date.now(),
       userCredits:  user.credits + user.bonusCredits,
+      recentBids,
       cashback: {
         participants: stmt.getCashbackParticipants.all(auctionId),
         winner:       stmt.getCashbackWinner.get(auctionId) ?? auction.cashbackWinner ?? null,

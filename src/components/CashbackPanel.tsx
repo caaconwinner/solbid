@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CashbackParticipant, CashbackWinner } from '../types';
 
 interface Props {
@@ -9,27 +9,83 @@ interface Props {
 }
 
 export function CashbackPanel({ participants, winner, userId, ended }: Props) {
-  // All bidders are eligible
   const eligible = participants;
 
-  // Rolling name animation — cycles through eligible bidders while live
-  const [rollingIdx, setRollingIdx] = useState(0);
-  const [spinning,   setSpinning]   = useState(false);
+  // Three phases: 'live' (normal rolling), 'spinning' (fast spin animation), 'revealed' (show winner)
+  // If winner already present on mount (e.g. page refresh after auction ended), skip to revealed
+  const [phase, setPhase] = useState<'live' | 'spinning' | 'revealed'>(winner ? 'revealed' : 'live');
+  const [animIdx, setAnimIdx] = useState(0);
+  const prevWinner = useRef<CashbackWinner | null>(winner);
+  const iidRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tidRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Normal rolling while live
   useEffect(() => {
-    if (ended || eligible.length === 0) return;
-    setSpinning(true);
+    if (phase !== 'live' || ended || eligible.length === 0) return;
     const id = setInterval(() => {
-      setRollingIdx(i => (i + 1) % eligible.length);
+      setAnimIdx(i => (i + 1) % eligible.length);
     }, 400);
-    return () => { clearInterval(id); setSpinning(false); };
-  }, [eligible.length, ended]);
+    return () => clearInterval(id);
+  }, [phase, eligible.length, ended]);
 
-  const rollingName = eligible.length > 0 ? eligible[rollingIdx]?.username ?? '—' : '—';
-  const winnerId    = winner?.userId ?? winner?.user_id;
-  const winnerName  = winner?.username ?? '—';
-  const winnerAmt   = winner?.creditsRefunded ?? winner?.credits_refunded ?? 0;
-  const isMyWin     = winnerId === userId;
+  // Spin reveal when winner first arrives
+  useEffect(() => {
+    if (!winner || prevWinner.current) return;
+    prevWinner.current = winner;
+
+    if (eligible.length === 0) { setPhase('revealed'); return; }
+
+    const winnerId  = winner.userId ?? winner.user_id;
+    const winnerIdx = eligible.findIndex(p => p.id === winnerId);
+    const landing   = winnerIdx >= 0 ? winnerIdx : 0;
+
+    setPhase('spinning');
+
+    let idx = 0;
+    const clearAll = () => {
+      if (iidRef.current) clearInterval(iidRef.current);
+      if (tidRef.current) clearTimeout(tidRef.current);
+    };
+
+    // Spin sequence: [ interval, duration ] pairs — fast → slow → land
+    const steps: [number, number][] = [
+      [60,  1400],
+      [120, 1000],
+      [220, 800],
+      [380, 600],
+    ];
+
+    let stepIdx = 0;
+    function runStep() {
+      if (stepIdx >= steps.length) {
+        clearAll();
+        setAnimIdx(landing);
+        tidRef.current = setTimeout(() => setPhase('revealed'), 700);
+        return;
+      }
+      const [interval, duration] = steps[stepIdx];
+      iidRef.current = setInterval(() => {
+        idx = (idx + 1) % eligible.length;
+        setAnimIdx(idx);
+      }, interval);
+      tidRef.current = setTimeout(() => {
+        clearInterval(iidRef.current!);
+        stepIdx++;
+        runStep();
+      }, duration);
+    }
+
+    runStep();
+    return clearAll;
+  }, [winner, eligible]);
+
+  const rollingName = eligible.length > 0 ? (eligible[animIdx]?.username ?? '—') : '—';
+  const rollingId   = eligible[animIdx]?.id;
+
+  const winnerId   = winner?.userId ?? winner?.user_id;
+  const winnerName = winner?.username ?? '—';
+  const winnerAmt  = winner?.creditsRefunded ?? winner?.credits_refunded ?? 0;
+  const isMyWin    = winnerId === userId;
 
   return (
     <div className="cashback-panel">
@@ -41,8 +97,8 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
         </div>
       </div>
 
-      {/* Winner reveal */}
-      {winner && (
+      {/* Winner revealed */}
+      {phase === 'revealed' && winner && (
         <div className={`cashback-winner-reveal ${isMyWin ? 'cashback-winner-reveal--you' : ''}`}>
           <div className="cashback-winner-emoji">{isMyWin ? '🎉' : '🏅'}</div>
           <div className="cashback-winner-name">{isMyWin ? 'You won!' : winnerName}</div>
@@ -50,16 +106,21 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
         </div>
       )}
 
-      {/* Live state */}
-      {!winner && (
+      {/* Drum — shown while live or spinning */}
+      {(phase === 'live' || phase === 'spinning') && (
         <>
           {eligible.length > 0 ? (
             <>
               <div className="cashback-drum">
-                <div className={`cashback-drum-name ${spinning ? 'cashback-drum-name--spin' : ''}`}>
-                  {eligible[rollingIdx]?.id === userId ? '⭐ You' : rollingName}
+                <div
+                  key={`${phase}-${animIdx}`}
+                  className={`cashback-drum-name ${phase === 'spinning' ? 'cashback-drum-name--spin' : ''}`}
+                >
+                  {rollingId === userId ? '⭐ You' : rollingName}
                 </div>
-                <div className="cashback-drum-sub">could win</div>
+                <div className="cashback-drum-sub">
+                  {phase === 'spinning' ? 'picking winner…' : 'could win'}
+                </div>
               </div>
 
               <div className="cashback-list">
@@ -84,9 +145,11 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
             </div>
           )}
 
-          <div className="cashback-disclaimer">
-            At auction end, 1 random bidder wins back their bid count as bonus credits (non-refundable, bid-only).
-          </div>
+          {phase === 'live' && (
+            <div className="cashback-disclaimer">
+              At auction end, 1 random bidder wins back their bid count as bonus credits (non-refundable, bid-only).
+            </div>
+          )}
         </>
       )}
     </div>

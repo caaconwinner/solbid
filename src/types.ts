@@ -49,6 +49,7 @@ export interface SyncPayload {
   auction: AuctionState;
   serverTimeMs: number;
   userCredits: number;
+  recentBids?: BidEvent[];
   cashback?: CashbackState;
 }
 

@@ -40,6 +40,7 @@ function reducer(state: State, action: Action): State {
         userCredits: action.payload.userCredits,
         clockDrift:  action.payload.serverTimeMs - Date.now(),
         cashback:    action.payload.cashback ?? state.cashback,
+        bids:        action.payload.recentBids ?? state.bids,
       };
 
     case 'BID_PLACED': {
