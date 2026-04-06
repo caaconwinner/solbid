@@ -63,7 +63,7 @@ a:hover { text-decoration: underline; }
 .header-logo {
   font-size: 18px;
   font-weight: 400;
-  color: #f5f5dc;
+  color: var(--text);
   letter-spacing: -0.3px;
   text-decoration: none;
 }
