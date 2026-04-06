@@ -29,6 +29,8 @@ html { scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
+  background-image: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,98,0,0.07) 0%, transparent 70%);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font);
   font-size: clamp(14px, 1vw, 16px);
@@ -1048,7 +1050,6 @@ a:hover { text-decoration: underline; }
   text-align: center;
   padding: 64px 24px 48px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(255,98,0,0.05) 0%, transparent 100%);
 }
 .hiw-hero-title { font-size: clamp(28px, 5vw, 48px); font-weight: 700; letter-spacing: -1px; color: var(--text); }
 .hiw-hero-title strong { color: var(--orange); }
