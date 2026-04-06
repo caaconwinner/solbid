@@ -122,7 +122,7 @@ export function HowItWorksPage() {
 
         {/* ── Step 1: Deposit ── */}
         <Step n={1} title="Deposit SOL & get bid credits"
-          body="1 credit = 0.01 SOL. Credits are non-refundable once bid — that's the platform revenue that keeps auction prizes affordable.">
+          body="1 credit = 0.01 SOL. Credits are non-refundable once bid. Unspent credits are always fully refundable — withdraw them as SOL anytime.">
           <div className="hiw-packs">
             <MockCreditPack credits={10}  sol="0.10" />
             <MockCreditPack credits={50}  sol="0.50" highlighted />
@@ -205,7 +205,7 @@ export function HowItWorksPage() {
               { q: 'Can I get sniped at the last second?', a: 'Yes — that\'s the game! The snap timer means the auction can\'t end until 15 full seconds pass with no bids. Watch the feed and time your bids.' },
               { q: 'What happens to my SOL after I bid?', a: 'Your credits decrease by 1 per bid. The SOL backing those credits is swept to the platform. Only unspent credits retain SOL value.' },
               { q: 'Is my wallet safe?', a: 'Your deposit wallet is custodial (we hold the key) and encrypted with AES-256-GCM. Only withdrawal and sweep operations ever sign a transaction.' },
-              { q: 'How is the auction price so low?', a: 'The price only goes up $0.01 per bid, so even 200 bids = $2.00. The platform earns from bid credits, not the final price.' },
+              { q: 'How is the auction price so low?', a: 'The price only goes up $0.01 per bid, so even 200 bids = $2.00. Winners get high-value items for a fraction of retail.' },
             ].map(({ q, a }) => (
               <div key={q} className="hiw-faq-item">
                 <div className="hiw-faq-q">{q}</div>
