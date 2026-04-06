@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useTimer } from '../hooks/useTimer';
 import { useAuth } from '../context/AuthContext';
@@ -128,7 +128,11 @@ export function AuctionCard({ auction }: Props) {
           <div className="card-winner">🏆 {auction.leaderName} won at ${auction.currentPrice.toFixed(2)}</div>
         )}
 
-        {active ? (
+        {active && !user ? (
+          <Link to="/login" className="card-bid-btn card-bid-btn--guest" onClick={e => e.stopPropagation()}>
+            Sign in to bid
+          </Link>
+        ) : active ? (
           <button
             className={`card-bid-btn ${pending ? 'card-bid-btn--pending' : ''}`}
             onClick={placeBid}

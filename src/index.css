@@ -740,6 +740,8 @@ a:hover { text-decoration: underline; }
 .card-bid-btn:hover:not(:disabled) { background: var(--orange); color: #fff; }
 .card-bid-btn:disabled { opacity: 0.4; cursor: default; }
 .card-bid-btn--pending { background: var(--orange); color: #fff; opacity: 0.7; }
+.card-bid-btn--guest { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); text-decoration: none; text-align: center; }
+.card-bid-btn--guest:hover { border-color: var(--orange); color: var(--orange); }
 
 /* ─── Dashboard ──────────────────────────────────────────────── */
 .dash-section { margin-bottom: 32px; }

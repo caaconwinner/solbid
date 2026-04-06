@@ -103,14 +103,13 @@ export function HomePage() {
   const hasDataRef                          = useRef(false);
 
   useEffect(() => {
-    if (!token) return;
-
     setLoading(true);
     setError('');
     hasDataRef.current = false;
 
-    const fetchAuctions = () =>
-      api.auctions(token as string)
+    const fetchAuctions = () => {
+      const req = token ? api.auctions(token) : api.auctionsPublic();
+      return req
         .then(({ auctions: a }) => {
           setAuctions(a);
           setError('');
@@ -119,10 +118,10 @@ export function HomePage() {
         })
         .catch((err) => {
           console.error('[home] auctions fetch failed:', err);
-          // Only show error on first load; silently keep stale data if we already have auctions
           if (!hasDataRef.current) setError(err.message ?? 'Failed to load auctions');
           setLoading(false);
         });
+    };
 
     fetchAuctions();
     const id = setInterval(fetchAuctions, 4000);
