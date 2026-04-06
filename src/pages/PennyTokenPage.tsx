@@ -132,7 +132,7 @@ export function PennyTokenPage() {
 
         {/* ── Step 1: What is $penny ── */}
         <Step n={1}
-          title={<><span style={{ color: 'var(--orange)' }}>$penny</span> is the native token of pennyBid</>}
+          title={<><span style={{ color: 'var(--orange)' }}>$penny</span> is the native token of penny<span style={{ color: 'var(--orange)', fontWeight: 900 }}>Bid</span></>}
           body="$penny is a Solana SPL token launched on pump.fun. It powers the platform's reward mechanics, credit system, and buyback engine. Holding $penny gives you access to the auction economy.">
           <div className="penny-hero-token">
             <div className="penny-token-coin">
