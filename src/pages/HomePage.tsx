@@ -33,9 +33,9 @@ export function HomePage() {
     return () => clearInterval(id);
   }, [token]);
 
-  const live     = auctions.filter((a) => a.status === 'active');
-  const upcoming = auctions.filter((a) => a.status === 'scheduled');
-  const past     = auctions.filter((a) => a.status === 'ended' || a.status === 'settled');
+  const live     = auctions.filter((a) => a.status === 'active').sort((a, b) => b.endsAtMs - a.endsAtMs);
+  const upcoming = auctions.filter((a) => a.status === 'scheduled').sort((a, b) => a.endsAtMs - b.endsAtMs);
+  const past     = auctions.filter((a) => a.status === 'ended' || a.status === 'settled').sort((a, b) => b.endsAtMs - a.endsAtMs);
 
   if (loading && auctions.length === 0) {
     return (
