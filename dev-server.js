@@ -1155,10 +1155,6 @@ setInterval(async () => {
         const lamportsDiff  = balance - alreadyCredited;
         const creditsEarned = Math.floor(lamportsDiff / LAMPORTS_PER_SOL * 100);
         if (creditsEarned >= 1) {
-          // Check first-deposit status BEFORE inserting
-          const existingDeposits = db.prepare("SELECT COUNT(*) as cnt FROM transactions WHERE user_id = ? AND type = 'deposit'").get(row.id).cnt;
-          const isFirstDeposit   = existingDeposits === 0;
-
           const newCredits = row.credits + creditsEarned;
           // Fetch deposit tx signature from chain
           let depositSig = null;
@@ -1183,12 +1179,6 @@ setInterval(async () => {
           })();
           console.log(`[deposit] ${row.id} +${creditsEarned} credits (+${(lamportsDiff / LAMPORTS_PER_SOL).toFixed(4)} SOL)`);
           row.credits += creditsEarned;
-
-          // ── First-deposit welcome bonus (≥ 0.28 SOL = 28 credits) ──
-          if (isFirstDeposit && creditsEarned >= 28) {
-            db.prepare('UPDATE users SET bonus_credits = bonus_credits + 3 WHERE id = ?').run(row.id);
-            console.log(`[ref] welcome bonus +3 bonus credits → ${row.id}`);
-          }
 
           // ── Referral reward (first qualifying deposit ≥ 0.05 SOL = 5 credits) ──
           if (creditsEarned >= 5) {

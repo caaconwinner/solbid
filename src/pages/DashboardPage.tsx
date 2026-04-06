@@ -30,7 +30,6 @@ function ReferralCard({ refCode }: { refCode: string }) {
             {copied ? 'Copied!' : 'Copy'}
           </button>
         </div>
-        <p className="referral-note">First deposit of ≥ 0.28 SOL? You also get +3 welcome bonus credits automatically.</p>
       </div>
     </section>
   );
