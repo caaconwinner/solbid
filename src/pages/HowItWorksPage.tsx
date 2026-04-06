@@ -250,7 +250,7 @@ export function HowItWorksPage() {
         </div>
 
         <div className="hiw-cta">
-          <Link to="/register" className="btn btn-primary hiw-cta-btn">Create account &amp; start bidding</Link>
+          <Link to="/register" className="btn-outline">Create account &amp; start bidding</Link>
           <Link to="/" className="btn-outline">View live auctions</Link>
         </div>
 
