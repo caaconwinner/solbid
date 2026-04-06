@@ -4,6 +4,7 @@ import { Timer }        from './Timer';
 import { PriceDisplay } from './PriceDisplay';
 import { BidButton }    from './BidButton';
 import { BidFeed }      from './BidFeed';
+import { CashbackPanel } from './CashbackPanel';
 import { Link }         from 'react-router-dom';
 
 interface Props {
@@ -13,7 +14,7 @@ interface Props {
 }
 
 export function AuctionRoom({ auctionId, userId, onCreditsChange }: Props) {
-  const { auction, bids, userCredits, clockDrift, isConnected, bidResult, viewers, placeBid } =
+  const { auction, bids, userCredits, clockDrift, isConnected, bidResult, viewers, cashback, placeBid } =
     useAuction(auctionId, userId);
 
   useEffect(() => { onCreditsChange?.(userCredits); }, [userCredits]);
@@ -108,7 +109,15 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange }: Props) {
         </div>
       )}
 
-      <BidFeed bids={bids.slice(0, 10)} userId={userId} />
+      <div className="auction-bottom">
+        <CashbackPanel
+          participants={cashback.participants}
+          winner={cashback.winner}
+          userId={userId}
+          ended={ended}
+        />
+        <BidFeed bids={bids.slice(0, 10)} userId={userId} />
+      </div>
     </div>
   );
 }

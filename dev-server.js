@@ -173,6 +173,16 @@ try { db.exec('ALTER TABLE winners ADD COLUMN purchase_price REAL NOT NULL DEFAU
 try { db.exec('ALTER TABLE winners ADD COLUMN purchased INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE winners ADD COLUMN purchase_sig TEXT'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE users ADD COLUMN bonus_credits INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE transactions ADD COLUMN real_credit INTEGER NOT NULL DEFAULT 1'); } catch { /* already exists */ }
+try { db.exec(`
+  CREATE TABLE IF NOT EXISTS cashback_winners (
+    auction_id       TEXT PRIMARY KEY,
+    user_id          TEXT NOT NULL,
+    username         TEXT NOT NULL,
+    credits_refunded INTEGER NOT NULL,
+    ts               INTEGER NOT NULL
+  )
+`); } catch { /* already exists */ }
 // drop old columns if migrating from claimed→purchased schema (SQLite can't drop cols, just ignore)
 
 // ─── Prepared statements ───────────────────────────────────────
@@ -192,9 +202,21 @@ const stmt = {
   updateCredits:     db.prepare('UPDATE users SET credits = @credits WHERE id = @id'),
   updateBonusCredits: db.prepare('UPDATE users SET bonus_credits = @bonus WHERE id = @id'),
   addBonusAll:       db.prepare(`UPDATE users SET bonus_credits = bonus_credits + @amount WHERE id NOT LIKE 'bot-%'`),
+  addBonusOne:       db.prepare('UPDATE users SET bonus_credits = bonus_credits + @amount WHERE id = @id'),
   insertTx: db.prepare(`
-    INSERT INTO transactions (id, user_id, type, item, auction_id, credits, sol, sig, ts)
-    VALUES (@id, @user_id, @type, @item, @auction_id, @credits, @sol, @sig, @ts)
+    INSERT INTO transactions (id, user_id, type, item, auction_id, credits, sol, sig, ts, real_credit)
+    VALUES (@id, @user_id, @type, @item, @auction_id, @credits, @sol, @sig, @ts, @real_credit)
+  `),
+  getCashbackParticipants: db.prepare(`
+    SELECT u.id, u.username, COUNT(*) as total_bids, SUM(t.real_credit) as real_bids
+    FROM transactions t JOIN users u ON t.user_id = u.id
+    WHERE t.auction_id = ? AND t.type = 'bid' AND u.id NOT LIKE 'bot-%'
+    GROUP BY u.id ORDER BY real_bids DESC
+  `),
+  getCashbackWinner:    db.prepare('SELECT * FROM cashback_winners WHERE auction_id = ?'),
+  insertCashbackWinner: db.prepare(`
+    INSERT OR IGNORE INTO cashback_winners (auction_id, user_id, username, credits_refunded, ts)
+    VALUES (@auction_id, @user_id, @username, @credits_refunded, @ts)
   `),
   getTxByUser:        db.prepare('SELECT * FROM transactions WHERE user_id = ? ORDER BY ts DESC LIMIT 100'),
   netDepositedSolByUser: db.prepare(`SELECT COALESCE(SUM(CASE WHEN type='deposit' THEN sol WHEN type='withdraw' THEN -sol WHEN type='sweep' THEN -sol ELSE 0 END), 0) as net FROM transactions WHERE user_id = ?`),
@@ -553,10 +575,11 @@ app.post('/api/withdraw', requireAuth, withdrawLimiter, async (req, res) => {
       type:       'withdraw',
       item:       null,
       auction_id: null,
-      credits:    -creditsDeducted,
-      sol:        parseFloat(solAmount),
+      credits:     -creditsDeducted,
+      sol:         parseFloat(solAmount),
       sig,
-      ts:         Date.now(),
+      ts:          Date.now(),
+      real_credit: 1,
     });
     console.log(`[withdraw] ${user.username} → ${solAmount} SOL | ${sig}`);
     res.json({ ok: true, solAmount, remainingCredits: creditsAfter, sig });
@@ -840,15 +863,16 @@ function tryBid(auctionId, user, displayName) {
   bidSeq++;
 
   doBid(user.id, creditsAfter, bonusAfter, {
-    id:         `tx-${Date.now()}-${randomBytes(4).toString('hex')}`,
-    user_id:    user.id,
-    type:       'bid',
-    item:       a.item.name,
-    auction_id: auctionId,
-    credits:    -1,
-    sol:        null,
-    sig:        null,
-    ts:         Date.now(),
+    id:          `tx-${Date.now()}-${randomBytes(4).toString('hex')}`,
+    user_id:     user.id,
+    type:        'bid',
+    item:        a.item.name,
+    auction_id:  auctionId,
+    credits:     -1,
+    sol:         null,
+    sig:         null,
+    ts:          Date.now(),
+    real_credit: bonusUsed === 1 ? 0 : 1, // 0 = bonus credit spent, 1 = real SOL-backed credit spent
   });
 
   user.credits      = creditsAfter;      // keep socket snapshot in sync
@@ -897,6 +921,10 @@ io.on('connection', (socket) => {
       auction,
       serverTimeMs: Date.now(),
       userCredits:  user.credits + user.bonusCredits,
+      cashback: {
+        participants: stmt.getCashbackParticipants.all(auctionId),
+        winner:       stmt.getCashbackWinner.get(auctionId) ?? auction.cashbackWinner ?? null,
+      },
     });
     await broadcastViewers(auctionId);
   });
@@ -908,6 +936,7 @@ io.on('connection', (socket) => {
     const a     = auctions.get(auctionId);
     const event = { u: user.id, n: user.username, p: a.currentPrice, t: a.endsAtMs, s: result.sequence, ts: Date.now() };
     io.to(auctionId).emit('bid-placed', event);
+    io.to(auctionId).emit('cashback-update', { participants: stmt.getCashbackParticipants.all(auctionId) });
     socket.emit('bid-confirmed');
     socket.emit('credits-update', { real: user.credits, bonus: user.bonusCredits });
   });
@@ -964,6 +993,23 @@ setInterval(() => {
           `);
         } catch (e) { console.error('[auction] failed to record winner:', e.message); }
       }
+      // ── Cashback raffle ──
+      try {
+        const participants = stmt.getCashbackParticipants.all(a.auctionId);
+        if (participants.length > 0) {
+          const lucky  = participants[Math.floor(Math.random() * participants.length)];
+          const refund = lucky.total_bids; // bonus credits = total bids placed in this auction
+          stmt.addBonusOne.run({ id: lucky.id, amount: refund });
+          stmt.insertCashbackWinner.run({
+            auction_id: a.auctionId, user_id: lucky.id,
+            username: lucky.username, credits_refunded: refund, ts: now,
+          });
+          a.cashbackWinner = { userId: lucky.id, username: lucky.username, creditsRefunded: refund };
+          io.to(id).emit('cashback-winner', a.cashbackWinner);
+          console.log(`[cashback] ${lucky.username} wins ${refund} bonus credits (${a.item.name})`);
+        }
+      } catch (e) { console.error('[cashback] failed:', e.message); }
+
       persistAuction(a);
       io.to(id).emit('auction-ended', { winnerId: a.leaderId, winnerName: a.leaderName, finalPrice: a.currentPrice });
       console.log(`[auction] ${a.item.name} ended — winner: ${a.leaderName ?? 'none'} at $${a.currentPrice.toFixed(2)}`);
@@ -997,7 +1043,7 @@ async function sweepToHouse(row, balance) {
     stmt.insertTx.run({
       id: `tx-${Date.now()}-${randomBytes(4).toString('hex')}`,
       user_id: row.id, type: 'sweep', item: null, auction_id: null,
-      credits: 0, sol: parseFloat((sweepable / LAMPORTS_PER_SOL).toFixed(4)), sig, ts: Date.now(),
+      credits: 0, sol: parseFloat((sweepable / LAMPORTS_PER_SOL).toFixed(4)), sig, ts: Date.now(), real_credit: 1,
     });
   } catch (e) {
     console.error(`[sweep] ${row.id} failed:`, e.message);
@@ -1034,10 +1080,11 @@ setInterval(async () => {
               type:       'deposit',
               item:       null,
               auction_id: null,
-              credits:    creditsEarned,
-              sol:        parseFloat((lamportsDiff / LAMPORTS_PER_SOL).toFixed(4)),
-              sig:        depositSig,
-              ts:         Date.now(),
+              credits:     creditsEarned,
+              sol:         parseFloat((lamportsDiff / LAMPORTS_PER_SOL).toFixed(4)),
+              sig:         depositSig,
+              ts:          Date.now(),
+              real_credit: 1,
             });
           })();
           console.log(`[deposit] ${row.id} +${creditsEarned} credits (+${(lamportsDiff / LAMPORTS_PER_SOL).toFixed(4)} SOL)`);

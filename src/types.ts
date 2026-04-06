@@ -25,10 +25,31 @@ export interface BidEvent {
   ts: number;  // server timestamp ms
 }
 
+export interface CashbackParticipant {
+  id: string;
+  username: string;
+  total_bids: number;
+  real_bids: number;
+}
+
+export interface CashbackWinner {
+  userId?: string;
+  user_id?: string;
+  username: string;
+  creditsRefunded?: number;
+  credits_refunded?: number;
+}
+
+export interface CashbackState {
+  participants: CashbackParticipant[];
+  winner: CashbackWinner | null;
+}
+
 export interface SyncPayload {
   auction: AuctionState;
   serverTimeMs: number;
   userCredits: number;
+  cashback?: CashbackState;
 }
 
 export type BidResult = 'ok' | 'rejected' | 'optimistic' | null;

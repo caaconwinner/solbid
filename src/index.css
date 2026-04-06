@@ -1252,3 +1252,90 @@ a:hover { text-decoration: underline; }
   .hiw-step { padding: 20px 16px 18px; }
   .hiw-hero { padding: 40px 16px 32px; }
 }
+
+/* ─── Auction bottom: cashback + bid feed side by side ───────── */
+.auction-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 640px) {
+  .auction-bottom { grid-template-columns: 1fr; }
+}
+
+/* ─── Cashback panel ─────────────────────────────────────────── */
+.cashback-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.cashback-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.cashback-icon { font-size: 20px; line-height: 1; }
+.cashback-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.cashback-sub   { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+/* Rolling drum */
+.cashback-drum {
+  padding: 16px 14px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.cashback-drum-name {
+  font-size: 18px; font-weight: 800; color: var(--orange);
+  font-family: var(--mono);
+  transition: opacity 0.15s;
+  min-height: 26px;
+}
+.cashback-drum-name--spin { animation: cashback-roll 0.4s ease-in-out; }
+@keyframes cashback-roll {
+  0%   { opacity: 0; transform: translateY(-6px); }
+  50%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.cashback-drum-sub { font-size: 10px; color: var(--text-dim); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Participant list */
+.cashback-list { padding: 8px 0; }
+.cashback-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 14px; font-size: 12px;
+}
+.cashback-row--you { background: var(--orange-dim); }
+.cashback-row-name { color: var(--text-muted); }
+.cashback-row--you .cashback-row-name { color: var(--orange); font-weight: 700; }
+.cashback-row-bids { color: var(--text-dim); font-size: 11px; font-family: var(--mono); }
+.cashback-more { padding: 4px 14px; font-size: 11px; color: var(--text-dim); }
+
+/* Empty state */
+.cashback-empty {
+  padding: 20px 14px; font-size: 12px; color: var(--text-muted);
+  text-align: center; font-style: italic;
+}
+
+/* Winner reveal */
+.cashback-winner-reveal {
+  padding: 20px 14px; text-align: center;
+  animation: cashback-reveal 0.5s ease-out;
+}
+@keyframes cashback-reveal {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.cashback-winner-reveal--you { background: var(--orange-dim); }
+.cashback-winner-emoji  { font-size: 28px; margin-bottom: 8px; }
+.cashback-winner-name   { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.cashback-winner-reveal--you .cashback-winner-name { color: var(--orange); }
+.cashback-winner-amount {
+  display: inline-block; font-size: 13px; font-weight: 700;
+  color: var(--green); background: var(--green-dim);
+  border: 1px solid var(--green); border-radius: 20px;
+  padding: 3px 12px; margin-top: 4px;
+}

@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react';
 import toast from 'react-hot-toast';
 import { socket } from '../socket';
-import { AuctionState, BidEvent, BidResult, SyncPayload } from '../types';
+import { AuctionState, BidEvent, BidResult, CashbackParticipant, CashbackState, CashbackWinner, SyncPayload } from '../types';
 
 interface State {
   auction:     AuctionState | null;
@@ -11,19 +11,22 @@ interface State {
   isConnected: boolean;
   bidResult:   BidResult;
   viewers:     number;
+  cashback:    CashbackState;
 }
 
 type Action =
   | { type: 'CONNECTED' }
   | { type: 'DISCONNECTED' }
-  | { type: 'SYNC';           payload: SyncPayload }
-  | { type: 'BID_PLACED';     bid: BidEvent }
-  | { type: 'CREDITS_UPDATE'; credits: number }
+  | { type: 'SYNC';              payload: SyncPayload }
+  | { type: 'BID_PLACED';        bid: BidEvent }
+  | { type: 'CREDITS_UPDATE';    credits: number }
   | { type: 'OPTIMISTIC_BID' }
   | { type: 'BID_CONFIRMED' }
   | { type: 'BID_REJECTED' }
-  | { type: 'AUCTION_ENDED';  winnerId: string | null; winnerName: string | null; finalPrice: number }
-  | { type: 'VIEWERS_UPDATE'; viewers: number };
+  | { type: 'AUCTION_ENDED';     winnerId: string | null; winnerName: string | null; finalPrice: number }
+  | { type: 'VIEWERS_UPDATE';    viewers: number }
+  | { type: 'CASHBACK_UPDATE';   participants: CashbackParticipant[] }
+  | { type: 'CASHBACK_WINNER';   winner: CashbackWinner };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -36,6 +39,7 @@ function reducer(state: State, action: Action): State {
         auction:     action.payload.auction,
         userCredits: action.payload.userCredits,
         clockDrift:  action.payload.serverTimeMs - Date.now(),
+        cashback:    action.payload.cashback ?? state.cashback,
       };
 
     case 'BID_PLACED': {
@@ -61,18 +65,20 @@ function reducer(state: State, action: Action): State {
         ...state,
         auction: {
           ...state.auction,
-          status:      'ended',
-          leaderId:    action.winnerId,
-          leaderName:  action.winnerName,
+          status:       'ended',
+          leaderId:     action.winnerId,
+          leaderName:   action.winnerName,
           currentPrice: action.finalPrice,
         },
       };
 
-    case 'CREDITS_UPDATE':  return { ...state, userCredits: action.credits };
-    case 'OPTIMISTIC_BID':  return { ...state, bidResult: 'optimistic', userCredits: state.userCredits - 1 };
-    case 'BID_CONFIRMED':   return { ...state, bidResult: 'ok' };
-    case 'BID_REJECTED':    return { ...state, bidResult: 'rejected', userCredits: state.userCredits + 1 };
-    case 'VIEWERS_UPDATE':  return { ...state, viewers: action.viewers };
+    case 'CREDITS_UPDATE':   return { ...state, userCredits: action.credits };
+    case 'OPTIMISTIC_BID':   return { ...state, bidResult: 'optimistic', userCredits: state.userCredits - 1 };
+    case 'BID_CONFIRMED':    return { ...state, bidResult: 'ok' };
+    case 'BID_REJECTED':     return { ...state, bidResult: 'rejected', userCredits: state.userCredits + 1 };
+    case 'VIEWERS_UPDATE':   return { ...state, viewers: action.viewers };
+    case 'CASHBACK_UPDATE':  return { ...state, cashback: { ...state.cashback, participants: action.participants } };
+    case 'CASHBACK_WINNER':  return { ...state, cashback: { ...state.cashback, winner: action.winner } };
     default: return state;
   }
 }
@@ -80,6 +86,7 @@ function reducer(state: State, action: Action): State {
 const initial: State = {
   auction: null, bids: [], userCredits: 0,
   clockDrift: 0, isConnected: false, bidResult: null, viewers: 0,
+  cashback: { participants: [], winner: null },
 };
 
 export function useAuction(auctionId: string, currentUserId: string) {
@@ -94,7 +101,6 @@ export function useAuction(auctionId: string, currentUserId: string) {
     const onSync        = (payload: SyncPayload)  => dispatch({ type: 'SYNC', payload });
     const onBidPlaced   = (bid: BidEvent) => {
       dispatch({ type: 'BID_PLACED', bid });
-      // Toast for other users' bids
       if (bid.u !== currentUserId) {
         toast(`${bid.n} bid — $${bid.p.toFixed(2)}`, { duration: 2000 });
       }
@@ -109,30 +115,42 @@ export function useAuction(auctionId: string, currentUserId: string) {
       dispatch({ type: 'AUCTION_ENDED', winnerId, winnerName, finalPrice });
       toast(winnerName ? `Auction ended — ${winnerName} won!` : 'Auction ended — no winner', { duration: 5000 });
     };
+    const onCashbackUpdate = ({ participants }: { participants: CashbackParticipant[] }) =>
+      dispatch({ type: 'CASHBACK_UPDATE', participants });
+    const onCashbackWinner = (winner: CashbackWinner) => {
+      dispatch({ type: 'CASHBACK_WINNER', winner });
+      const name = winner.username;
+      const amt  = winner.creditsRefunded ?? winner.credits_refunded ?? 0;
+      toast(`🎰 ${name} won ${amt} credits back in the cashback raffle!`, { duration: 7000 });
+    };
 
-    socket.on('connect',        joinAuction);
-    socket.on('disconnect',     () => dispatch({ type: 'DISCONNECTED' }));
-    socket.on('auction-sync',   onSync);
-    socket.on('bid-placed',     onBidPlaced);
-    socket.on('credits-update', onCredits);
-    socket.on('bid-confirmed',  onConfirmed);
-    socket.on('bid-rejected',   onRejected);
-    socket.on('auction-ended',  onEnded);
-    socket.on('viewers-update', (n: number) => dispatch({ type: 'VIEWERS_UPDATE', viewers: n }));
+    socket.on('connect',          joinAuction);
+    socket.on('disconnect',       () => dispatch({ type: 'DISCONNECTED' }));
+    socket.on('auction-sync',     onSync);
+    socket.on('bid-placed',       onBidPlaced);
+    socket.on('credits-update',   onCredits);
+    socket.on('bid-confirmed',    onConfirmed);
+    socket.on('bid-rejected',     onRejected);
+    socket.on('auction-ended',    onEnded);
+    socket.on('viewers-update',   (n: number) => dispatch({ type: 'VIEWERS_UPDATE', viewers: n }));
+    socket.on('cashback-update',  onCashbackUpdate);
+    socket.on('cashback-winner',  onCashbackWinner);
 
     if (socket.connected) joinAuction();
     else socket.connect();
 
     return () => {
-      socket.off('connect',        joinAuction);
+      socket.off('connect',         joinAuction);
       socket.off('disconnect');
-      socket.off('auction-sync',   onSync);
-      socket.off('bid-placed',     onBidPlaced);
-      socket.off('credits-update', onCredits);
-      socket.off('bid-confirmed',  onConfirmed);
-      socket.off('bid-rejected',   onRejected);
-      socket.off('auction-ended',  onEnded);
-      socket.emit('leave-auction', auctionId);
+      socket.off('auction-sync',    onSync);
+      socket.off('bid-placed',      onBidPlaced);
+      socket.off('credits-update',  onCredits);
+      socket.off('bid-confirmed',   onConfirmed);
+      socket.off('bid-rejected',    onRejected);
+      socket.off('auction-ended',   onEnded);
+      socket.off('cashback-update', onCashbackUpdate);
+      socket.off('cashback-winner', onCashbackWinner);
+      socket.emit('leave-auction',  auctionId);
       socket.disconnect();
     };
   }, [auctionId, currentUserId]);
