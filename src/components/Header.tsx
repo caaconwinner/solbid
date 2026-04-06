@@ -26,14 +26,14 @@ export function Header() {
   return (
     <header className="header">
       <div className="header-inner">
-        <Link to="/" className="header-logo">
+        <Link to={user ? '/auctions' : '/'} className="header-logo">
           penny<strong>Bid</strong>
         </Link>
 
         {user && (
           <>
             <nav className="header-nav">
-              <NavLink to="/"              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} end>Auctions</NavLink>
+              <NavLink to="/auctions"      className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Auctions</NavLink>
               <NavLink to="/how-it-works"  className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>How it works</NavLink>
             </nav>
 

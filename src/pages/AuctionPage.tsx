@@ -27,7 +27,7 @@ export function AuctionPage() {
 
   return (
     <div className="auction-page-wrap">
-      <Link to="/" className="back-link">← All auctions</Link>
+      <Link to="/auctions" className="back-link">← All auctions</Link>
       <div className="auction-page-layout">
       {/* Main auction */}
       <div className="auction-page-main">

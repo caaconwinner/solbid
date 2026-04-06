@@ -29,17 +29,18 @@ function AppRoutes() {
     <>
       <Header />
       <Routes>
-        <Route path="/login"          element={user ? <Navigate to="/" replace /> : <LoginPage />} />
-        <Route path="/register"       element={user ? <Navigate to="/" replace /> : <RegisterPage />} />
+        <Route path="/"               element={user ? <Navigate to="/auctions" replace /> : <LoginPage />} />
+        <Route path="/login"          element={user ? <Navigate to="/auctions" replace /> : <LoginPage />} />
+        <Route path="/register"       element={user ? <Navigate to="/auctions" replace /> : <RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password"  element={<ResetPasswordPage />} />
-        <Route path="/" element={<Protected><HomePage /></Protected>} />
+        <Route path="/auctions"        element={<Protected><HomePage /></Protected>} />
+        <Route path="/auctions-public" element={<PublicAuctionsPage />} />
         <Route path="/auction/:auctionId" element={<Protected><AuctionPage /></Protected>} />
-        <Route path="/account" element={<Protected><DashboardPage /></Protected>} />
-        <Route path="/how-it-works" element={<HowItWorksPage />} />
-        <Route path="/auctions"     element={<PublicAuctionsPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/account"         element={<Protected><DashboardPage /></Protected>} />
+        <Route path="/how-it-works"    element={<HowItWorksPage />} />
+        <Route path="/admin"           element={<AdminPage />} />
+        <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );

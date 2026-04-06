@@ -6,7 +6,7 @@ import { PasswordInput } from '../components/PasswordInput';
 // ── Static mockup auction card ────────────────────────────────────
 function MockAuctionCard() {
   return (
-    <Link to="/auctions" className="lp-side-card lp-side-card--auction">
+    <Link to="/auctions-public" className="lp-side-card lp-side-card--auction">
       <div className="lp-mock-card">
         <div className="lp-mock-img">🎮</div>
         <div className="lp-mock-body">

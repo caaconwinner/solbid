@@ -84,7 +84,7 @@ export function PublicAuctionsPage() {
       <div className="pub-auctions-header">
         <Link to="/login" className="auth-logo" style={{ textDecoration: 'none' }}>penny<strong>Bid</strong></Link>
         <div className="pub-auctions-header-cta">
-          <Link to="/login"    className="btn-primary"  style={{ fontSize: 13, padding: '7px 18px' }}>Sign in to bid</Link>
+          <Link to="/"         className="btn-primary"  style={{ fontSize: 13, padding: '7px 18px' }}>Sign in to bid</Link>
           <Link to="/register" className="btn-outline"  style={{ fontSize: 13, padding: '7px 18px' }}>Create account</Link>
         </div>
       </div>
