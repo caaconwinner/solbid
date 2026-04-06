@@ -172,16 +172,6 @@ function WonAuctions({ token }: { token: string }) {
     } finally { setPaying(null); }
   };
 
-  const claimSol = async (win: Win) => {
-    setPaying(win.id);
-    try {
-      const result = await api.claimWin(token, win.id);
-      showTxToast(`${result.amount} SOL sent to your deposit wallet!`, result.sig);
-      reload();
-    } catch (e: any) {
-      toast.error(e.message ?? 'Claim failed');
-    } finally { setPaying(null); }
-  };
 
   if (wins.length === 0) return <p className="dash-empty">No wins yet — go bid!</p>;
 
@@ -193,34 +183,24 @@ function WonAuctions({ token }: { token: string }) {
             <span className="win-card-name">{win.itemName}</span>
             <span className="win-card-price">Auction ended at ${win.finalPrice.toFixed(2)}</span>
             {win.purchased
-              ? <span className="win-badge">{win.prize.type === 'sol' ? 'Claimed' : 'Purchased'}</span>
-              : <span className="win-badge win-badge--pending">{win.prize.type === 'sol' ? 'Claim available' : 'Awaiting payment'}</span>}
+              ? <span className="win-badge">Claimed</span>
+              : <span className="win-badge win-badge--pending">Awaiting payment</span>}
           </div>
 
           {!win.purchased ? (
             <div className="win-prize">
-              {win.prize.type === 'sol' ? (
-                <>
-                  <p className="win-purchase-info">
-                    You won <strong style={{ color: 'var(--green)' }}>{win.prize.amount} SOL</strong>!
-                    Click below to send it directly to your deposit wallet.
-                  </p>
-                  <button className="btn-outline" disabled={paying === win.id} onClick={() => claimSol(win)}>
-                    {paying === win.id ? 'Sending…' : `Claim ${win.prize.amount} SOL →`}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <p className="win-purchase-info">
-                    You won the right to buy this item for{' '}
-                    <strong>{win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL</strong>.
-                    The payment will be drawn from your deposit wallet.
-                  </p>
-                  <button className="btn-outline" disabled={paying === win.id} onClick={() => purchase(win)}>
-                    {paying === win.id ? 'Processing…' : `Pay ${win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL & claim item`}
-                  </button>
-                </>
-              )}
+              <p className="win-purchase-info">
+                {win.prize.type === 'sol'
+                  ? <>You won a <strong style={{ color: 'var(--green)' }}>{win.prize.amount} SOL</strong> prize! Pay the auction price to claim it.</>
+                  : <>You won the right to buy this item.</>
+                }{' '}
+                The payment of{' '}
+                <strong>{win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL</strong>{' '}
+                will be drawn from your deposit wallet.
+              </p>
+              <button className="btn-outline" disabled={paying === win.id} onClick={() => purchase(win)}>
+                {paying === win.id ? 'Processing…' : `Pay ${win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL & claim`}
+              </button>
             </div>
           ) : (
             <div className="win-prize">
@@ -238,7 +218,7 @@ function WonAuctions({ token }: { token: string }) {
               )}
               {win.prize.type === 'sol' && (
                 <>
-                  <p className="win-prize-label">SOL prize claimed</p>
+                  <p className="win-prize-label">SOL prize</p>
                   <p className="win-prize-desc" style={{ color: 'var(--green)' }}>
                     {win.prize.amount} SOL sent to your deposit wallet ✓
                   </p>
