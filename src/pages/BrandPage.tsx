@@ -12,27 +12,23 @@ function downloadSvg(svgContent: string, filename: string) {
 // ── Logo SVGs ────────────────────────────────────────────────────
 const LOGO_DARK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="60" viewBox="0 0 240 60">
   <rect width="240" height="60" fill="#111111"/>
-  <text x="16" y="40" font-family="Inter,system-ui,sans-serif" font-size="28" font-weight="400" fill="#e0e0e0">penny</text>
-  <text x="108" y="40" font-family="Inter,system-ui,sans-serif" font-size="28" font-weight="900" fill="#ff6200">Bid</text>
+  <text x="16" y="40" font-family="Inter,system-ui,sans-serif" font-size="28"><tspan font-weight="400" fill="#e0e0e0">penny</tspan><tspan font-weight="900" fill="#ff6200">Bid</tspan></text>
 </svg>`;
 
 const LOGO_LIGHT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="60" viewBox="0 0 240 60">
   <rect width="240" height="60" fill="#ffffff"/>
-  <text x="16" y="40" font-family="Inter,system-ui,sans-serif" font-size="28" font-weight="400" fill="#111111">penny</text>
-  <text x="108" y="40" font-family="Inter,system-ui,sans-serif" font-size="28" font-weight="900" fill="#ff6200">Bid</text>
+  <text x="16" y="40" font-family="Inter,system-ui,sans-serif" font-size="28"><tspan font-weight="400" fill="#111111">penny</tspan><tspan font-weight="900" fill="#ff6200">Bid</tspan></text>
 </svg>`;
 
 const LOGO_MONO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="60" viewBox="0 0 240 60">
   <rect width="240" height="60" fill="#111111"/>
-  <text x="16" y="40" font-family="Inter,system-ui,sans-serif" font-size="28" font-weight="400" fill="#e0e0e0">penny</text>
-  <text x="108" y="40" font-family="Inter,system-ui,sans-serif" font-size="28" font-weight="900" fill="#e0e0e0">Bid</text>
+  <text x="16" y="40" font-family="Inter,system-ui,sans-serif" font-size="28"><tspan font-weight="400" fill="#e0e0e0">penny</tspan><tspan font-weight="900" fill="#e0e0e0">Bid</tspan></text>
 </svg>`;
 
 const TOKEN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
   <circle cx="60" cy="60" r="56" fill="#ff6200"/>
   <circle cx="60" cy="60" r="50" fill="#cc4e00"/>
-  <text x="60" y="52" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="400" fill="rgba(255,255,255,0.8)" text-anchor="middle">penny</text>
-  <text x="60" y="74" font-family="Inter,system-ui,sans-serif" font-size="22" font-weight="900" fill="#ffffff" text-anchor="middle">Bid</text>
+  <text x="60" y="66" font-family="Inter,system-ui,sans-serif" font-size="22" text-anchor="middle"><tspan font-weight="400" fill="rgba(255,255,255,0.8)">penny</tspan><tspan font-weight="900" fill="#ffffff">Bid</tspan></text>
 </svg>`;
 
 // ── Colour swatch ────────────────────────────────────────────────
