@@ -19,6 +19,7 @@ import {
   createCipheriv,
   createDecipheriv,
   scryptSync,
+  createHash,
 } from 'crypto';
 import {
   Connection,
@@ -297,6 +298,23 @@ function decryptSecret(enc) {
   return Buffer.concat([decipher.update(raw.slice(0, -16)), decipher.final()]);
 }
 
+// Check password against HaveIBeenPwned Pwned Passwords (k-anonymity — only first 5 chars of SHA-1 sent)
+async function checkPwned(password) {
+  try {
+    const sha1 = createHash('sha1').update(password).digest('hex').toUpperCase();
+    const prefix = sha1.slice(0, 5);
+    const suffix = sha1.slice(5);
+    const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
+      headers: { 'Add-Padding': 'true' },
+    });
+    if (!res.ok) return false; // fail open — don't block if API is down
+    const text = await res.text();
+    return text.split('\r\n').some(line => line.startsWith(suffix));
+  } catch {
+    return false; // fail open
+  }
+}
+
 function sanitizeUser(user) {
   const { _enc: _e, passwordHash: _p, ...pub } = user;
   return pub;
@@ -383,6 +401,8 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     return res.status(400).json({ message: 'Password must be at least 8 characters' });
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return res.status(400).json({ message: 'Invalid email address' });
+  if (await checkPwned(password))
+    return res.status(400).json({ message: 'This password has appeared in a data breach. Please choose a different password.' });
 
   const passwordHash = await bcrypt.hash(password, 12);
   const user  = await makeUser(username, passwordHash, email || null);
@@ -440,6 +460,8 @@ app.post('/api/auth/reset-password', authLimiter, async (req, res) => {
   const { token, password } = req.body;
   if (!token || !password) return res.status(400).json({ message: 'Token and password required' });
   if (password.length < 8) return res.status(400).json({ message: 'Password must be at least 8 characters' });
+  if (await checkPwned(password))
+    return res.status(400).json({ message: 'This password has appeared in a data breach. Please choose a different password.' });
   const row = stmt.getUserByToken.get(token);
   if (!row || !row.reset_expires || Date.now() > row.reset_expires)
     return res.status(400).json({ message: 'Invalid or expired reset link' });
@@ -453,6 +475,8 @@ app.post('/api/account/change-password', requireAuth, async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) return res.status(400).json({ message: 'Both fields required' });
   if (newPassword.length < 8) return res.status(400).json({ message: 'New password must be at least 8 characters' });
+  if (await checkPwned(newPassword))
+    return res.status(400).json({ message: 'This password has appeared in a data breach. Please choose a different password.' });
   const valid = await bcrypt.compare(currentPassword, req.user.passwordHash);
   if (!valid) return res.status(400).json({ message: 'Current password is incorrect' });
   const hash = await bcrypt.hash(newPassword, 12);
