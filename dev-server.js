@@ -506,6 +506,15 @@ app.get('/api/me', requireAuth, (req, res) => {
   res.json({ user: sanitizeUser(req.user) });
 });
 
+app.get('/api/referral-stats', requireAuth, (req, res) => {
+  const { total, rewarded } = db.prepare(`
+    SELECT COUNT(*) as total,
+           SUM(ref_rewarded) as rewarded
+    FROM users WHERE referred_by = ?
+  `).get(req.user.id);
+  res.json({ signups: total ?? 0, creditsEarned: (rewarded ?? 0) * 10 });
+});
+
 // ─── Password reset ─────────────────────────────────────────────
 app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
   const { email } = req.body;

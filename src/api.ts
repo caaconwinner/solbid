@@ -67,6 +67,9 @@ export const api = {
   resetPassword: (token: string, password: string) =>
     req<{ ok: boolean }>('POST', '/api/auth/reset-password', { token, password }),
 
+  referralStats: (token: string) =>
+    req<{ signups: number; creditsEarned: number }>('GET', '/api/referral-stats', undefined, token),
+
   changePassword: (token: string, currentPassword: string, newPassword: string) =>
     req<{ ok: boolean }>('POST', '/api/account/change-password', { currentPassword, newPassword }, token),
 

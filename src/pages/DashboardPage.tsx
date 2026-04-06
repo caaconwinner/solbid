@@ -7,9 +7,15 @@ import { DepositAddress } from '../components/DepositAddress';
 import { PasswordInput } from '../components/PasswordInput';
 import type { Transaction, Win } from '../types';
 
-function ReferralCard({ refCode }: { refCode: string }) {
+function ReferralCard({ refCode, token }: { refCode: string; token: string }) {
   const [copied, setCopied] = useState(false);
+  const [stats, setStats] = useState<{ signups: number; creditsEarned: number } | null>(null);
   const link = `${window.location.origin}/register?ref=${refCode}`;
+
+  useEffect(() => {
+    api.referralStats(token).then(setStats).catch(() => {});
+  }, [token]);
+
   const copy = () => {
     navigator.clipboard.writeText(link);
     setCopied(true);
@@ -30,6 +36,19 @@ function ReferralCard({ refCode }: { refCode: string }) {
             {copied ? 'Copied!' : 'Copy'}
           </button>
         </div>
+        {stats !== null && (
+          <div className="referral-stats">
+            <div className="referral-stat">
+              <span className="referral-stat-val">{stats.signups}</span>
+              <span className="referral-stat-label">signed up</span>
+            </div>
+            <div className="referral-stat-divider" />
+            <div className="referral-stat">
+              <span className="referral-stat-val" style={{ color: 'var(--orange)' }}>{stats.creditsEarned}</span>
+              <span className="referral-stat-label">credits earned</span>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -442,7 +461,7 @@ export function DashboardPage() {
       </section>
 
       {/* Referral */}
-      {user.refCode && <ReferralCard refCode={user.refCode} />}
+      {user.refCode && token && <ReferralCard refCode={user.refCode} token={token} />}
 
       {/* Tabbed history */}
       <section className="dash-section">
