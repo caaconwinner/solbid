@@ -1623,8 +1623,7 @@ a:hover { text-decoration: underline; }
 .hiw-cta .btn-outline { font-size: 15px; padding: 14px 28px; min-width: 220px; text-align: center; }
 
 /* ─── $penny nav link ────────────────────────────────────────── */
-.nav-link--penny { color: var(--orange) !important; font-weight: 700; }
-.nav-link--penny:hover { color: #ffb347 !important; }
+.nav-link--penny { font-weight: 700; }
 .nav-link--penny.active { border-bottom-color: var(--orange); }
 
 /* ─── $penny token page ──────────────────────────────────────── */

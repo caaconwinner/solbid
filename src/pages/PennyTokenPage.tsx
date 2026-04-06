@@ -12,7 +12,7 @@ function Arrow() {
 }
 
 function Step({ n, title, body, children }: {
-  n: number; title: string; body: string; children?: React.ReactNode;
+  n: number; title: React.ReactNode; body: string; children?: React.ReactNode;
 }) {
   return (
     <div className="hiw-step">
@@ -132,7 +132,7 @@ export function PennyTokenPage() {
 
         {/* ── Step 1: What is $penny ── */}
         <Step n={1}
-          title="$penny is the native token of pennyBid"
+          title={<><span style={{ color: 'var(--orange)' }}>$penny</span> is the native token of pennyBid</>}
           body="$penny is a Solana SPL token launched on pump.fun. It powers the platform's reward mechanics, credit system, and buyback engine. Holding $penny gives you access to the auction economy.">
           <div className="penny-hero-token">
             <div className="penny-token-coin">
