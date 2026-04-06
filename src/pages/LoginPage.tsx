@@ -1,87 +1,37 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { PasswordInput } from '../components/PasswordInput';
-import { api } from '../api';
-import { useTimer } from '../hooks/useTimer';
-import type { AuctionListing } from '../types';
 
-// ── Mini live timer for the auction preview card ─────────────────
-function MiniTimer({ endsAtMs, status }: { endsAtMs: number; status: string }) {
-  const ms      = useTimer(status === 'active' ? endsAtMs : null, 0);
-  const seconds = ms / 1000;
-  if (status === 'scheduled') return <span className="lp-auction-status lp-auction-status--upcoming">UPCOMING</span>;
-  if (status === 'ended' || status === 'settled') return <span className="lp-auction-status lp-auction-status--ended">ENDED</span>;
-  const urgent = seconds <= 15;
-  return (
-    <span className="lp-auction-timer" data-urgent={urgent}>
-      {seconds >= 60
-        ? `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`
-        : `${seconds.toFixed(1)}s`}
-    </span>
-  );
-}
-
-// ── Auction preview card (right-bottom) ──────────────────────────
-function AuctionPreviewCard() {
-  const [auction, setAuction] = useState<AuctionListing | null>(null);
-
-  useEffect(() => {
-    const fetch = () =>
-      api.auctionsPublic().then(({ auctions }) => {
-        // prefer live, then upcoming, then any
-        const live = auctions.find(a => a.status === 'active');
-        const upcoming = auctions.find(a => a.status === 'scheduled');
-        setAuction(live ?? upcoming ?? auctions[0] ?? null);
-      }).catch(() => {});
-    fetch();
-    const id = setInterval(fetch, 5000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Static mockup when no auction loaded yet
-  const mockup = !auction;
-
+// ── Static mockup auction card ────────────────────────────────────
+function MockAuctionCard() {
   return (
     <Link to="/auctions" className="lp-side-card lp-side-card--auction">
-      <div className="lp-side-card-label">AUCTIONS</div>
-
-      <div className="lp-auction-preview">
-        {mockup ? (
-          <div className="lp-auction-mock-img">🎮</div>
-        ) : (
-          <img
-            className="lp-auction-img"
-            src={auction!.item.image}
-            alt={auction!.item.name}
-          />
-        )}
-
-        <div className="lp-auction-info">
-          <div className="lp-auction-name">
-            {mockup ? 'PS5 Console' : auction!.item.name}
+      <div className="lp-mock-card">
+        <div className="lp-mock-img">🎮</div>
+        <div className="lp-mock-body">
+          <div className="lp-mock-name">PS5 Console</div>
+          <div className="lp-mock-retail">Retail: <strong>$499</strong></div>
+          <div className="lp-mock-row">
+            <div>
+              <div className="lp-mock-price-label">Current price</div>
+              <div className="lp-mock-price">$0.13</div>
+            </div>
+            <div className="lp-mock-timer-wrap">
+              <div className="lp-mock-timer-label">Time left</div>
+              <div className="lp-mock-timer">2:47</div>
+            </div>
           </div>
-          <div className="lp-auction-row">
-            <span className="lp-auction-price">
-              ${mockup ? '0.13' : auction!.currentPrice.toFixed(2)}
-            </span>
-            {mockup
-              ? <span className="lp-auction-timer">2:47</span>
-              : <MiniTimer endsAtMs={auction!.endsAtMs} status={auction!.status} />
-            }
-          </div>
-          <div className="lp-auction-bids">
-            {mockup ? '13' : auction!.totalBids} bids placed
-          </div>
+          <div className="lp-mock-bids">13 bids placed</div>
+          <div className="lp-mock-bid-btn">Place Bid — 1 credit</div>
         </div>
       </div>
-
-      <div className="lp-side-card-cta">View all auctions →</div>
+      <div className="lp-side-card-cta">View live auctions →</div>
     </Link>
   );
 }
 
-// ── Login page ───────────────────────────────────────────────────
+// ── Login page ────────────────────────────────────────────────────
 export function LoginPage() {
   const { login }   = useAuth();
   const navigate    = useNavigate();
@@ -167,17 +117,18 @@ export function LoginPage() {
       <div className="lp-right-col">
         {/* Top: How it works */}
         <Link to="/how-it-works" className="lp-side-card lp-side-card--hiw">
-          <div className="lp-side-card-label">LEARN</div>
           <div className="lp-hiw-book">📖</div>
-          <div className="lp-hiw-title">How it works?</div>
+          <div className="lp-hiw-title">
+            How it <span style={{ color: 'var(--orange)' }}>works?</span>
+          </div>
           <div className="lp-hiw-body">
             Learn how penny auctions work — bids, timers, and winning.
           </div>
           <div className="lp-side-card-cta">Read more →</div>
         </Link>
 
-        {/* Bottom: Auction preview */}
-        <AuctionPreviewCard />
+        {/* Bottom: Mockup auction */}
+        <MockAuctionCard />
       </div>
     </div>
   );

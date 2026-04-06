@@ -371,6 +371,79 @@ a:hover { text-decoration: underline; }
 
 .lp-auction-bids { font-size: 11px; color: var(--text-muted); }
 
+/* Mockup auction card */
+.lp-mock-card { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+
+.lp-mock-img {
+  font-size: 52px;
+  text-align: center;
+  padding: 14px 0;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  line-height: 1;
+}
+
+.lp-mock-body { display: flex; flex-direction: column; gap: 7px; }
+
+.lp-mock-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.lp-mock-retail {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.lp-mock-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+}
+
+.lp-mock-price-label,
+.lp-mock-timer-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+
+.lp-mock-price {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--green);
+  font-family: var(--font-mono);
+}
+
+.lp-mock-timer-wrap { text-align: right; }
+
+.lp-mock-timer {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--orange);
+  font-family: var(--font-mono);
+}
+
+.lp-mock-bids {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.lp-mock-bid-btn {
+  background: var(--orange);
+  color: #000;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  padding: 9px;
+  border-radius: var(--radius-sm);
+  margin-top: 2px;
+}
+
 /* Public auctions page */
 .pub-auctions-page {
   max-width: 960px;
