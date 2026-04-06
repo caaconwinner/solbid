@@ -52,7 +52,7 @@ export function DepositAddress({ address }: Props) {
         Send SOL to this address. 1 SOL = 100 bid credits. Deposits credited within ~15 seconds.
       </p>
       <div className="deposit-fee-note">
-        <span className="deposit-fee-icon">ⓘ</span>
+        <img src="/info-icon.jpg" className="deposit-fee-icon" alt="info" />
         <span>Solana charges a small network fee on every transfer. Sending <strong>1 SOL</strong> will credit you <strong>99 credits</strong> — send slightly more to get a round number.</span>
       </div>
     </div>
