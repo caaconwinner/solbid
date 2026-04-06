@@ -310,6 +310,7 @@ a:hover { text-decoration: underline; }
   transition: border-color 0.2s, transform 0.15s;
 }
 .auction-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
+.auction-card[data-ended='true'] { border-color: rgba(255,255,255,0.12); }
 
 .card-image-wrap {
   position: relative;
@@ -359,9 +360,9 @@ a:hover { text-decoration: underline; }
 .card-timer { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--text); }
 .card-timer[data-urgent='true'] { color: var(--orange); }
 
-.card-status { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; }
+.card-status { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; }
 .card-status.scheduled { color: var(--text-muted); }
-.card-status.ended     { color: var(--text-dim); }
+.card-status.ended     { color: rgba(255, 80, 80, 0.7); }
 
 .card-footer {
   display: flex;

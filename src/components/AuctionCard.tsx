@@ -25,11 +25,13 @@ function MiniTimer({ endsAtMs, status }: { endsAtMs: number; status: string }) {
 
 export function AuctionCard({ auction }: Props) {
   const navigate = useNavigate();
-  const active   = auction.status === 'active';
+  const active = auction.status === 'active';
+  const ended  = auction.status === 'ended' || auction.status === 'settled';
 
   return (
     <div
       className="auction-card"
+      data-ended={ended}
       onClick={() => navigate(`/auction/${auction.auctionId}`)}
       role="button"
       tabIndex={0}
