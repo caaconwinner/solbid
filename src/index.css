@@ -290,8 +290,8 @@ a:hover { text-decoration: underline; }
 
 .auction-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(260px, 20vw, 380px), 1fr));
+  gap: clamp(14px, 1.2vw, 24px);
 }
 
 .empty-state {
@@ -314,7 +314,7 @@ a:hover { text-decoration: underline; }
 
 .card-image-wrap {
   position: relative;
-  height: 180px;
+  aspect-ratio: 16 / 9;
   background: var(--surface-2);
   overflow: hidden;
 }
@@ -338,7 +338,7 @@ a:hover { text-decoration: underline; }
   border-radius: 4px;
 }
 
-.card-body { padding: 16px; }
+.card-body { padding: clamp(14px, 1.2vw, 24px); }
 
 .card-item-name {
   font-size: clamp(14px, 1.1vw, 18px);
@@ -382,7 +382,7 @@ a:hover { text-decoration: underline; }
 /* ─── Dashboard ──────────────────────────────────────────────── */
 .dash-section { margin-bottom: 32px; }
 .dash-section-title {
-  font-size: 11px;
+  font-size: clamp(11px, 0.75vw, 13px);
   font-weight: 700;
   letter-spacing: 1.2px;
   color: var(--text-muted);
@@ -523,7 +523,12 @@ a:hover { text-decoration: underline; }
 }
 
 /* ─── Auction Room ───────────────────────────────────────────── */
-.auction-room { display: flex; flex-direction: column; gap: 14px; }
+.auction-room {
+  display: flex; flex-direction: column; gap: 14px;
+  max-width: 860px;
+  margin: 0 auto;
+  width: 100%;
+}
 
 .item-card {
   display: flex;
@@ -680,9 +685,11 @@ a:hover { text-decoration: underline; }
 .auction-page-wrap .back-link { display: inline-block; margin-bottom: 16px; }
 .auction-page-layout {
   display: grid;
-  grid-template-columns: 1fr min(400px, 30%);
-  gap: 32px;
+  grid-template-columns: 1fr min(420px, 28%);
+  gap: clamp(20px, 2vw, 40px);
   align-items: start;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .auction-page-main { min-width: 0; }
