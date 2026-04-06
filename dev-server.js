@@ -616,6 +616,24 @@ app.get('/api/transactions', requireAuth, (req, res) => {
   res.json({ transactions });
 });
 
+app.get('/api/auctions/public', async (req, res) => {
+  const list = await Promise.all([...auctions.values()].map(async (a) => {
+    const sockets = await io.in(a.auctionId).allSockets();
+    return {
+      auctionId:    a.auctionId,
+      item:         { name: a.item.name, image: a.item.image, retailValue: a.item.retailValue },
+      currentPrice: a.currentPrice,
+      endsAtMs:     a.endsAtMs,
+      status:       a.status,
+      totalBids:    a.totalBids,
+      leaderName:   a.leaderName,
+      snapTimerMs:  a.snapTimerMs,
+      viewers:      sockets.size,
+    };
+  }));
+  res.json({ auctions: list });
+});
+
 app.get('/api/auctions', requireAuth, async (req, res) => {
   const list = await Promise.all([...auctions.values()].map(async (a) => {
     const sockets = await io.in(a.auctionId).allSockets();

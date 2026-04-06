@@ -11,6 +11,7 @@ import { AdminPage }           from './pages/AdminPage';
 import { ForgotPasswordPage }  from './pages/ForgotPasswordPage';
 import { ResetPasswordPage }   from './pages/ResetPasswordPage';
 import { HowItWorksPage }      from './pages/HowItWorksPage';
+import { PublicAuctionsPage }  from './pages/PublicAuctionsPage';
 import { ReactNode }           from 'react';
 
 function Protected({ children }: { children: ReactNode }) {
@@ -36,6 +37,7 @@ function AppRoutes() {
         <Route path="/auction/:auctionId" element={<Protected><AuctionPage /></Protected>} />
         <Route path="/account" element={<Protected><DashboardPage /></Protected>} />
         <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/auctions"     element={<PublicAuctionsPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
