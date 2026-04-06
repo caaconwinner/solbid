@@ -145,7 +145,7 @@ function WonAuctions({ token }: { token: string }) {
   const reload = () => api.myWins(token).then(({ wins: w }) => setWins(w));
   useEffect(() => { reload(); }, [token]);
 
-  const cluster = import.meta.env.VITE_SOLANA_CLUSTER ?? 'devnet';
+  const cluster = import.meta.env.VITE_SOLANA_CLUSTER ?? 'mainnet-beta';
   const suffix  = cluster === 'mainnet-beta' ? '' : `?cluster=${cluster}`;
 
   const showTxToast = (label: string, sig?: string) => {
@@ -344,7 +344,7 @@ export function DashboardPage() {
     setWithdrawing(true);
     try {
       const { solAmount, sig } = await api.withdraw(token, amount, dest);
-      const cluster = import.meta.env.VITE_SOLANA_CLUSTER ?? 'devnet';
+      const cluster = import.meta.env.VITE_SOLANA_CLUSTER ?? 'mainnet-beta';
       const suffix  = cluster === 'mainnet-beta' ? '' : `?cluster=${cluster}`;
       toast.success(
         <span>
