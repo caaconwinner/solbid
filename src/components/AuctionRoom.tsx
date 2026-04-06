@@ -13,9 +13,10 @@ interface Props {
   userId:           string;
   onCreditsChange?: (credits: number) => void;
   initialAuction?:  AuctionListing;
+  winClaimed?:      boolean;
 }
 
-export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction }: Props) {
+export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction, winClaimed }: Props) {
   const { auction, bids, userCredits, clockDrift, isConnected, bidResult, viewers, cashback, placeBid } =
     useAuction(auctionId, userId, initialAuction);
 
@@ -103,9 +104,10 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
           {auction.leaderId === userId ? (
             <div className="winner-banner-inner">
               <span>🎉 You won this auction!</span>
-              <Link to="/account" className="btn-primary" style={{ fontSize: 14, padding: '6px 16px' }}>
-                Claim →
-              </Link>
+              {winClaimed
+                ? <span className="win-claimed-badge">✓ Claimed</span>
+                : <Link to="/account" className="btn-primary" style={{ fontSize: 14, padding: '6px 16px' }}>Claim →</Link>
+              }
             </div>
           ) : (
             `${auction.leaderName} won at $${auction.currentPrice.toFixed(2)}`
