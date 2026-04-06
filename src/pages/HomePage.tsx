@@ -32,22 +32,10 @@ function SidebarHIW() {
   return (
     <div className="hs-flow">
       <StepCard n={1} title="Deposit SOL">
-        <div className="hs-deposit-row">
-          <div className="hs-pack">
-            <div className="hs-pack-num">10</div>
-            <div className="hs-pack-lbl">credits</div>
-            <div className="hs-pack-sol">0.10 SOL</div>
-          </div>
-          <div className="hs-pack hs-pack--active">
-            <div className="hs-pack-num">50</div>
-            <div className="hs-pack-lbl">credits</div>
-            <div className="hs-pack-sol">0.50 SOL</div>
-          </div>
-          <div className="hs-pack">
-            <div className="hs-pack-num">100</div>
-            <div className="hs-pack-lbl">credits</div>
-            <div className="hs-pack-sol">1.00 SOL</div>
-          </div>
+        <div className="hs-pack hs-pack--active hs-pack--single">
+          <div className="hs-pack-num">100</div>
+          <div className="hs-pack-lbl">credits</div>
+          <div className="hs-pack-sol">1 SOL</div>
         </div>
         <div className="hs-note">1 credit = 0.01 SOL · unspent credits always withdrawable</div>
       </StepCard>
@@ -55,25 +43,11 @@ function SidebarHIW() {
       <SideArrow />
 
       <StepCard n={2} title="Pick an auction">
-        <div className="hs-mini-cards">
-          <div className="hs-mini-card">
-            <div className="hs-mini-img">🎮</div>
-            <div className="hs-mini-name">PS5</div>
-            <div className="hs-mini-price">$0.13</div>
-            <div className="hs-mini-timer">2:47</div>
-          </div>
-          <div className="hs-mini-card hs-mini-card--active">
-            <div className="hs-mini-img">📱</div>
-            <div className="hs-mini-name">iPhone</div>
-            <div className="hs-mini-price">$0.07</div>
-            <div className="hs-mini-timer">14:22</div>
-          </div>
-          <div className="hs-mini-card">
-            <div className="hs-mini-img">⌚</div>
-            <div className="hs-mini-name">Watch</div>
-            <div className="hs-mini-price">$0.24</div>
-            <div className="hs-mini-timer">0:09</div>
-          </div>
+        <div className="hs-mini-card hs-mini-card--active hs-mini-card--single">
+          <div className="hs-mini-img">🎮</div>
+          <div className="hs-mini-name">PS5 Console</div>
+          <div className="hs-mini-price">$0.13</div>
+          <div className="hs-mini-timer">2:47 left</div>
         </div>
       </StepCard>
 

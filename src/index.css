@@ -560,6 +560,15 @@ a:hover { text-decoration: underline; }
 .hs-mini-cards { display: flex; gap: 6px; }
 .hs-mini-card { flex: 1; background: var(--surface-3); border: 1px solid var(--border); border-radius: 7px; padding: 6px 4px; text-align: center; }
 .hs-mini-card--active { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange); }
+.hs-pack--single { width: 100%; padding: 8px 12px; display: flex; align-items: center; gap: 10px; text-align: left; }
+.hs-pack--single .hs-pack-num { font-size: 22px; }
+.hs-pack--single .hs-pack-lbl { font-size: 11px; margin-bottom: 0; }
+.hs-pack--single .hs-pack-sol { font-size: 13px; margin-left: auto; }
+.hs-mini-card--single { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 12px; text-align: left; }
+.hs-mini-card--single .hs-mini-img { font-size: 24px; margin-bottom: 0; }
+.hs-mini-card--single .hs-mini-name { font-size: 12px; font-weight: 700; }
+.hs-mini-card--single .hs-mini-price { font-size: 15px; margin-left: auto; }
+.hs-mini-card--single .hs-mini-timer { font-size: 10px; color: var(--text-muted); margin-top: 0; }
 .hs-mini-img { font-size: 20px; margin-bottom: 4px; }
 .hs-mini-name { font-size: 9px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
 .hs-mini-price { font-size: 12px; font-weight: 800; color: var(--orange); }
