@@ -12,6 +12,7 @@ import { ForgotPasswordPage }  from './pages/ForgotPasswordPage';
 import { ResetPasswordPage }   from './pages/ResetPasswordPage';
 import { HowItWorksPage }      from './pages/HowItWorksPage';
 import { PennyTokenPage }      from './pages/PennyTokenPage';
+import { BrandPage }           from './pages/BrandPage';
 import { PublicAuctionsPage }  from './pages/PublicAuctionsPage';
 import { ReactNode }           from 'react';
 
@@ -40,6 +41,7 @@ function AppRoutes() {
         <Route path="/account"         element={<Protected><DashboardPage /></Protected>} />
         <Route path="/how-it-works"    element={<HowItWorksPage />} />
         <Route path="/penny"           element={<PennyTokenPage />} />
+        <Route path="/brand"           element={<BrandPage />} />
         <Route path="/admin"           element={<AdminPage />} />
         <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>

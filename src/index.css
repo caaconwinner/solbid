@@ -2022,3 +2022,49 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--green); border-radius: 20px;
   padding: 3px 12px; margin-top: 4px;
 }
+
+/* ── Brand Page ─────────────────────────────────────────────── */
+.brand-page { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+
+.brand-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 48px; flex-wrap: wrap; }
+.brand-hero-title { font-size: 32px; font-weight: 900; margin: 0 0 8px; }
+.brand-hero-sub { color: var(--muted); font-size: 14px; max-width: 500px; margin: 0; }
+.brand-dl-all { white-space: nowrap; }
+
+.brand-section { margin-bottom: 56px; }
+.brand-section-title { font-size: 18px; font-weight: 700; margin: 0 0 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+
+/* Logo grid */
+.brand-logo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.brand-logo-card { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.brand-logo-preview { display: flex; align-items: center; justify-content: center; padding: 28px 20px; min-height: 100px; }
+.brand-logo-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface); border-top: 1px solid var(--border); }
+.brand-logo-label { font-size: 12px; color: var(--muted); }
+.brand-dl-btn { background: transparent; border: 1px solid var(--border); color: var(--text); font-size: 12px; padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+.brand-dl-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+/* Colour swatches */
+.brand-color-group-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+.brand-swatches { display: flex; flex-wrap: wrap; gap: 12px; }
+.brand-swatch { cursor: pointer; position: relative; width: 96px; }
+.brand-swatch-color { width: 96px; height: 64px; border-radius: 8px; margin-bottom: 6px; }
+.brand-swatch-name { font-size: 12px; font-weight: 600; }
+.brand-swatch-hex { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.brand-swatch-copied { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); background: #000; color: var(--green); font-size: 11px; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+
+/* Typography */
+.brand-type-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.brand-type-card { border: 1px solid var(--border); border-radius: 10px; padding: 24px; background: var(--surface); }
+.brand-type-sample { font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+.brand-type-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+.brand-type-use { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+.brand-type-weights { display: flex; flex-direction: column; gap: 4px; font-size: 13px; margin-bottom: 14px; }
+.brand-type-link { font-size: 12px; color: var(--orange); text-decoration: none; }
+.brand-type-link:hover { text-decoration: underline; }
+
+/* Token asset */
+.brand-token-card { display: flex; align-items: center; gap: 28px; border: 1px solid var(--border); border-radius: 10px; padding: 28px; background: var(--surface); flex-wrap: wrap; }
+.brand-token-preview { display: flex; align-items: center; justify-content: center; }
+.brand-token-info { flex: 1; min-width: 200px; }
+.brand-token-name { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.brand-token-desc { font-size: 13px; color: var(--muted); max-width: 360px; line-height: 1.5; }
