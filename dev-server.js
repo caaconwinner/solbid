@@ -192,9 +192,10 @@ try { db.exec(`
   CREATE TABLE IF NOT EXISTS sessions (
     token   TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
-    ts      INTEGER NOT NULL
+    ts      INTEGER
   )
 `); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE sessions ADD COLUMN ts INTEGER'); } catch { /* already exists */ }
 
 // ─── Prepared statements ───────────────────────────────────────
 const stmt = {
