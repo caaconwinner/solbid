@@ -1007,7 +1007,8 @@ setInterval(() => {
       }
       // ── Cashback raffle ──
       try {
-        const participants = stmt.getCashbackParticipants.all(a.auctionId);
+        const allParticipants = stmt.getCashbackParticipants.all(a.auctionId);
+        const participants = allParticipants.filter(p => p.id !== a.leaderId);
         if (participants.length > 0) {
           const lucky  = participants[Math.floor(Math.random() * participants.length)];
           const refund = lucky.total_bids; // bonus credits = total bids placed in this auction
