@@ -108,6 +108,10 @@ export function AuctionCard({ auction }: Props) {
           <span className="card-retail">Retail ${auction.item.retailValue.toLocaleString()}</span>
         </div>
 
+        {ended && auction.leaderName && (
+          <div className="card-winner">🏆 {auction.leaderName} won at ${auction.currentPrice.toFixed(2)}</div>
+        )}
+
         {active ? (
           <button
             className={`card-bid-btn ${pending ? 'card-bid-btn--pending' : ''}`}
