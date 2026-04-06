@@ -35,25 +35,28 @@ export function AuctionCard({ auction }: Props) {
   const [pending, setPending] = useState(false);
   const joinedRef = useRef(false);
 
-  // Join auction room so we receive bid-confirmed/rejected
+  // Connect socket and join auction room when card is active
   useEffect(() => {
     if (!active) return;
-    if (!joinedRef.current) {
-      socket.emit('join-auction', auction.auctionId);
-      joinedRef.current = true;
+    const join = () => {
+      if (!joinedRef.current) {
+        socket.emit('join-auction', auction.auctionId);
+        joinedRef.current = true;
+      }
+    };
+    if (socket.connected) {
+      join();
+    } else {
+      socket.once('connect', join);
+      socket.connect();
     }
+    return () => { socket.off('connect', join); };
   }, [active, auction.auctionId]);
 
   const placeBid = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (pending || !user || (user.credits + (user.bonusCredits ?? 0)) < 1) return;
     setPending(true);
-
-    // Ensure joined before bidding
-    if (!joinedRef.current) {
-      socket.emit('join-auction', auction.auctionId);
-      joinedRef.current = true;
-    }
 
     const cleanup = () => { socket.off('bid-confirmed', onConfirmed); socket.off('bid-rejected', onRejected); };
     const onConfirmed = () => { cleanup(); setPending(false); toast.success('Bid placed!', { duration: 1500 }); };
@@ -63,11 +66,24 @@ export function AuctionCard({ auction }: Props) {
       else toast.error('Bid rejected');
     };
 
-    socket.once('bid-confirmed', onConfirmed);
-    socket.once('bid-rejected',  onRejected);
-    socket.emit('place-bid', { auctionId: auction.auctionId });
+    const doBid = () => {
+      if (!joinedRef.current) {
+        socket.emit('join-auction', auction.auctionId);
+        joinedRef.current = true;
+      }
+      socket.once('bid-confirmed', onConfirmed);
+      socket.once('bid-rejected',  onRejected);
+      socket.emit('place-bid', { auctionId: auction.auctionId });
+      setTimeout(() => { cleanup(); setPending(false); }, 2500);
+    };
 
-    setTimeout(() => { cleanup(); setPending(false); }, 2500);
+    if (socket.connected) {
+      doBid();
+    } else {
+      socket.once('connect', doBid);
+      socket.connect();
+      setTimeout(() => { socket.off('connect', doBid); setPending(false); }, 3000);
+    }
   };
 
   const credits = user ? user.credits + (user.bonusCredits ?? 0) : 0;
