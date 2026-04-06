@@ -26,12 +26,11 @@ function WithdrawModal({ maxSol, onConfirm, onClose, loading }: WithdrawModalPro
   const [sol, setSol]     = useState('');
 
   const solNum  = parseFloat(sol);
-  const maxSol4 = Math.max(0, Math.floor(maxSol / 0.01) * 0.01);
   const credits = sol && !isNaN(solNum) ? Math.floor(solNum / 0.01) : 0;
   const err = sol
     ? isNaN(solNum) || solNum <= 0 ? 'Enter a valid amount'
     : credits < 1                  ? 'Minimum 0.01 SOL (1 credit)'
-    : solNum > maxSol4             ? `Max ${maxSol4.toFixed(4)} SOL`
+    : solNum > maxSol             ? `Max ${maxSol.toFixed(4)} SOL`
     : ''
     : '';
 
@@ -61,13 +60,13 @@ function WithdrawModal({ maxSol, onConfirm, onClose, loading }: WithdrawModalPro
               className="form-input"
               type="number"
               min={0.01}
-              max={maxSol4}
+              max={maxSol}
               step={0.01}
               value={sol}
               onChange={(e) => setSol(e.target.value)}
-              placeholder={`min 0.01 · max ${maxSol4.toFixed(4)}`}
+              placeholder={`min 0.01 · max ${maxSol.toFixed(4)}`}
             />
-            <button className="btn-max" onClick={() => setSol(maxSol4.toFixed(4))} type="button">
+            <button className="btn-max" onClick={() => setSol(maxSol.toFixed(4))} type="button">
               MAX
             </button>
           </div>
@@ -80,7 +79,7 @@ function WithdrawModal({ maxSol, onConfirm, onClose, loading }: WithdrawModalPro
           <button
             className="btn-primary"
             onClick={() => onConfirm(dest.trim(), credits)}
-            disabled={loading || !dest.trim() || !!err || credits < 1 || maxSol4 <= 0}
+            disabled={loading || !dest.trim() || !!err || credits < 1 || maxSol <= 0}
           >
             {loading ? 'Sending…' : `Withdraw ${sol || '0'} SOL`}
           </button>
