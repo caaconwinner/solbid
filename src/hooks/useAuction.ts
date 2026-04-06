@@ -108,9 +108,10 @@ export function useAuction(auctionId: string, currentUserId: string) {
     };
     const onCredits     = ({ real, bonus }: { real: number; bonus: number }) => dispatch({ type: 'CREDITS_UPDATE', credits: real + bonus });
     const onConfirmed   = ()                       => dispatch({ type: 'BID_CONFIRMED' });
-    const onRejected    = ()                       => {
+    const onRejected    = ({ reason }: { reason?: string } = {}) => {
       dispatch({ type: 'BID_REJECTED' });
-      toast.error('Bid rejected');
+      if (reason === 'ALREADY_LEADER') toast('You are already the winning bid!', { icon: '👑', duration: 3000 });
+      else toast.error('Bid rejected');
     };
     const onEnded = ({ winnerId, winnerName, finalPrice }: { winnerId: string | null; winnerName: string | null; finalPrice: number }) => {
       dispatch({ type: 'AUCTION_ENDED', winnerId, winnerName, finalPrice });

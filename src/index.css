@@ -536,6 +536,26 @@ a:hover { text-decoration: underline; }
 }
 .hiw-list strong { color: var(--text); }
 .home-auctions { flex: 1; min-width: 0; }
+
+/* ─── Sidebar compact steps ──────────────────────────────────── */
+.hs-steps { display: flex; flex-direction: column; gap: 2px; }
+.hs-step {
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s, background 0.2s;
+}
+.hs-step:hover { background: var(--surface-2); border-color: var(--border); }
+.hs-step-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.hs-step-num {
+  min-width: 20px; height: 20px; border-radius: 50%;
+  background: var(--orange); color: #fff;
+  font-size: 11px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.hs-step-icon { font-size: 15px; }
+.hs-step-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.hs-step-body { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0 0 0 28px; }
 @media (max-width: 700px) {
   .home-layout { flex-direction: column; }
   .home-sidebar { width: 100%; position: static; }

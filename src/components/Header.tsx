@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { usePing } from '../hooks/usePing';
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { user, logout, creditsReady } = useAuth();
   const { status, latencyMs } = usePing();
 
   // Pulse animation when credits change
@@ -44,7 +44,7 @@ export function Header() {
               </a>
               <Link to="/account#deposit" className="header-credits" data-pulse={pulse} style={{ textDecoration: 'none' }}>
                 <span className={`ping-dot ping-dot--${status}`} title={`${status}${pingLabel ? ` · ${pingLabel}` : ''}`} />
-                <span className="credits-value">{user.credits + (user.bonusCredits ?? 0)}</span>
+                <span className="credits-value">{creditsReady ? user.credits + (user.bonusCredits ?? 0) : '—'}</span>
                 <span className="credits-label">credits</span>
               </Link>
               <button className="btn-ghost" onClick={logout}>Sign out</button>

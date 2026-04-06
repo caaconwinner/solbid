@@ -65,12 +65,24 @@ export function HomePage() {
     <div className="page home-layout">
       <aside className="home-sidebar">
         <h3 className="hiw-title">How it works</h3>
-        <ol className="hiw-list">
-          <li>Send SOL to your deposit address on the <strong>Account</strong> page.</li>
-          <li>Credits appear within <strong>~15 seconds</strong>.</li>
-          <li>Each bid costs <strong>0.01 SOL</strong> (1 credit) and raises the price by <strong>$0.01 USD</strong>.</li>
-          <li>When ≤15 seconds remain, each bid resets the timer to 15s. Last bidder wins the <strong>right to purchase</strong> the item at the final price in SOL.</li>
-        </ol>
+        <div className="hs-steps">
+          {[
+            { n: 1, icon: '💳', title: 'Deposit SOL',       body: 'Send SOL to your deposit address. Credits appear within ~15 seconds.' },
+            { n: 2, icon: '🎯', title: 'Pick an auction',   body: 'Browse live auctions. Each starts at $0.01.' },
+            { n: 3, icon: '⚡', title: 'Place bids',        body: '1 bid = 1 credit = 0.01 SOL. Each bid raises the price $0.01 & resets the timer.' },
+            { n: 4, icon: '🏆', title: 'Last bidder wins',  body: 'When the timer hits 0, the last bidder wins the right to purchase at the final price.' },
+            { n: 5, icon: '🎰', title: 'Cashback raffle',   body: 'One random bidder wins their bid count back as bonus credits at auction end.' },
+          ].map(({ n, icon, title, body }) => (
+            <div key={n} className="hs-step">
+              <div className="hs-step-head">
+                <span className="hs-step-num">{n}</span>
+                <span className="hs-step-icon">{icon}</span>
+                <span className="hs-step-title">{title}</span>
+              </div>
+              <p className="hs-step-body">{body}</p>
+            </div>
+          ))}
+        </div>
       </aside>
 
       <div className="home-auctions">

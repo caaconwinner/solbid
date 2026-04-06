@@ -7,6 +7,7 @@ interface AuthCtx {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  creditsReady: boolean;
   login:    (username: string, password: string) => Promise<void>;
   register: (username: string, password: string, email?: string) => Promise<void>;
   logout:   () => void;
@@ -19,6 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]         = useState<User | null>(null);
   const [token, setToken]       = useState<string | null>(localStorage.getItem('token'));
   const [isLoading, setLoading] = useState(true);
+  const [creditsReady, setCreditsReady] = useState(false);
 
   useEffect(() => {
     if (!token) { setLoading(false); return; }
@@ -61,13 +63,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const onCredits = ({ real, bonus }: { real: number; bonus: number }) => {
       setUser((u) => u ? { ...u, credits: real, bonusCredits: bonus } : u);
+      setCreditsReady(true);
     };
     socket.on('credits-update', onCredits);
     return () => { socket.off('credits-update', onCredits); };
   }, []);
 
   return (
-    <Ctx.Provider value={{ user, token, isLoading, login, register, logout, refreshCredits }}>
+    <Ctx.Provider value={{ user, token, isLoading, creditsReady, login, register, logout, refreshCredits }}>
       {children}
     </Ctx.Provider>
   );

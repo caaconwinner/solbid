@@ -317,13 +317,12 @@ function AccountSettings({ token, user }: { token: string; user: any }) {
 
 // ─── Page ──────────────────────────────────────────────────────
 export function DashboardPage() {
-  const { user, token, refreshCredits } = useAuth();
+  const { user, token, refreshCredits, creditsReady } = useAuth();
   const [txs, setTxs]               = useState<Transaction[]>([]);
   const [solBalance, setSolBalance] = useState<number | null>(null);
   const [withdrawing, setWithdrawing] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [tab, setTab] = useState<'bids' | 'funds' | 'wins'>('funds');
-
   const loadTxs = (t: string) =>
     api.transactions(t).then(({ transactions }) => setTxs(transactions));
 
@@ -384,10 +383,10 @@ export function DashboardPage() {
         <h2 className="dash-section-title">Bid Credits</h2>
         <div className="dash-credits-card">
           <div className="dash-credits-amount">
-            <span className="dash-credits-number">{user.credits + (user.bonusCredits ?? 0)}</span>
+            <span className="dash-credits-number">{creditsReady ? user.credits + (user.bonusCredits ?? 0) : '—'}</span>
             <span className="dash-credits-label">credits available</span>
           </div>
-          {(() => {
+          {creditsReady && (() => {
             // Withdrawable credits are capped by actual on-chain SOL balance
             const solBacked  = solBalance !== null ? Math.min(user.credits, Math.floor(solBalance / 0.01)) : user.credits;
             const bonusTotal = (user.bonusCredits ?? 0) + Math.max(0, user.credits - solBacked);
