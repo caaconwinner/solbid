@@ -114,7 +114,7 @@ export function HowItWorksPage() {
         <h1 className="hiw-hero-title">How penny<strong>Bid</strong> works</h1>
         <p className="hiw-hero-sub">
           Penny auctions let you win high-value items for a fraction of retail price —
-          every bid costs one credit and extends the timer.
+          every bid costs one credit. When under 15 seconds remain, each bid resets the timer.
         </p>
       </div>
 
