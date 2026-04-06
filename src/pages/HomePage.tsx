@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { AuctionCard } from '../components/AuctionCard';
@@ -32,11 +33,11 @@ function SidebarHIW() {
   return (
     <div className="hs-flow">
       <StepCard n={1} title="Deposit SOL">
-        <div className="hs-pack hs-pack--active hs-pack--single">
+        <Link to="/account#deposit" className="hs-pack hs-pack--active hs-pack--single hs-pack--link">
           <div className="hs-pack-num">100</div>
           <div className="hs-pack-lbl">credits</div>
-          <div className="hs-pack-sol">1 SOL</div>
-        </div>
+          <div className="hs-pack-sol">1 SOL →</div>
+        </Link>
         <div className="hs-note">1 credit = 0.01 SOL · unspent credits always withdrawable</div>
       </StepCard>
 

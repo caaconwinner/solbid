@@ -560,6 +560,8 @@ a:hover { text-decoration: underline; }
 .hs-mini-cards { display: flex; gap: 6px; }
 .hs-mini-card { flex: 1; background: var(--surface-3); border: 1px solid var(--border); border-radius: 7px; padding: 6px 4px; text-align: center; }
 .hs-mini-card--active { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange); }
+.hs-pack--link { text-decoration: none; cursor: pointer; transition: opacity 0.15s; display: flex; }
+.hs-pack--link:hover { opacity: 0.85; }
 .hs-pack--single { width: 100%; padding: 8px 12px; display: flex; align-items: center; gap: 10px; text-align: left; }
 .hs-pack--single .hs-pack-num { font-size: 22px; }
 .hs-pack--single .hs-pack-lbl { font-size: 11px; margin-bottom: 0; }
