@@ -188,6 +188,13 @@ try { db.exec('ALTER TABLE users ADD COLUMN ref_code TEXT'); } catch { /* alread
 try { db.exec('ALTER TABLE users ADD COLUMN referred_by TEXT'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE users ADD COLUMN ref_rewarded INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
 try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_ref_code ON users(ref_code)'); } catch { /* already exists */ }
+try { db.exec(`
+  CREATE TABLE IF NOT EXISTS sessions (
+    token   TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    ts      INTEGER NOT NULL
+  )
+`); } catch { /* already exists */ }
 
 // ─── Prepared statements ───────────────────────────────────────
 const stmt = {
@@ -373,7 +380,14 @@ function sanitizeUser(user) {
 }
 
 // ─── User store ────────────────────────────────────────────────
-const tokens = new Map(); // token → userId (session — in memory only)
+// ─── Session store (SQLite-backed, survives restarts) ──────────
+const tokens = new Map(); // token → userId (in-memory cache)
+// Load existing sessions from DB on startup
+for (const row of db.prepare('SELECT token, user_id FROM sessions').all()) {
+  tokens.set(row.token, row.user_id);
+}
+const stmtInsertSession = db.prepare('INSERT OR IGNORE INTO sessions (token, user_id, ts) VALUES (?, ?, ?)');
+const stmtDeleteSession = db.prepare('DELETE FROM sessions WHERE token = ?');
 
 async function makeUser(username, passwordHash, email = null, referredBy = null) {
   const wallet = generateWallet();
@@ -399,6 +413,7 @@ async function makeUser(username, passwordHash, email = null, referredBy = null)
 function makeToken(userId) {
   const t = randomBytes(32).toString('hex');
   tokens.set(t, userId);
+  stmtInsertSession.run(t, userId, Date.now());
   return t;
 }
 
