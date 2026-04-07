@@ -91,7 +91,7 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
   return (
     <div className="cashback-panel">
       <div className="cashback-header">
-        <span className="cashback-icon">🎰</span>
+        <img src="/raffle-icon.png" className="cashback-icon" alt="raffle" />
         <div>
           <div className="cashback-title">Credit Cashback Raffle</div>
           <div className="cashback-sub">Every bidder is entered automatically</div>

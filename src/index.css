@@ -2163,7 +2163,7 @@ a:hover { text-decoration: underline; }
   border-bottom: 1px solid var(--border);
   background: linear-gradient(135deg, var(--surface-2) 0%, var(--surface) 100%);
 }
-.cashback-icon { font-size: 24px; line-height: 1; }
+.cashback-icon { width: 48px; height: 48px; object-fit: contain; border-radius: 10px; flex-shrink: 0; }
 .cashback-title { font-size: 14px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
 .cashback-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
