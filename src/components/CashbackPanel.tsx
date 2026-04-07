@@ -125,7 +125,7 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
               </div>
 
               <div className="cashback-list">
-                {eligible.slice(0, 6).map(p => (
+                {eligible.slice(0, 10).map(p => (
                   <div key={p.id} className={`cashback-row ${p.id === userId ? 'cashback-row--you' : ''}`}>
                     <span className="cashback-row-name">
                       {p.id === userId ? '⭐ You' : p.username}
@@ -135,8 +135,8 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
                     </span>
                   </div>
                 ))}
-                {eligible.length > 6 && (
-                  <div className="cashback-more">+{eligible.length - 6} more in raffle</div>
+                {eligible.length > 10 && (
+                  <div className="cashback-more">+{eligible.length - 10} more in raffle</div>
                 )}
               </div>
             </>

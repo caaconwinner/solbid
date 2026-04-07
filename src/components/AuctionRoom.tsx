@@ -122,7 +122,7 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
           userId={userId}
           ended={ended}
         />
-        <BidFeed bids={bids.slice(0, 10)} userId={userId} />
+        <BidFeed bids={bids.slice(0, 100)} userId={userId} />
       </div>
     </div>
   );

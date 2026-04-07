@@ -13,7 +13,7 @@ interface Props {
 export function BidFeed({ bids, userId }: Props) {
   return (
     <div className="bid-feed-wrap">
-      <div className="bid-feed-header">Last 10 Bids</div>
+      <div className="bid-feed-header">Last {bids.length} Bid{bids.length !== 1 ? 's' : ''}</div>
       <div className="bid-feed">
         {bids.map((bid, i) => (
           <div

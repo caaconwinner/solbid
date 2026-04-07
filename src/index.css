@@ -1180,6 +1180,7 @@ a:hover { text-decoration: underline; }
 }
 .bid-feed {
   overflow-y: auto;
+  max-height: 548px; /* ~20 rows × ~27.4px each */
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
@@ -2072,7 +2073,7 @@ a:hover { text-decoration: underline; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
 }
 @media (max-width: 640px) {
   .auction-bottom { grid-template-columns: 1fr; }
@@ -2084,29 +2085,34 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 580px;
 }
 
 .cashback-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 14px 10px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px 12px;
   border-bottom: 1px solid var(--border);
-  background: var(--surface-2);
+  background: linear-gradient(135deg, var(--surface-2) 0%, var(--surface) 100%);
 }
-.cashback-icon { font-size: 20px; line-height: 1; }
-.cashback-title { font-size: 13px; font-weight: 700; color: var(--text); }
-.cashback-sub   { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+.cashback-icon { font-size: 24px; line-height: 1; }
+.cashback-title { font-size: 14px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+.cashback-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
 /* Rolling drum */
 .cashback-drum {
-  padding: 16px 14px 10px;
+  padding: 24px 16px 16px;
   text-align: center;
   border-bottom: 1px solid var(--border);
   overflow: hidden;
+  background: radial-gradient(ellipse at center top, var(--orange-dim) 0%, transparent 70%);
 }
 .cashback-drum-name {
-  font-size: 18px; font-weight: 800; color: var(--orange);
+  font-size: 22px; font-weight: 900; color: var(--orange);
   font-family: var(--mono);
-  min-height: 26px;
+  min-height: 30px;
+  text-shadow: 0 0 20px rgba(255,98,0,0.3);
 }
 .cashback-drum-name--spin { animation: cashback-slot 0.08s ease-out; }
 @keyframes cashback-slot {
@@ -2114,37 +2120,55 @@ a:hover { text-decoration: underline; }
   60%  { opacity: 1; transform: translateY(2px)  scaleY(1.05); }
   100% { opacity: 1; transform: translateY(0)    scaleY(1); }
 }
-.cashback-drum-sub { font-size: 10px; color: var(--text-dim); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+.cashback-drum-sub { font-size: 10px; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
 
 /* Participant list */
-.cashback-list { padding: 8px 0; }
+.cashback-list { padding: 8px 0; flex: 1; }
 .cashback-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 5px 14px; font-size: 12px;
+  padding: 7px 16px; font-size: 12px;
+  border-bottom: 1px solid transparent;
+  transition: background 0.1s;
 }
-.cashback-row--you { background: var(--orange-dim); }
+.cashback-row:hover { background: var(--surface-2); }
+.cashback-row--you {
+  background: var(--orange-dim);
+  border-left: 3px solid var(--orange);
+  padding-left: 13px;
+}
+.cashback-row--you:hover { background: var(--orange-dim); }
 .cashback-row-name { color: var(--text-muted); }
 .cashback-row--you .cashback-row-name { color: var(--orange); font-weight: 700; }
-.cashback-row-bids { color: var(--text-dim); font-size: 11px; font-family: var(--mono); }
-.cashback-more { padding: 4px 14px; font-size: 11px; color: var(--text-dim); }
+.cashback-row-bids {
+  color: var(--text-dim); font-size: 11px; font-family: var(--mono);
+  background: var(--surface-2); border-radius: 4px; padding: 1px 6px;
+}
+.cashback-row--you .cashback-row-bids { background: rgba(255,98,0,0.15); color: var(--orange); }
+.cashback-more { padding: 6px 16px; font-size: 11px; color: var(--text-dim); font-style: italic; }
 
 /* Disclaimer */
 .cashback-disclaimer {
-  margin: 8px 10px 10px;
-  font-size: 10px; color: var(--text-dim); line-height: 1.5;
-  background: var(--surface-2); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 7px 10px;
+  margin: 0;
+  padding: 10px 16px;
+  font-size: 10px; color: var(--text-dim); line-height: 1.6;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  margin-top: auto;
 }
 
 /* Empty state */
 .cashback-empty {
-  padding: 20px 14px; font-size: 12px; color: var(--text-muted);
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 16px; font-size: 13px; color: var(--text-muted);
   text-align: center; font-style: italic;
 }
 
 /* Winner reveal */
 .cashback-winner-reveal {
-  padding: 20px 14px; text-align: center;
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 32px 16px; text-align: center;
   animation: cashback-reveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes cashback-reveal {
@@ -2153,14 +2177,14 @@ a:hover { text-decoration: underline; }
   100% { opacity: 1; transform: scale(1); }
 }
 .cashback-winner-reveal--you { background: var(--orange-dim); }
-.cashback-winner-emoji  { font-size: 28px; margin-bottom: 8px; }
-.cashback-winner-name   { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.cashback-winner-emoji  { font-size: 40px; margin-bottom: 12px; }
+.cashback-winner-name   { font-size: 20px; font-weight: 900; color: var(--text); margin-bottom: 6px; letter-spacing: -0.02em; }
 .cashback-winner-reveal--you .cashback-winner-name { color: var(--orange); }
 .cashback-winner-amount {
-  display: inline-block; font-size: 13px; font-weight: 700;
+  display: inline-block; font-size: 15px; font-weight: 700;
   color: var(--green); background: var(--green-dim);
   border: 1px solid var(--green); border-radius: 20px;
-  padding: 3px 12px; margin-top: 4px;
+  padding: 5px 16px; margin-top: 6px;
 }
 
 /* ── Brand Page ─────────────────────────────────────────────── */
