@@ -10,11 +10,26 @@ interface Props {
   auction: AuctionListing;
 }
 
-function MiniTimer({ endsAtMs, status }: { endsAtMs: number; status: string }) {
-  const ms      = useTimer(status === 'active' ? endsAtMs : null, 0);
-  const seconds = ms / 1000;
+function formatCountdown(ms: number) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${sec}s`;
+  return `${sec}s`;
+}
 
-  if (status === 'scheduled') return <span className="card-status scheduled">UPCOMING</span>;
+function MiniTimer({ endsAtMs, startsAtMs, status }: { endsAtMs: number; startsAtMs?: number; status: string }) {
+  const activeMs    = useTimer(status === 'active' ? endsAtMs : null, 0);
+  const scheduledMs = useTimer(status === 'scheduled' && startsAtMs ? startsAtMs : null, 0);
+  const seconds     = activeMs / 1000;
+
+  if (status === 'scheduled') {
+    return startsAtMs
+      ? <span className="card-status scheduled">starts in {formatCountdown(scheduledMs)}</span>
+      : <span className="card-status scheduled">UPCOMING</span>;
+  }
   if (status === 'ended' || status === 'settled') return <span className="card-status ended">ENDED</span>;
 
   const urgent = seconds <= 15;
@@ -112,7 +127,7 @@ export function AuctionCard({ auction }: Props) {
           </div>
           <div className="card-stat">
             <span className="card-stat-label">Time left</span>
-            <MiniTimer endsAtMs={auction.endsAtMs} status={auction.status} />
+            <MiniTimer endsAtMs={auction.endsAtMs} startsAtMs={auction.startsAtMs} status={auction.status} />
           </div>
         </div>
 

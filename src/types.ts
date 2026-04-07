@@ -95,6 +95,7 @@ export interface AuctionListing {
   item: AuctionItem;
   currentPrice: number;
   endsAtMs: number;
+  startsAtMs?: number;
   status: 'scheduled' | 'active' | 'ended' | 'settled';
   totalBids: number;
   leaderName: string | null;
