@@ -138,17 +138,16 @@ a:hover { text-decoration: underline; }
 
 .header-ref-btn {
   background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 3px 10px;
+  border: none;
+  padding: 0;
   cursor: pointer;
-  letter-spacing: .04em;
-  transition: border-color .15s, color .15s;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--orange);
+  transition: opacity .15s;
 }
-.header-ref-btn:hover { border-color: var(--orange); color: var(--orange); }
+.header-ref-btn:hover { opacity: 0.75; }
 
 .header-x-link {
   color: var(--text-muted);
