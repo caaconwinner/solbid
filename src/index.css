@@ -1611,6 +1611,29 @@ a:hover { text-decoration: underline; }
 }
 @media (max-width: 600px) { .admin-form-grid { grid-template-columns: 1fr; } }
 
+.admin-start-mode-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  width: fit-content;
+}
+.admin-start-mode-btn {
+  background: none;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 1px);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.admin-start-mode-btn:hover { color: var(--text); }
+.admin-start-mode-btn.active { background: var(--orange); color: #000; font-weight: 700; }
+
 /* ─── Admin tabs ──────────────────────────────────────────────── */
 .admin-tabs {
   display: flex;

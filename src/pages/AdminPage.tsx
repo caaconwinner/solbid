@@ -104,6 +104,60 @@ function AdminLogin({ onLogin }: { onLogin: (t: string) => void }) {
   );
 }
 
+// ─── Start time input (exact or relative) ──────────────────────
+function StartTimeInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [mode, setMode] = useState<'exact' | 'relative'>('exact');
+  const [offsetH, setOffsetH] = useState('0');
+  const [offsetM, setOffsetM] = useState('30');
+
+  const toLocal = (ms: number) =>
+    new Date(ms - new Date(ms).getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+  const applyRelative = (h: string, m: string) => {
+    const ms = Date.now() + (Number(h) * 60 + Number(m)) * 60_000;
+    onChange(toLocal(ms));
+  };
+
+  const switchMode = (m: 'exact' | 'relative') => {
+    setMode(m);
+    if (m === 'relative') applyRelative(offsetH, offsetM);
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="admin-start-mode-toggle">
+        <button type="button"
+          className={`admin-start-mode-btn ${mode === 'exact' ? 'active' : ''}`}
+          onClick={() => switchMode('exact')}>Exact time</button>
+        <button type="button"
+          className={`admin-start-mode-btn ${mode === 'relative' ? 'active' : ''}`}
+          onClick={() => switchMode('relative')}>From now</button>
+      </div>
+
+      {mode === 'exact' ? (
+        <input className="form-input" type="datetime-local" value={value}
+          onChange={(e) => onChange(e.target.value)} required />
+      ) : (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input className="form-input" type="number" min={0} max={168} value={offsetH}
+            style={{ width: 72 }}
+            onChange={(e) => { setOffsetH(e.target.value); applyRelative(e.target.value, offsetM); }} />
+          <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>h</span>
+          <input className="form-input" type="number" min={0} max={59} value={offsetM}
+            style={{ width: 72 }}
+            onChange={(e) => { setOffsetM(e.target.value); applyRelative(offsetH, e.target.value); }} />
+          <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>min from now</span>
+        </div>
+      )}
+      {mode === 'relative' && value && (
+        <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: 0 }}>
+          → {new Date(value).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ─── Create form ───────────────────────────────────────────────
 function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () => void }) {
   const now = new Date();
@@ -175,8 +229,7 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
 
         <div className="form-group">
           <label className="form-label">Start time</label>
-          <input className="form-input" type="datetime-local" value={startAt}
-            onChange={(e) => setStartAt(e.target.value)} required />
+          <StartTimeInput value={startAt} onChange={setStartAt} />
         </div>
 
         <div className="form-group">
@@ -276,7 +329,7 @@ function EditForm({ token, auction, onDone }: { token: string; auction: AdminAuc
         </div>
         <div className="form-group">
           <label className="form-label">Start time</label>
-          <input className="form-input" type="datetime-local" value={startAt} onChange={(e) => setStartAt(e.target.value)} required />
+          <StartTimeInput value={startAt} onChange={setStartAt} />
         </div>
         <div className="form-group">
           <label className="form-label">Duration (minutes)</label>
