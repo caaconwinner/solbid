@@ -1104,7 +1104,35 @@ function tryBid(auctionId, user, displayName) {
   user.credits      = creditsAfter;      // keep socket snapshot in sync
   user.bonusCredits = bonusAfter;
   persistAuction(a);
+  // check if this bid completes the referral conditions for this user
+  checkReferralReward(user.id);
   return { ok: true, sequence: bidSeq };
+}
+
+// ─── Referral reward helper ────────────────────────────────────
+// Fires once per referred user when they have deposited ≥ 0.045 SOL total AND placed ≥ 1 bid.
+function checkReferralReward(userId) {
+  const refInfo = db.prepare('SELECT referred_by, ref_rewarded FROM users WHERE id = ?').get(userId);
+  if (!refInfo?.referred_by || refInfo.ref_rewarded) return; // no referrer or already rewarded
+
+  const { totalDeposited } = db.prepare(
+    "SELECT COALESCE(SUM(sol), 0) as totalDeposited FROM transactions WHERE user_id = ? AND type = 'deposit'"
+  ).get(userId);
+  if (totalDeposited < 0.045) return; // not enough deposited yet
+
+  const { bidCount } = db.prepare(
+    "SELECT COUNT(*) as bidCount FROM transactions WHERE user_id = ? AND type = 'bid'"
+  ).get(userId);
+  if (bidCount < 1) return; // hasn't bid yet
+
+  const referrer = db.prepare('SELECT id, username FROM users WHERE id = ?').get(refInfo.referred_by);
+  if (!referrer) return;
+
+  db.transaction(() => {
+    db.prepare('UPDATE users SET bonus_credits = bonus_credits + 10 WHERE id = ?').run(referrer.id);
+    db.prepare('UPDATE users SET ref_rewarded = 1 WHERE id = ?').run(userId);
+  })();
+  console.log(`[ref] referral reward: +10 bonus → ${referrer.username}, triggered by user ${userId}`);
 }
 
 // ─── Socket.io ─────────────────────────────────────────────────
@@ -1323,18 +1351,8 @@ setInterval(async () => {
           console.log(`[deposit] ${row.id} +${creditsEarned} credits (+${(lamportsDiff / LAMPORTS_PER_SOL).toFixed(4)} SOL)`);
           row.credits += creditsEarned;
 
-          // ── Referral reward (first qualifying deposit ≥ 0.05 SOL = 5 credits) ──
-          if (creditsEarned >= 5) {
-            const refInfo = db.prepare('SELECT referred_by, ref_rewarded FROM users WHERE id = ?').get(row.id);
-            if (refInfo?.referred_by && !refInfo.ref_rewarded) {
-              db.transaction(() => {
-                db.prepare('UPDATE users SET bonus_credits = bonus_credits + 10 WHERE id = ?').run(refInfo.referred_by);
-                db.prepare('UPDATE users SET bonus_credits = bonus_credits + 5, ref_rewarded = 1 WHERE id = ?').run(row.id);
-              })();
-              const referrer = db.prepare('SELECT username FROM users WHERE id = ?').get(refInfo.referred_by);
-              console.log(`[ref] referral reward: +10 bonus → ${refInfo.referred_by} (${referrer?.username}), +5 bonus → ${row.id}`);
-            }
-          }
+          // ── Referral reward (deposit + bid conditions checked in helper) ──
+          checkReferralReward(row.id);
           const solDeposited = (lamportsDiff / LAMPORTS_PER_SOL).toFixed(4);
           sendEmail(row.email, 'Deposit confirmed — pennyBid', `
             <p>Hi ${row.username},</p>

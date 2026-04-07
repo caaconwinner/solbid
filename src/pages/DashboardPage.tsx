@@ -26,9 +26,8 @@ function ReferralCard({ refCode, token }: { refCode: string; token: string }) {
       <h2 className="dash-section-title">Refer a friend</h2>
       <div className="referral-card">
         <p className="referral-desc">
-          Share your link. When someone signs up and deposits <strong>≥ 0.05 SOL</strong>, you get{' '}
-          <span style={{ color: 'var(--orange)', fontWeight: 700 }}>+10 bonus credits</span> and they get{' '}
-          <span style={{ color: 'var(--orange)', fontWeight: 700 }}>+5 bonus credits</span>.
+          Share your link. When someone signs up, deposits <strong>≥ 0.045 SOL</strong>, and places at least one bid, you get{' '}
+          <span style={{ color: 'var(--orange)', fontWeight: 700 }}>+10 bonus credits</span>.
         </p>
         <div className="referral-row">
           <input className="referral-input" readOnly value={link} onClick={e => (e.target as HTMLInputElement).select()} />
