@@ -14,6 +14,39 @@ interface AdminAuction {
   prize:       { type: string; amount?: number; code?: string; description?: string } | null;
 }
 
+interface AdminUser {
+  id:            string;
+  username:      string;
+  email:         string | null;
+  deposit_address: string;
+  credits:       number;
+  bonus_credits: number;
+  ref_code:      string | null;
+  ref_disabled:  number;
+}
+
+interface AdminWinner {
+  id:             string;
+  username:       string;
+  depositAddress: string;
+  itemName:       string;
+  prizeType:      string;
+  prizeData:      { type: string; amount?: number; code?: string; description?: string };
+  finalPrice:     number;
+  purchased:      boolean;
+  purchaseSig:    string | null;
+  ts:             number;
+}
+
+interface AdminReferral {
+  id:           string;
+  username:     string;
+  refCode:      string;
+  refDisabled:  boolean;
+  signups:      number;
+  creditsEarned: number;
+}
+
 const BASE = import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? '' : 'http://localhost:3007');
 
 function api(token: string, path: string, opts?: RequestInit) {
@@ -31,6 +64,11 @@ function fmtMs(ms: number) {
   const m = Math.floor(ms / 60000);
   const s = Math.floor((ms % 60000) / 1000);
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
+
+function shortAddr(addr: string) {
+  if (!addr) return '—';
+  return addr.slice(0, 6) + '…' + addr.slice(-4);
 }
 
 // ─── Login screen ──────────────────────────────────────────────
@@ -318,15 +356,21 @@ function AuctionList({ token, auctions, onRefresh }: {
   );
 }
 
-// ─── User credits manager ──────────────────────────────────────
-function UserCredits({ token }: { token: string }) {
-  const [users,     setUsers]     = useState<{ id: string; username: string; credits: number; bonus_credits: number }[]>([]);
+// ─── Users panel ───────────────────────────────────────────────
+function UsersPanel({ token }: { token: string }) {
+  const [users,     setUsers]     = useState<AdminUser[]>([]);
+  const [search,    setSearch]    = useState('');
   const [amounts,   setAmounts]   = useState<Record<string, string>>({});
   const [allAmount, setAllAmount] = useState('');
   const [loading,   setLoading]   = useState<string | null>(null);
 
   const load = () => api(token, '/api/admin/users').then(({ users: u }) => setUsers(u));
   useEffect(() => { load(); }, []);
+
+  const filtered = users.filter(u =>
+    u.username.toLowerCase().includes(search.toLowerCase()) ||
+    (u.email ?? '').toLowerCase().includes(search.toLowerCase())
+  );
 
   const adjust = async (id: string, username: string) => {
     const amount = parseInt(amounts[id] ?? '0');
@@ -368,80 +412,322 @@ function UserCredits({ token }: { token: string }) {
 
   return (
     <div>
-      <h2 className="admin-section-title">User Credits</h2>
+      <h2 className="admin-section-title">Users</h2>
 
-      {/* Give to all */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
+      <div className="admin-toolbar">
         <input
-          className="form-input"
-          type="number"
-          min="1"
-          style={{ width: 120, padding: '6px 10px' }}
-          placeholder="Amount"
-          value={allAmount}
-          onChange={(e) => setAllAmount(e.target.value)}
+          className="form-input admin-search"
+          placeholder="Search username or email…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         />
-        <button
-          className="btn-primary"
-          disabled={loading === 'all'}
-          onClick={giveAll}
-        >
-          Give bonus credits to ALL users
-        </button>
-        <span style={{ fontSize: 12, color: 'var(--muted)' }}>bid-only, not redeemable for SOL</span>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            className="form-input"
+            type="number"
+            min="1"
+            style={{ width: 100, padding: '6px 10px' }}
+            placeholder="Amount"
+            value={allAmount}
+            onChange={(e) => setAllAmount(e.target.value)}
+          />
+          <button className="btn-primary" disabled={loading === 'all'} onClick={giveAll}>
+            Give all users bonus credits
+          </button>
+        </div>
       </div>
 
-      <table className="tx-table" style={{ width: '100%' }}>
-        <thead>
-          <tr><th>Username</th><th>SOL credits</th><th>Bonus credits</th><th>Add bonus</th><th></th></tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <tr key={u.id}>
-              <td>{u.username}</td>
-              <td>{u.credits}</td>
-              <td style={{ color: 'var(--orange)' }}>{u.bonus_credits}</td>
-              <td>
-                <input
-                  className="form-input"
-                  type="number"
-                  style={{ width: 90, padding: '4px 8px' }}
-                  placeholder="+10 / -5"
-                  value={amounts[u.id] ?? ''}
-                  onChange={(e) => setAmounts((a) => ({ ...a, [u.id]: e.target.value }))}
-                />
-              </td>
-              <td>
-                <button
-                  className="btn-primary"
-                  style={{ padding: '4px 12px', fontSize: 13 }}
-                  disabled={loading === u.id}
-                  onClick={() => adjust(u.id, u.username)}
-                >
-                  Apply
-                </button>
-              </td>
+      <div className="admin-table-wrap">
+        <table className="tx-table admin-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Deposit address</th>
+              <th>SOL credits</th>
+              <th>Bonus</th>
+              <th>Adjust bonus</th>
+              <th></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filtered.map((u) => (
+              <tr key={u.id}>
+                <td><strong>{u.username}</strong></td>
+                <td style={{ color: 'var(--text-muted)' }}>{u.email ?? '—'}</td>
+                <td>
+                  <span className="admin-addr" title={u.deposit_address}>
+                    {shortAddr(u.deposit_address)}
+                  </span>
+                </td>
+                <td>{u.credits}</td>
+                <td style={{ color: 'var(--orange)' }}>{u.bonus_credits}</td>
+                <td>
+                  <input
+                    className="form-input"
+                    type="number"
+                    style={{ width: 90, padding: '4px 8px' }}
+                    placeholder="+10 / -5"
+                    value={amounts[u.id] ?? ''}
+                    onChange={(e) => setAmounts((a) => ({ ...a, [u.id]: e.target.value }))}
+                  />
+                </td>
+                <td>
+                  <button
+                    className="btn-primary"
+                    style={{ padding: '4px 12px', fontSize: 13 }}
+                    disabled={loading === u.id}
+                    onClick={() => adjust(u.id, u.username)}
+                  >
+                    Apply
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
+        {filtered.length} of {users.length} users · bonus credits are bid-only, not redeemable for SOL
+      </p>
+    </div>
+  );
+}
+
+// ─── Winners panel ─────────────────────────────────────────────
+function WinnersPanel({ token }: { token: string }) {
+  const [winners,  setWinners]  = useState<AdminWinner[]>([]);
+  const [loading,  setLoading]  = useState<string | null>(null);
+
+  const load = () => api(token, '/api/admin/winners').then(({ winners: w }) => setWinners(w));
+  useEffect(() => { load(); }, []);
+
+  const sendPrize = async (id: string, username: string, amount: number) => {
+    if (!confirm(`Send ${amount} SOL prize to ${username}?`)) return;
+    setLoading(id);
+    try {
+      const { sig } = await api(token, `/api/admin/winners/${id}/send-prize`, { method: 'POST' });
+      toast.success(`Sent! tx: ${sig.slice(0, 12)}…`);
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const markSent = async (id: string) => {
+    setLoading(id);
+    try {
+      await api(token, `/api/admin/winners/${id}/mark-sent`, { method: 'POST' });
+      toast.success('Marked as sent');
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  if (winners.length === 0) return (
+    <div>
+      <h2 className="admin-section-title">Winners</h2>
+      <p className="dash-empty">No winners yet.</p>
+    </div>
+  );
+
+  return (
+    <div>
+      <h2 className="admin-section-title">
+        Winners
+        <button className="btn-ghost" style={{ fontSize: 12, padding: '2px 8px', marginLeft: 8 }} onClick={load}>Refresh</button>
+      </h2>
+
+      <div className="admin-table-wrap">
+        <table className="tx-table admin-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Winner</th>
+              <th>Item</th>
+              <th>Prize</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {winners.map((w) => (
+              <tr key={w.id}>
+                <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                  {new Date(w.ts).toLocaleDateString()}
+                </td>
+                <td>
+                  <div><strong>{w.username}</strong></div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{shortAddr(w.depositAddress)}</div>
+                </td>
+                <td>{w.itemName}</td>
+                <td>
+                  {w.prizeType === 'sol' && (
+                    <span style={{ color: 'var(--orange)' }}>{w.prizeData.amount} SOL</span>
+                  )}
+                  {w.prizeType === 'physical' && (
+                    <span title={w.prizeData.description}>Physical</span>
+                  )}
+                  {w.prizeType === 'digital' && (
+                    <span className="admin-code" title={w.prizeData.code}>Digital</span>
+                  )}
+                </td>
+                <td>
+                  {w.purchased ? (
+                    <span className="tx-badge tx-badge--deposit">
+                      {w.purchaseSig === 'admin-manual' ? 'Manual' : 'Sent'}
+                    </span>
+                  ) : (
+                    <span className="tx-badge tx-badge--withdraw">Pending</span>
+                  )}
+                </td>
+                <td>
+                  {!w.purchased && w.prizeType === 'sol' && (
+                    <button
+                      className="btn-primary"
+                      style={{ padding: '4px 10px', fontSize: 12 }}
+                      disabled={loading === w.id}
+                      onClick={() => sendPrize(w.id, w.username, w.prizeData.amount!)}
+                    >
+                      {loading === w.id ? 'Sending…' : 'Send SOL'}
+                    </button>
+                  )}
+                  {!w.purchased && w.prizeType !== 'sol' && (
+                    <button
+                      className="btn-ghost"
+                      style={{ padding: '4px 10px', fontSize: 12 }}
+                      disabled={loading === w.id}
+                      onClick={() => markSent(w.id)}
+                    >
+                      Mark sent
+                    </button>
+                  )}
+                  {w.purchased && w.purchaseSig && w.purchaseSig !== 'admin-manual' && (
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }} title={w.purchaseSig}>
+                      {w.purchaseSig.slice(0, 10)}…
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── Referrals panel ───────────────────────────────────────────
+function ReferralsPanel({ token }: { token: string }) {
+  const [referrals, setReferrals] = useState<AdminReferral[]>([]);
+  const [loading,   setLoading]   = useState<string | null>(null);
+  const [search,    setSearch]    = useState('');
+
+  const load = () => api(token, '/api/admin/referrals').then(({ referrals: r }) => setReferrals(r));
+  useEffect(() => { load(); }, []);
+
+  const toggleDisable = async (r: AdminReferral) => {
+    setLoading(r.id);
+    try {
+      await api(token, `/api/admin/user/${r.id}/ref-disable`, {
+        method: 'PATCH',
+        body: JSON.stringify({ disabled: !r.refDisabled }),
+      });
+      toast.success(`${r.username}'s referral link ${r.refDisabled ? 'enabled' : 'disabled'}`);
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const filtered = referrals.filter(r =>
+    r.username.toLowerCase().includes(search.toLowerCase()) ||
+    r.refCode.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div>
+      <h2 className="admin-section-title">Referrals</h2>
+
+      <input
+        className="form-input admin-search"
+        placeholder="Search username or code…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{ marginBottom: 16 }}
+      />
+
+      <div className="admin-table-wrap">
+        <table className="tx-table admin-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Ref code</th>
+              <th>Signups</th>
+              <th>Credits earned</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((r) => (
+              <tr key={r.id} style={{ opacity: r.refDisabled ? 0.5 : 1 }}>
+                <td><strong>{r.username}</strong></td>
+                <td style={{ fontFamily: 'var(--mono)', fontSize: 13 }}>{r.refCode}</td>
+                <td>{r.signups}</td>
+                <td style={{ color: r.creditsEarned > 0 ? 'var(--orange)' : undefined }}>
+                  {r.creditsEarned > 0 ? `+${r.creditsEarned}` : '—'}
+                </td>
+                <td>
+                  <span className={`tx-badge tx-badge--${r.refDisabled ? 'withdraw' : 'deposit'}`}>
+                    {r.refDisabled ? 'Disabled' : 'Active'}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    className="btn-ghost"
+                    style={{ padding: '4px 10px', fontSize: 12, color: r.refDisabled ? 'var(--green)' : 'var(--red)' }}
+                    disabled={loading === r.id}
+                    onClick={() => toggleDisable(r)}
+                  >
+                    {r.refDisabled ? 'Enable' : 'Disable'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
+        {filtered.length} of {referrals.length} users
+      </p>
     </div>
   );
 }
 
 // ─── Page ──────────────────────────────────────────────────────
+type Tab = 'auctions' | 'users' | 'winners' | 'referrals';
+
 export function AdminPage() {
   const [token,    setToken]    = useState(() => localStorage.getItem(STORAGE_KEY) ?? '');
   const [auctions, setAuctions] = useState<AdminAuction[]>([]);
+  const [tab,      setTab]      = useState<Tab>('auctions');
 
-  const load = () => {
+  const loadAuctions = () => {
     if (!token) return;
     api(token, '/api/admin/auctions')
       .then(({ auctions: a }) => setAuctions(a))
       .catch(() => { setToken(''); localStorage.removeItem(STORAGE_KEY); });
   };
 
-  useEffect(load, [token]);
+  useEffect(loadAuctions, [token]);
 
   if (!token) return <AdminLogin onLogin={setToken} />;
 
@@ -454,18 +740,50 @@ export function AdminPage() {
         </button>
       </div>
 
-      <section className="dash-section">
-        <CreateAuctionForm token={token} onCreated={load} />
-      </section>
+      <div className="admin-tabs">
+        {(['auctions', 'users', 'winners', 'referrals'] as Tab[]).map((t) => (
+          <button
+            key={t}
+            className={`admin-tab ${tab === t ? 'admin-tab--active' : ''}`}
+            onClick={() => setTab(t)}
+          >
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </button>
+        ))}
+      </div>
 
-      <section className="dash-section">
-        <h2 className="admin-section-title">All Auctions <button className="btn-ghost" style={{ fontSize: 12, padding: '2px 8px' }} onClick={load}>Refresh</button></h2>
-        <AuctionList token={token} auctions={auctions} onRefresh={load} />
-      </section>
+      {tab === 'auctions' && (
+        <>
+          <section className="dash-section">
+            <CreateAuctionForm token={token} onCreated={loadAuctions} />
+          </section>
+          <section className="dash-section">
+            <h2 className="admin-section-title">
+              All Auctions
+              <button className="btn-ghost" style={{ fontSize: 12, padding: '2px 8px', marginLeft: 8 }} onClick={loadAuctions}>Refresh</button>
+            </h2>
+            <AuctionList token={token} auctions={auctions} onRefresh={loadAuctions} />
+          </section>
+        </>
+      )}
 
-      <section className="dash-section">
-        <UserCredits token={token} />
-      </section>
+      {tab === 'users' && (
+        <section className="dash-section">
+          <UsersPanel token={token} />
+        </section>
+      )}
+
+      {tab === 'winners' && (
+        <section className="dash-section">
+          <WinnersPanel token={token} />
+        </section>
+      )}
+
+      {tab === 'referrals' && (
+        <section className="dash-section">
+          <ReferralsPanel token={token} />
+        </section>
+      )}
     </div>
   );
 }

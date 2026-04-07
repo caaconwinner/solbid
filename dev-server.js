@@ -187,6 +187,7 @@ try { db.exec(`
 try { db.exec('ALTER TABLE users ADD COLUMN ref_code TEXT'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE users ADD COLUMN referred_by TEXT'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE users ADD COLUMN ref_rewarded INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE users ADD COLUMN ref_disabled INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
 try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_ref_code ON users(ref_code)'); } catch { /* already exists */ }
 try { db.exec(`
   CREATE TABLE IF NOT EXISTS sessions (
@@ -474,7 +475,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   if (await checkPwned(password))
     return res.status(400).json({ message: 'This password has appeared in a data breach. Please choose a different password.' });
 
-  const referrer    = refCode ? stmt.getUserByRefCode.get(String(refCode).toUpperCase()) : null;
+  const referrer    = refCode ? (() => { const r = stmt.getUserByRefCode.get(String(refCode).toUpperCase()); return r?.ref_disabled ? null : r; })() : null;
   const passwordHash = await bcrypt.hash(password, 12);
   const user  = await makeUser(username, passwordHash, email || null, referrer?.id ?? null);
   const token = makeToken(user.id);
@@ -886,7 +887,9 @@ app.delete('/api/admin/auction/:id', requireAdmin, (req, res) => {
 });
 
 app.get('/api/admin/users', requireAdmin, (req, res) => {
-  const rows = db.prepare('SELECT id, username, credits, bonus_credits FROM users ORDER BY username').all();
+  const rows = db.prepare(
+    "SELECT id, username, email, deposit_address, credits, bonus_credits, ref_code, ref_disabled FROM users WHERE id NOT LIKE 'bot-%' ORDER BY username"
+  ).all();
   res.json({ users: rows });
 });
 
@@ -907,6 +910,95 @@ app.post('/api/admin/credits/all', requireAdmin, (req, res) => {
   const result = stmt.addBonusAll.run({ amount });
   console.log(`[admin] +${amount} bonus credits → all ${result.changes} users`);
   res.json({ ok: true, usersAffected: result.changes });
+});
+
+app.patch('/api/admin/user/:id/ref-disable', requireAdmin, (req, res) => {
+  const { disabled } = req.body;
+  const row = stmt.getUserById.get(req.params.id);
+  if (!row) return res.status(404).json({ message: 'User not found' });
+  db.prepare('UPDATE users SET ref_disabled = ? WHERE id = ?').run(disabled ? 1 : 0, row.id);
+  console.log(`[admin] ref link ${disabled ? 'disabled' : 'enabled'} for ${row.username}`);
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/winners', requireAdmin, (req, res) => {
+  const rows = db.prepare(`
+    SELECT w.id, w.item_name, w.prize_type, w.prize_data, w.final_price,
+           w.purchased, w.purchase_sig, w.ts,
+           u.username, u.deposit_address
+    FROM winners w
+    LEFT JOIN users u ON u.id = w.user_id
+    ORDER BY w.ts DESC
+  `).all();
+  res.json({ winners: rows.map(r => ({
+    id:             r.id,
+    username:       r.username ?? '(deleted)',
+    depositAddress: r.deposit_address ?? '',
+    itemName:       r.item_name,
+    prizeType:      r.prize_type,
+    prizeData:      JSON.parse(r.prize_data),
+    finalPrice:     r.final_price,
+    purchased:      r.purchased === 1,
+    purchaseSig:    r.purchase_sig ?? null,
+    ts:             r.ts,
+  })) });
+});
+
+app.post('/api/admin/winners/:id/send-prize', requireAdmin, async (req, res) => {
+  const row = stmt.getWinById.get(req.params.id);
+  if (!row)          return res.status(404).json({ message: 'Win not found' });
+  if (row.purchased) return res.status(400).json({ message: 'Already sent' });
+  const prize = JSON.parse(row.prize_data);
+  if (prize.type !== 'sol') return res.status(400).json({ message: 'Not a SOL prize' });
+  if (!PRIZE_KEYPAIR) return res.status(503).json({ message: 'Prize wallet not configured' });
+  const winner = stmt.getUserById.get(row.user_id);
+  if (!winner) return res.status(404).json({ message: 'Winner user not found' });
+  const lamports = Math.round(prize.amount * LAMPORTS_PER_SOL);
+  const toPubkey = new PublicKey(winner.deposit_address);
+  try {
+    const prizeBalance = await connection.getBalance(PRIZE_KEYPAIR.publicKey);
+    if (prizeBalance < lamports + 5000)
+      return res.status(400).json({ message: 'Prize wallet has insufficient funds' });
+    const tx = new Transaction().add(
+      SystemProgram.transfer({ fromPubkey: PRIZE_KEYPAIR.publicKey, toPubkey, lamports })
+    );
+    const sig = await sendAndConfirmTransaction(connection, tx, [PRIZE_KEYPAIR]);
+    stmt.markPurchased.run({ id: row.id, sig });
+    console.log(`[admin] sent ${prize.amount} SOL prize to ${winner.username} | ${sig}`);
+    res.json({ ok: true, sig, amount: prize.amount });
+  } catch (e) {
+    console.error('[admin] send-prize failed:', e.message);
+    res.status(500).json({ message: 'Send failed: ' + e.message });
+  }
+});
+
+app.post('/api/admin/winners/:id/mark-sent', requireAdmin, (req, res) => {
+  const row = stmt.getWinById.get(req.params.id);
+  if (!row) return res.status(404).json({ message: 'Win not found' });
+  stmt.markPurchased.run({ id: row.id, sig: 'admin-manual' });
+  console.log(`[admin] manually marked win ${row.id} as sent`);
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/referrals', requireAdmin, (req, res) => {
+  const rows = db.prepare(`
+    SELECT u.id, u.username, u.ref_code, u.ref_disabled,
+           COUNT(r.id) as signups,
+           SUM(CASE WHEN r.ref_rewarded = 1 THEN 1 ELSE 0 END) as rewarded
+    FROM users u
+    LEFT JOIN users r ON r.referred_by = u.id
+    WHERE u.id NOT LIKE 'bot-%'
+    GROUP BY u.id
+    ORDER BY signups DESC, u.username ASC
+  `).all();
+  res.json({ referrals: rows.map(r => ({
+    id:           r.id,
+    username:     r.username,
+    refCode:      r.ref_code,
+    refDisabled:  r.ref_disabled === 1,
+    signups:      r.signups ?? 0,
+    creditsEarned: (r.rewarded ?? 0) * 10,
+  })) });
 });
 
 // ─── Auction state ─────────────────────────────────────────────
