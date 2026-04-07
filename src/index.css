@@ -2164,6 +2164,88 @@ a:hover { text-decoration: underline; }
 }
 
 /* ── Brand Page ─────────────────────────────────────────────── */
+/* ─── Refer page ─────────────────────────────────────────────── */
+.ref-mock-link-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+}
+.ref-mock-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.ref-mock-row { display: flex; gap: 8px; align-items: center; }
+.ref-mock-input {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.ref-mock-copy-btn {
+  background: var(--orange);
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: default;
+  white-space: nowrap;
+}
+.ref-mock-stats { display: flex; align-items: center; gap: 16px; padding-top: 8px; border-top: 1px solid var(--border); }
+.ref-mock-stat { display: flex; flex-direction: column; gap: 2px; }
+.ref-mock-stat-val { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--text); }
+.ref-mock-stat-label { font-size: 11px; color: var(--text-muted); }
+.ref-mock-stat-divider { width: 1px; height: 32px; background: var(--border); }
+
+.ref-mock-flow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+.ref-mock-flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 80px;
+  text-align: center;
+}
+.ref-mock-flow-step--last .ref-mock-flow-icon { color: var(--orange); }
+.ref-mock-flow-icon { font-size: 28px; }
+.ref-mock-flow-text { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.ref-mock-flow-arrow { font-size: 18px; color: var(--orange); flex-shrink: 0; }
+
+.ref-mock-reward-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.ref-mock-reward-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  min-width: 240px;
+}
+.ref-mock-reward-icon { font-size: 36px; }
+.ref-mock-reward-title { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+.ref-mock-reward-amount { font-size: 32px; font-weight: 900; color: var(--orange); }
+.ref-mock-reward-sub { font-size: 13px; color: var(--text-muted); }
+.ref-mock-reward-note { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+.ref-mock-reward-note-outer { font-size: 12px; color: var(--text-muted); text-align: center; }
+
 .brand-page { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
 
 .brand-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 48px; flex-wrap: wrap; }
