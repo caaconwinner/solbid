@@ -122,11 +122,11 @@ export function ReferPage() {
           you get <strong style={{ color: 'var(--orange)' }}>+10 bonus credits</strong>.
         </p>
         {refLink ? (
-          <button className="btn-primary" style={{ marginTop: 48 }} onClick={copy}>
+          <button className="btn-primary" onClick={copy}>
             Copy your referral link
           </button>
         ) : (
-          <Link to="/register" className="btn-primary" style={{ marginTop: 48 }}>
+          <Link to="/register" className="btn-primary">
             Create an account to get your link
           </Link>
         )}
