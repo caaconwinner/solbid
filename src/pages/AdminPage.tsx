@@ -762,7 +762,7 @@ export function AdminPage() {
   if (!token) return <AdminLogin onLogin={setToken} />;
 
   return (
-    <div className="page page-narrow">
+    <div className="page page-wide">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1 className="page-title">Admin</h1>
         <button className="btn-ghost" onClick={() => { setToken(''); localStorage.removeItem(STORAGE_KEY); }}>

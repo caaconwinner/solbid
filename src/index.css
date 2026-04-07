@@ -226,6 +226,7 @@ a:hover { text-decoration: underline; }
   padding: clamp(20px, 3vw, 48px) clamp(16px, 2vw, 48px) 64px;
 }
 .page-narrow { max-width: min(720px, 96vw); }
+.page-wide   { max-width: min(1200px, 96vw); }
 
 .page-title {
   font-size: clamp(20px, 2vw, 32px);
