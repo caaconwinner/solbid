@@ -375,7 +375,7 @@ function UsersPanel({ token }: { token: string }) {
   const adjust = async (id: string, username: string) => {
     const amount = parseInt(amounts[id] ?? '0');
     if (!amount || isNaN(amount)) return toast.error('Enter a number');
-    setLoading(id);
+    setLoading(id + '-credits');
     try {
       const { bonusCredits } = await api(token, `/api/admin/user/${id}/credits`, {
         method: 'POST',
@@ -383,6 +383,20 @@ function UsersPanel({ token }: { token: string }) {
       });
       toast.success(`${username}: bonus credits now ${bonusCredits}`);
       setAmounts((a) => ({ ...a, [id]: '' }));
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const deleteUser = async (id: string, username: string) => {
+    if (!confirm(`Delete user "${username}"? This will remove their account, transactions, and wins. This cannot be undone.`)) return;
+    setLoading(id + '-del');
+    try {
+      await api(token, `/api/admin/user/${id}`, { method: 'DELETE' });
+      toast.success(`${username} deleted`);
       load();
     } catch (e: any) {
       toast.error(e.message);
@@ -412,7 +426,12 @@ function UsersPanel({ token }: { token: string }) {
 
   return (
     <div>
-      <h2 className="admin-section-title">Users</h2>
+      <h2 className="admin-section-title">
+        Users
+        <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--text-muted)', marginLeft: 8 }}>
+          {users.length} registered
+        </span>
+      </h2>
 
       <div className="admin-toolbar">
         <input
@@ -438,16 +457,17 @@ function UsersPanel({ token }: { token: string }) {
       </div>
 
       <div className="admin-table-wrap">
-        <table className="tx-table admin-table">
+        <table className="tx-table admin-table" style={{ minWidth: 820 }}>
           <thead>
             <tr>
               <th>Username</th>
               <th>Email</th>
               <th>Deposit address</th>
-              <th>SOL credits</th>
+              <th>SOL cr.</th>
               <th>Bonus</th>
-              <th>Adjust bonus</th>
-              <th></th>
+              <th style={{ width: 100 }}>Adjust bonus</th>
+              <th style={{ width: 70 }}></th>
+              <th style={{ width: 70 }}></th>
             </tr>
           </thead>
           <tbody>
@@ -475,11 +495,21 @@ function UsersPanel({ token }: { token: string }) {
                 <td>
                   <button
                     className="btn-primary"
-                    style={{ padding: '4px 12px', fontSize: 13 }}
-                    disabled={loading === u.id}
+                    style={{ padding: '4px 12px', fontSize: 13, whiteSpace: 'nowrap' }}
+                    disabled={loading === u.id + '-credits'}
                     onClick={() => adjust(u.id, u.username)}
                   >
                     Apply
+                  </button>
+                </td>
+                <td>
+                  <button
+                    className="btn-ghost admin-del-btn"
+                    style={{ padding: '4px 10px', fontSize: 13 }}
+                    disabled={loading === u.id + '-del'}
+                    onClick={() => deleteUser(u.id, u.username)}
+                  >
+                    Delete
                   </button>
                 </td>
               </tr>
@@ -488,7 +518,7 @@ function UsersPanel({ token }: { token: string }) {
         </table>
       </div>
       <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
-        {filtered.length} of {users.length} users · bonus credits are bid-only, not redeemable for SOL
+        Showing {filtered.length} of {users.length} · bonus credits are bid-only, not redeemable for SOL
       </p>
     </div>
   );

@@ -472,6 +472,8 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     return res.status(400).json({ message: 'Password must be at least 8 characters' });
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     return res.status(400).json({ message: 'Invalid email address' });
+  if (email && db.prepare('SELECT 1 FROM users WHERE email = ? COLLATE NOCASE').get(email))
+    return res.status(409).json({ message: 'An account with that email already exists' });
   if (await checkPwned(password))
     return res.status(400).json({ message: 'This password has appeared in a data breach. Please choose a different password.' });
 
@@ -910,6 +912,19 @@ app.post('/api/admin/credits/all', requireAdmin, (req, res) => {
   const result = stmt.addBonusAll.run({ amount });
   console.log(`[admin] +${amount} bonus credits → all ${result.changes} users`);
   res.json({ ok: true, usersAffected: result.changes });
+});
+
+app.delete('/api/admin/user/:id', requireAdmin, (req, res) => {
+  const row = stmt.getUserById.get(req.params.id);
+  if (!row) return res.status(404).json({ message: 'User not found' });
+  db.prepare('DELETE FROM sessions WHERE user_id = ?').run(row.id);
+  db.prepare('DELETE FROM transactions WHERE user_id = ?').run(row.id);
+  db.prepare('DELETE FROM winners WHERE user_id = ?').run(row.id);
+  db.prepare('DELETE FROM users WHERE id = ?').run(row.id);
+  // remove from in-memory token map
+  for (const [tok, uid] of tokens) { if (uid === row.id) tokens.delete(tok); }
+  console.log(`[admin] deleted user ${row.username} (${row.id})`);
+  res.json({ ok: true });
 });
 
 app.patch('/api/admin/user/:id/ref-disable', requireAdmin, (req, res) => {
