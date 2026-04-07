@@ -747,8 +747,67 @@ function ReferralsPanel({ token }: { token: string }) {
   );
 }
 
+// ─── Wallets panel ─────────────────────────────────────────────
+function WalletsPanel({ token }: { token: string }) {
+  const [data,    setData]    = useState<{ house: string|null; prize: string|null; houseBalance: number|null; prizeBalance: number|null } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try { setData(await api(token, '/api/admin/wallets')); }
+    catch (e: any) { toast.error(e.message); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, []);
+
+  const copy = (addr: string) => { navigator.clipboard.writeText(addr); toast.success('Copied'); };
+
+  const WalletCard = ({ label, address, balance, warn }: { label: string; address: string | null; balance: number | null; warn?: string }) => (
+    <div className="admin-wallet-card">
+      <div className="admin-wallet-label">{label}</div>
+      {address ? (
+        <>
+          <div className="admin-wallet-addr" onClick={() => copy(address)} title="Click to copy">
+            <span className="admin-wallet-addr-text">{address}</span>
+            <span className="admin-wallet-copy">⎘</span>
+          </div>
+          <div className="admin-wallet-balance">
+            {balance !== null
+              ? <><span style={{ color: 'var(--orange)', fontWeight: 600 }}>{balance.toFixed(4)} SOL</span></>
+              : <span style={{ color: 'var(--text-muted)' }}>Balance unavailable</span>
+            }
+          </div>
+          {warn && balance !== null && balance < parseFloat(warn) && (
+            <div className="admin-wallet-warn">⚠ Low balance — top up before next auction</div>
+          )}
+        </>
+      ) : (
+        <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>Not configured</div>
+      )}
+    </div>
+  );
+
+  return (
+    <div>
+      <h2 className="admin-section-title">
+        Platform Wallets
+        <button className="btn-ghost" style={{ fontSize: 12, padding: '2px 8px', marginLeft: 8 }} onClick={load} disabled={loading}>
+          {loading ? 'Fetching…' : 'Refresh'}
+        </button>
+      </h2>
+      <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>
+        Click any address to copy. Balances are fetched live from the RPC on load.
+      </p>
+      <div className="admin-wallet-grid">
+        <WalletCard label="House Wallet" address={data?.house ?? null} balance={data?.houseBalance ?? null} />
+        <WalletCard label="Prize Wallet" address={data?.prize ?? null} balance={data?.prizeBalance ?? null} warn="0.5" />
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ──────────────────────────────────────────────────────
-type Tab = 'auctions' | 'users' | 'winners' | 'referrals';
+type Tab = 'auctions' | 'users' | 'winners' | 'referrals' | 'wallets';
 
 export function AdminPage() {
   const [token,    setToken]    = useState(() => localStorage.getItem(STORAGE_KEY) ?? '');
@@ -776,7 +835,7 @@ export function AdminPage() {
       </div>
 
       <div className="admin-tabs">
-        {(['auctions', 'users', 'winners', 'referrals'] as Tab[]).map((t) => (
+        {(['auctions', 'users', 'winners', 'referrals', 'wallets'] as Tab[]).map((t) => (
           <button
             key={t}
             className={`admin-tab ${tab === t ? 'admin-tab--active' : ''}`}
@@ -817,6 +876,12 @@ export function AdminPage() {
       {tab === 'referrals' && (
         <section className="dash-section">
           <ReferralsPanel token={token} />
+        </section>
+      )}
+
+      {tab === 'wallets' && (
+        <section className="dash-section">
+          <WalletsPanel token={token} />
         </section>
       )}
     </div>

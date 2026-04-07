@@ -995,6 +995,17 @@ app.post('/api/admin/winners/:id/mark-sent', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+app.get('/api/admin/wallets', requireAdmin, async (req, res) => {
+  const house = HOUSE_PUBKEY ? HOUSE_PUBKEY.toBase58() : null;
+  const prize = PRIZE_KEYPAIR ? PRIZE_KEYPAIR.publicKey.toBase58() : null;
+  let houseBalance = null, prizeBalance = null;
+  try {
+    if (HOUSE_PUBKEY) houseBalance = (await connection.getBalance(HOUSE_PUBKEY)) / 1e9;
+    if (PRIZE_KEYPAIR) prizeBalance = (await connection.getBalance(PRIZE_KEYPAIR.publicKey)) / 1e9;
+  } catch (e) { /* RPC failure — balances stay null */ }
+  res.json({ house, prize, houseBalance, prizeBalance });
+});
+
 app.get('/api/admin/referrals', requireAdmin, (req, res) => {
   const rows = db.prepare(`
     SELECT u.id, u.username, u.ref_code, u.ref_disabled,

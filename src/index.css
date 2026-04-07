@@ -1570,6 +1570,33 @@ a:hover { text-decoration: underline; }
   font-family: var(--mono);
   font-size: 12px;
 }
+.admin-wallet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+.admin-wallet-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.admin-wallet-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.admin-wallet-addr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.admin-wallet-addr:hover { border-color: var(--orange); }
+.admin-wallet-addr-text { font-family: var(--mono); font-size: 12px; word-break: break-all; flex: 1; }
+.admin-wallet-copy { font-size: 14px; color: var(--text-muted); flex-shrink: 0; }
+.admin-wallet-balance { font-size: 20px; }
+.admin-wallet-warn { font-size: 12px; color: var(--red); }
 
 /* ─── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 760px) {
