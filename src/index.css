@@ -1954,7 +1954,7 @@ a:hover { text-decoration: underline; }
   padding: 8px 10px;
   border-radius: var(--radius-sm);
 }
-.penny-mock-split-note--burn { background: rgba(255,120,0,0.08); border: 1px solid rgba(255,120,0,0.25); color: var(--orange); }
+.penny-mock-split-note--burn { background: rgba(255,120,0,0.08); border: 1px solid rgba(255,120,0,0.25); color: var(--text); }
 .penny-mock-split-note--ops  { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
 
 /* credit compare mock */
