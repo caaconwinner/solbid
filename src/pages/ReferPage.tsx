@@ -126,7 +126,7 @@ export function ReferPage() {
             Copy your referral link
           </button>
         ) : (
-          <Link to="/register" className="btn-primary" style={{ marginTop: 16 }}>
+          <Link to="/register" className="btn-primary" style={{ marginTop: 32 }}>
             Create an account to get your link
           </Link>
         )}
