@@ -137,17 +137,21 @@ a:hover { text-decoration: underline; }
 .header-theme-btn:hover { color: var(--text); }
 
 .header-ref-btn {
-  background: none;
+  display: flex;
+  align-items: baseline;
+  background: var(--orange-dim);
+  box-shadow: inset 0 0 0 1px rgba(255, 98, 0, 0.25);
+  border-radius: 20px;
+  padding: 4px 12px;
   border: none;
-  padding: 0;
   cursor: pointer;
   font-family: var(--mono);
   font-size: 14px;
   font-weight: 700;
   color: var(--orange);
-  transition: opacity .15s;
+  transition: box-shadow 0.15s;
 }
-.header-ref-btn:hover { opacity: 0.75; }
+.header-ref-btn:hover { box-shadow: inset 0 0 0 1px rgba(255, 98, 0, 0.5); }
 
 .header-x-link {
   color: var(--text-muted);
