@@ -26,7 +26,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) { setLoading(false); return; }
     api.me(token)
       .then(({ user: u }) => { setUser(u); setCreditsReady(true); updateSocketAuth(token); })
-      .catch(() => { setToken(null); localStorage.removeItem('token'); })
+      .catch((e) => {
+        // Only clear session on a real 401 — network errors (e.g. server restart) should not log out the user
+        if (e?.status === 401) { setToken(null); localStorage.removeItem('token'); }
+      })
       .finally(() => setLoading(false));
   }, []);
 

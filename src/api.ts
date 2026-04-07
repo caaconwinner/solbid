@@ -17,7 +17,11 @@ async function req<T>(
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message ?? 'Request failed');
+  if (!res.ok) {
+    const err: any = new Error(data.message ?? 'Request failed');
+    err.status = res.status;
+    throw err;
+  }
   return data;
 }
 
