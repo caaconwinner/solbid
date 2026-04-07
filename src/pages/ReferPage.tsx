@@ -118,15 +118,15 @@ export function ReferPage() {
       <div className="hiw-hero">
         <h1 className="hiw-hero-title">Refer &amp; earn</h1>
         <p className="hiw-hero-sub">
-          Share your unique link. When a friend signs up, deposits at least 0.05 SOL, and places their first bid,
-          you automatically receive <strong style={{ color: 'var(--orange)' }}>+10 bonus credits</strong>.
+          Share your link. Friend deposits 0.05 SOL and bids once —{' '}
+          you get <strong style={{ color: 'var(--orange)' }}>+10 bonus credits</strong>.
         </p>
         {refLink ? (
-          <button className="btn-primary" style={{ marginTop: 16 }} onClick={copy}>
+          <button className="btn-primary" style={{ marginTop: 48 }} onClick={copy}>
             Copy your referral link
           </button>
         ) : (
-          <Link to="/register" className="btn-primary" style={{ marginTop: 32 }}>
+          <Link to="/register" className="btn-primary" style={{ marginTop: 48 }}>
             Create an account to get your link
           </Link>
         )}

@@ -376,6 +376,27 @@ async function checkPwned(password) {
   }
 }
 
+// ─── SOL/USD price cache (60s TTL) ────────────────────────────
+let _solPriceCache = { usd: null, fetchedAt: 0 };
+async function getSolPriceUsd() {
+  const now = Date.now();
+  if (_solPriceCache.usd !== null && now - _solPriceCache.fetchedAt < 60_000) {
+    return _solPriceCache.usd;
+  }
+  try {
+    const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT');
+    if (!r.ok) throw new Error('binance non-ok');
+    const { price } = await r.json();
+    const usd = parseFloat(price);
+    if (!isNaN(usd) && usd > 0) {
+      _solPriceCache = { usd, fetchedAt: now };
+      return usd;
+    }
+  } catch { /* fall through */ }
+  // fallback: return cached value even if stale, or null
+  return _solPriceCache.usd;
+}
+
 function sanitizeUser(user) {
   const { _enc: _e, passwordHash: _p, ...pub } = user;
   return pub;
@@ -1232,7 +1253,7 @@ io.on('connection', (socket) => {
 });
 
 // ─── Auction lifecycle ─────────────────────────────────────────
-setInterval(() => {
+setInterval(async () => {
   const now = Date.now();
   for (const [id, a] of auctions) {
     if (a.status === 'scheduled' && now >= (a.endsAtMs - a._durationMs)) {
@@ -1246,6 +1267,11 @@ setInterval(() => {
       // Record winner in DB (only real users, not bots)
       if (a.leaderId && !a.leaderId.startsWith('bot-') && a.prize) {
         try {
+          // Convert USD auction price to SOL at current market rate
+          const solPriceUsd = await getSolPriceUsd();
+          const purchasePriceSol = solPriceUsd && solPriceUsd > 0
+            ? parseFloat((a.currentPrice / solPriceUsd).toFixed(6))
+            : a.currentPrice; // fallback: 1:1 if price unavailable
           stmt.insertWinner.run({
             id:             `win-${randomBytes(4).toString('hex')}`,
             auction_id:     a.auctionId,
@@ -1254,16 +1280,16 @@ setInterval(() => {
             prize_type:     a.prize.type,
             prize_data:     JSON.stringify(a.prize),
             final_price:    a.currentPrice,
-            purchase_price: a.currentPrice, // winner pays this many SOL (1:1 with dollar price)
+            purchase_price: purchasePriceSol,
             ts:             now,
           });
-          console.log(`[auction] winner recorded: ${a.leaderName} wins "${a.item.name}"`);
+          console.log(`[auction] winner recorded: ${a.leaderName} wins "${a.item.name}" | $${a.currentPrice.toFixed(2)} = ${purchasePriceSol} SOL (SOL=$${solPriceUsd})`);
           const winnerRow = stmt.getUserById.get(a.leaderId);
           sendEmail(winnerRow?.email, `You won ${a.item.name}! — pennyBid`, `
             <p>Hi ${a.leaderName},</p>
             <p>Congratulations! You won the auction for <strong>${a.item.name}</strong>.</p>
             <p>The final price was <strong>$${a.currentPrice.toFixed(2)}</strong>.</p>
-            <p>You can purchase the item for <strong>${a.currentPrice.toFixed(4)} SOL</strong> from your account page.</p>
+            <p>You can purchase the item for <strong>${purchasePriceSol} SOL</strong> from your account page.</p>
             <p><a href="${SITE_URL}/account">Claim your item →</a></p>
           `);
         } catch (e) { console.error('[auction] failed to record winner:', e.message); }
@@ -1330,10 +1356,22 @@ async function sweepToHouse(row, balance) {
 
 setInterval(async () => {
   const users = allNonBots.all();
-  for (const row of users) {
-    try {
-      const balance = await connection.getBalance(new PublicKey(row.deposit_address));
+  if (users.length === 0) return;
 
+  // ── Single batched RPC call for all balances ──
+  let accounts;
+  try {
+    const pubkeys = users.map(u => new PublicKey(u.deposit_address));
+    accounts = await connection.getMultipleAccountsInfo(pubkeys, 'confirmed');
+  } catch (e) {
+    console.error('[deposit-loop] getMultipleAccountsInfo failed:', e.message);
+    return; // skip this tick entirely — retry in 15s
+  }
+
+  for (let i = 0; i < users.length; i++) {
+    const row     = users[i];
+    const balance = accounts[i]?.lamports ?? 0;
+    try {
       // ── Deposit detection ──
       const { net }         = stmt.netDepositedSolByUser.get(row.id);
       const alreadyCredited = Math.max(0, Math.round(net * LAMPORTS_PER_SOL));
@@ -1342,7 +1380,7 @@ setInterval(async () => {
         const creditsEarned = Math.floor(lamportsDiff / LAMPORTS_PER_SOL * 100);
         if (creditsEarned >= 1) {
           const newCredits = row.credits + creditsEarned;
-          // Fetch deposit tx signature from chain
+          // Fetch deposit tx signature from chain (still individual, but only fires on new deposits)
           let depositSig = null;
           try {
             const sigs = await connection.getSignaturesForAddress(new PublicKey(row.deposit_address), { limit: 3 });
@@ -1380,7 +1418,7 @@ setInterval(async () => {
 
       // ── House sweep (bid-spent SOL) ──
       await sweepToHouse(row, balance);
-    } catch { /* RPC hiccup — skip this user this round */ }
+    } catch (e) { console.error(`[deposit-loop] error processing user ${row.id}:`, e.message); }
   }
 }, 15_000);
 
