@@ -16,26 +16,37 @@ interface AuthCtx {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
+function loadCachedUser(): User | null {
+  try { return JSON.parse(localStorage.getItem('user') ?? 'null'); } catch { return null; }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser]         = useState<User | null>(null);
+  const [user, setUser]         = useState<User | null>(loadCachedUser);
   const [token, setToken]       = useState<string | null>(localStorage.getItem('token'));
-  const [isLoading, setLoading] = useState(true);
-  const [creditsReady, setCreditsReady] = useState(false);
+  // If we have a cached user, don't show loading spinner — render immediately
+  const [isLoading, setLoading] = useState(!loadCachedUser());
+  const [creditsReady, setCreditsReady] = useState(loadCachedUser() !== null);
+
+  const setAndCacheUser = (u: User | null) => {
+    setUser(u);
+    if (u) localStorage.setItem('user', JSON.stringify(u));
+    else   localStorage.removeItem('user');
+  };
 
   useEffect(() => {
-    if (!token) { setLoading(false); return; }
+    if (!token) { setAndCacheUser(null); setLoading(false); return; }
     api.me(token)
-      .then(({ user: u }) => { setUser(u); setCreditsReady(true); updateSocketAuth(token); })
+      .then(({ user: u }) => { setAndCacheUser(u); setCreditsReady(true); updateSocketAuth(token); })
       .catch((e) => {
-        // Only clear session on a real 401 — network errors (e.g. server restart) should not log out the user
-        if (e?.status === 401) { setToken(null); localStorage.removeItem('token'); }
+        // Only clear session on a real 401 — network errors (e.g. server restart) keep cached user
+        if (e?.status === 401) { setToken(null); setAndCacheUser(null); localStorage.removeItem('token'); }
       })
       .finally(() => setLoading(false));
   }, []);
 
   const save = (t: string, u: User) => {
     setToken(t);
-    setUser(u);
+    setAndCacheUser(u);
     localStorage.setItem('token', t);
     updateSocketAuth(t);
   };
@@ -52,21 +63,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setToken(null);
-    setUser(null);
+    setAndCacheUser(null);
     localStorage.removeItem('token');
     updateSocketAuth('');
   };
 
   const refreshCredits = async () => {
     if (!token) return;
-    const { user: u } = await api.me(token);
-    setUser(u);
-    setCreditsReady(true);
+    try {
+      const { user: u } = await api.me(token);
+      setAndCacheUser(u);
+      setCreditsReady(true);
+    } catch { /* network hiccup — keep cached user */ }
   };
 
   useEffect(() => {
     const onCredits = ({ real, bonus }: { real: number; bonus: number }) => {
-      setUser((u) => u ? { ...u, credits: real, bonusCredits: bonus } : u);
+      setUser((u) => {
+        const updated = u ? { ...u, credits: real, bonusCredits: bonus } : u;
+        if (updated) localStorage.setItem('user', JSON.stringify(updated));
+        return updated;
+      });
       setCreditsReady(true);
     };
     socket.on('credits-update', onCredits);
