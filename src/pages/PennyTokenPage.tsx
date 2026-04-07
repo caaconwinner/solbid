@@ -145,7 +145,7 @@ export function PennyTokenPage() {
               </div>
               <div className="penny-token-stat">
                 <div className="penny-token-stat-label">Launched on</div>
-                <div className="penny-token-stat-val">pump.fun</div>
+                <div className="penny-token-stat-val"><span style={{ color: 'var(--green)' }}>pump</span>.<span style={{ color: 'var(--green)' }}>fun</span></div>
               </div>
               <div className="penny-token-stat">
                 <div className="penny-token-stat-label">Ticker</div>
