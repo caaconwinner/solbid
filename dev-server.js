@@ -778,9 +778,16 @@ app.post('/api/wins/:id/purchase', requireAuth, async (req, res) => {
       SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: HOUSE_PUBKEY, lamports })
     );
     const sig = await sendAndConfirmTransaction(connection, tx, [keypair]);
-    stmt.markPurchased.run({ id: row.id, sig });
+    const prize = JSON.parse(row.prize_data);
+    db.transaction(() => {
+      stmt.markPurchased.run({ id: row.id, sig });
+      // If prize is credits, automatically add them to winner's account
+      if (prize.type === 'credits' && prize.amount > 0) {
+        db.prepare('UPDATE users SET bonus_credits = bonus_credits + ? WHERE id = ?').run(prize.amount, user.id);
+      }
+    })();
     console.log(`[purchase] ${user.username} purchased "${row.item_name}" for ${purchasePrice} SOL | ${sig}`);
-    return res.json({ ok: true, prize: JSON.parse(row.prize_data), sig });
+    return res.json({ ok: true, prize, sig });
   } catch (e) {
     console.error('[purchase] failed:', e.message);
     return res.status(500).json({ message: 'Payment failed: ' + e.message });
@@ -859,6 +866,7 @@ app.post('/api/admin/auction', requireAdmin, (req, res) => {
   const prize = prizeType === 'sol'      ? { type: 'sol',      amount: Number(prizeAmount) }
               : prizeType === 'digital'  ? { type: 'digital',  code: prizeCode }
               : prizeType === 'physical' ? { type: 'physical', description: prizeDescription }
+              : prizeType === 'credits'  ? { type: 'credits',  amount: Number(prizeAmount) }
               : null;
 
   const auction = makeAuction(id, { name, image, retailValue: Number(retailValue) }, durationMs, delayMs, snapMs, prize);

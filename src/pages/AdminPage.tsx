@@ -170,7 +170,7 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
   const [startAt,     setStartAt]     = useState(localNow);
   const [durationMin, setDurationMin] = useState('30');
   const [snapSec,     setSnapSec]     = useState('15');
-  const [prizeType,   setPrizeType]   = useState<'physical'|'digital'|'sol'>('physical');
+  const [prizeType,   setPrizeType]   = useState<'physical'|'digital'|'sol'|'credits'>('physical');
   const [prizeAmount, setPrizeAmount] = useState('');
   const [prizeCode,   setPrizeCode]   = useState('');
   const [prizeDesc,   setPrizeDesc]   = useState('');
@@ -248,11 +248,11 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
         <div className="form-group admin-col-span">
           <label className="form-label">Prize type</label>
           <div className="admin-prize-tabs">
-            {(['physical','digital','sol'] as const).map((t) => (
+            {(['physical','digital','sol','credits'] as const).map((t) => (
               <button key={t} type="button"
                 className={`tx-tab ${prizeType === t ? 'tx-tab--active' : ''}`}
                 onClick={() => setPrizeType(t)}>
-                {t === 'sol' ? 'SOL' : t.charAt(0).toUpperCase() + t.slice(1)}
+                {t === 'sol' ? 'SOL' : t === 'credits' ? 'Credits' : t.charAt(0).toUpperCase() + t.slice(1)}
               </button>
             ))}
           </div>
@@ -270,6 +270,11 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
             <input className="form-input" style={{ marginTop: 8 }} type="number" min={0.01} step={0.01}
               value={prizeAmount} onChange={(e) => setPrizeAmount(e.target.value)}
               placeholder="SOL amount e.g. 1.0" required />
+          )}
+          {prizeType === 'credits' && (
+            <input className="form-input" style={{ marginTop: 8 }} type="number" min={1} step={1}
+              value={prizeAmount} onChange={(e) => setPrizeAmount(e.target.value)}
+              placeholder="Number of bonus credits e.g. 50" required />
           )}
         </div>
       </div>

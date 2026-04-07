@@ -82,7 +82,8 @@ export interface Win {
   itemName:      string;
   prize:         { type: 'sol'; amount: number }
                | { type: 'digital'; code: string }
-               | { type: 'physical'; description: string };
+               | { type: 'physical'; description: string }
+               | { type: 'credits'; amount: number };
   finalPrice:    number;
   purchasePrice: number;
   purchased:     boolean;
