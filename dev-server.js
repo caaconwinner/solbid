@@ -235,8 +235,8 @@ const stmt = {
   getTxByUser:        db.prepare('SELECT * FROM transactions WHERE user_id = ? ORDER BY ts DESC LIMIT 100'),
   netDepositedSolByUser: db.prepare(`SELECT COALESCE(SUM(CASE WHEN type='deposit' THEN sol WHEN type='withdraw' THEN -sol WHEN type='sweep' THEN -sol ELSE 0 END), 0) as net FROM transactions WHERE user_id = ?`),
   insertWinner: db.prepare(`
-    INSERT INTO winners (id, auction_id, user_id, item_name, prize_type, prize_data, final_price, ts)
-    VALUES (@id, @auction_id, @user_id, @item_name, @prize_type, @prize_data, @final_price, @ts)
+    INSERT INTO winners (id, auction_id, user_id, item_name, prize_type, prize_data, final_price, purchase_price, ts)
+    VALUES (@id, @auction_id, @user_id, @item_name, @prize_type, @prize_data, @final_price, @purchase_price, @ts)
   `),
   getWinsByUser:  db.prepare('SELECT * FROM winners WHERE user_id = ? ORDER BY ts DESC'),
   getWinById:     db.prepare('SELECT * FROM winners WHERE id = ?'),
@@ -716,7 +716,7 @@ app.get('/api/my-wins', requireAuth, (req, res) => {
     itemName:      r.item_name,
     prize:         JSON.parse(r.prize_data),
     finalPrice:    r.final_price,
-    purchasePrice: r.purchase_price ?? r.final_price,
+    purchasePrice: r.purchase_price || r.final_price,
     purchased:     !!(r.purchased),
     purchaseSig:   r.purchase_sig ?? null,
     ts:            r.ts,
@@ -731,7 +731,7 @@ app.post('/api/wins/:id/purchase', requireAuth, async (req, res) => {
   if (row.user_id !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
   if (row.purchased)               return res.status(400).json({ message: 'Already purchased' });
 
-  const purchasePrice = row.purchase_price ?? row.final_price;
+  const purchasePrice = row.purchase_price || row.final_price;
   const lamports      = Math.round(purchasePrice * LAMPORTS_PER_SOL);
 
   if (!HOUSE_PUBKEY)
