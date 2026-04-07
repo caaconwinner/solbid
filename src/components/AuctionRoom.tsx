@@ -107,7 +107,7 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
               <span>🎉 You won this auction!</span>
               {winClaimed
                 ? <span className="win-claimed-badge">✓ Claimed</span>
-                : <Link to="/account" className="btn-primary" style={{ fontSize: 14, padding: '6px 16px' }}>Claim →</Link>
+                : <Link to="/account?tab=wins" className="btn-primary" style={{ fontSize: 14, padding: '6px 16px' }}>Claim →</Link>
               }
             </div>
           ) : (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { DepositAddress } from '../components/DepositAddress';
@@ -405,11 +405,14 @@ function SettingsTab({ token, user }: { token: string; user: any }) {
 // ─── Page ───────────────────────────────────────────────────────
 export function DashboardPage() {
   const { user, token, refreshCredits, creditsReady } = useAuth();
+  const [searchParams] = useSearchParams();
   const [txs, setTxs]                 = useState<Transaction[]>([]);
   const [solBalance, setSolBalance]   = useState<number | null>(null);
   const [withdrawing, setWithdrawing] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
-  const [tab, setTab]                 = useState<MainTab>('credits');
+  const initialTab = (['credits','refer','history','wins','settings'].includes(searchParams.get('tab') ?? '')
+    ? searchParams.get('tab') as MainTab : 'credits');
+  const [tab, setTab] = useState<MainTab>(initialTab);
 
   const loadTxs = (t: string) =>
     api.transactions(t).then(({ transactions }) => setTxs(transactions));
