@@ -50,6 +50,40 @@ export function AuctionCard({ auction }: Props) {
   const [pending, setPending] = useState(false);
   const joinedRef = useRef(false);
 
+  // Local live state — updated via socket so card reflects bids instantly
+  const [livePrice,  setLivePrice]  = useState(auction.currentPrice);
+  const [liveBids,   setLiveBids]   = useState(auction.totalBids);
+  const [liveLeader, setLiveLeader] = useState(auction.leaderName);
+
+  // Sync from parent if auction prop changes (e.g. initial load / poll refresh)
+  useEffect(() => {
+    setLivePrice(auction.currentPrice);
+    setLiveBids(auction.totalBids);
+    setLiveLeader(auction.leaderName);
+  }, [auction.currentPrice, auction.totalBids, auction.leaderName]);
+
+  // Listen to socket events for instant updates
+  useEffect(() => {
+    if (!active) return;
+    const onBidPlaced = (e: { p: number; n: string }) => {
+      setLivePrice(e.p);
+      setLiveBids((b) => b + 1);
+      setLiveLeader(e.n);
+    };
+    const onSync = (e: { auction: any }) => {
+      if (e.auction?.auctionId !== auction.auctionId) return;
+      setLivePrice(e.auction.currentPrice);
+      setLiveBids(e.auction.totalBids);
+      setLiveLeader(e.auction.leaderName);
+    };
+    socket.on('bid-placed',   onBidPlaced);
+    socket.on('auction-sync', onSync);
+    return () => {
+      socket.off('bid-placed',   onBidPlaced);
+      socket.off('auction-sync', onSync);
+    };
+  }, [active, auction.auctionId]);
+
   // Connect socket and join auction room when card is active
   useEffect(() => {
     if (!active) return;
@@ -123,7 +157,7 @@ export function AuctionCard({ auction }: Props) {
         <div className="card-stats">
           <div className="card-stat">
             <span className="card-stat-label">Current bid</span>
-            <span className="card-stat-value card-stat-value--green">${auction.currentPrice.toFixed(2)}</span>
+            <span className="card-stat-value card-stat-value--green">${livePrice.toFixed(2)}</span>
           </div>
           <div className="card-stat">
             <span className="card-stat-label">Time left</span>
@@ -132,15 +166,15 @@ export function AuctionCard({ auction }: Props) {
         </div>
 
         <div className="card-footer">
-          <span className="card-bids">{auction.totalBids} bids</span>
+          <span className="card-bids">{liveBids} bids</span>
           {auction.viewers != null && auction.viewers > 0 && (
             <span className="card-viewers">👁 {auction.viewers}</span>
           )}
           <span className="card-retail">Retail ${auction.item.retailValue.toLocaleString()}</span>
         </div>
 
-        {ended && auction.leaderName && (
-          <div className="card-winner">🏆 {auction.leaderName} won at ${auction.currentPrice.toFixed(2)}</div>
+        {ended && liveLeader && (
+          <div className="card-winner">🏆 {liveLeader} won at ${livePrice.toFixed(2)}</div>
         )}
 
         {active && !user ? (

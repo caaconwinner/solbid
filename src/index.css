@@ -1864,9 +1864,10 @@ a:hover { text-decoration: underline; }
   padding: 20px 24px;
 }
 .penny-token-coin { font-size: 56px; line-height: 1; }
-.penny-token-stats { display: flex; gap: 24px; flex-wrap: wrap; }
-.penny-token-stat-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.5px; margin-bottom: 4px; }
-.penny-token-stat-val { font-size: 14px; font-weight: 700; color: var(--text); }
+.penny-token-stats { display: flex; gap: 28px; flex-wrap: wrap; }
+.penny-token-stat { border-left: 2px solid var(--border); padding-left: 12px; }
+.penny-token-stat-label { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.4px; text-transform: uppercase; margin-bottom: 5px; }
+.penny-token-stat-val { font-size: 15px; font-weight: 700; color: var(--text); }
 
 /* pump.fun mock */
 .penny-mock-pumpfun {
