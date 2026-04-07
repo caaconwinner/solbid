@@ -7,9 +7,10 @@ interface Props {
   disabled:    boolean;
   result:      BidResult;
   connecting?: boolean;
+  isLeader?:   boolean;
 }
 
-export function BidButton({ credits, onBid, disabled, result, connecting }: Props) {
+export function BidButton({ credits, onBid, disabled, result, connecting, isLeader }: Props) {
   // Client-side cooldown prevents double-tap spam while server confirms
   const [cooling, setCooling] = useState(false);
 
@@ -45,7 +46,11 @@ export function BidButton({ credits, onBid, disabled, result, connecting }: Prop
       </div>
 
       {result === 'rejected' && (
-        <p className="bid-error">Bid rejected — auction may have ended</p>
+        <p className="bid-error">
+          {isLeader
+            ? '🏆 You have the winning bid — hold on!'
+            : 'Bid rejected — auction may have ended'}
+        </p>
       )}
     </div>
   );
