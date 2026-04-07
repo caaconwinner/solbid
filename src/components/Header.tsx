@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { usePing } from '../hooks/usePing';
 
@@ -63,6 +64,18 @@ export function Header() {
 
           {user ? (
             <>
+              {user.refCode && (
+                <button
+                  className="header-ref-btn"
+                  title="Copy your referral link"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user.refCode}`);
+                    toast.success('Referral link copied!');
+                  }}
+                >
+                  Refer
+                </button>
+              )}
               <Link to="/account" className="header-user" style={{ textDecoration: 'none' }}>
                 <span className="header-username">{user.username}</span>
               </Link>
