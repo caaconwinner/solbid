@@ -476,7 +476,12 @@ function UsersPanel({ token }: { token: string }) {
                 <td><strong>{u.username}</strong></td>
                 <td style={{ color: 'var(--text-muted)' }}>{u.email ?? '—'}</td>
                 <td>
-                  <span className="admin-addr" title={u.deposit_address}>
+                  <span
+                    className="admin-addr"
+                    title={`Click to copy: ${u.deposit_address}`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => { navigator.clipboard.writeText(u.deposit_address); toast.success('Address copied'); }}
+                  >
                     {shortAddr(u.deposit_address)}
                   </span>
                 </td>
