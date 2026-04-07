@@ -71,7 +71,7 @@ function MockSignupFlow() {
       <div className="ref-mock-flow-arrow">→</div>
       <div className="ref-mock-flow-step">
         <div className="ref-mock-flow-icon">💸</div>
-        <div className="ref-mock-flow-text">Deposit ≥ 0.045 SOL</div>
+        <div className="ref-mock-flow-text">Deposit ≥ 0.05 SOL</div>
       </div>
       <div className="ref-mock-flow-arrow">→</div>
       <div className="ref-mock-flow-step ref-mock-flow-step--last">
@@ -118,7 +118,7 @@ export function ReferPage() {
       <div className="hiw-hero">
         <h1 className="hiw-hero-title">Refer &amp; earn</h1>
         <p className="hiw-hero-sub">
-          Share your unique link. When a friend signs up, deposits at least 0.045 SOL, and places their first bid,
+          Share your unique link. When a friend signs up, deposits at least 0.05 SOL, and places their first bid,
           you automatically receive <strong style={{ color: 'var(--orange)' }}>+10 bonus credits</strong>.
         </p>
         {refLink ? (
@@ -144,7 +144,7 @@ export function ReferPage() {
 
         {/* ── Step 2: Friend's journey ── */}
         <Step n={2} title="Share it — your friend completes the steps"
-          body="They need to register via your link, deposit at least 0.045 SOL, and place at least one bid. That's all — the reward fires automatically.">
+          body="They need to register via your link, deposit at least 0.05 SOL, and place at least one bid. That's all — the reward fires automatically.">
           <MockSignupFlow />
         </Step>
 
@@ -163,7 +163,7 @@ export function ReferPage() {
           <div className="hiw-faq-grid">
             {[
               { q: 'How many people can I refer?', a: 'Unlimited. Every qualifying referral earns you +10 bonus credits, with no cap.' },
-              { q: 'What counts as a qualifying referral?', a: 'Your friend must register using your link, deposit at least 0.045 SOL, and place at least one bid. All three conditions must be met.' },
+              { q: 'What counts as a qualifying referral?', a: 'Your friend must register using your link, deposit at least 0.05 SOL, and place at least one bid. All three conditions must be met.' },
               { q: 'Can my referral link be disabled?', a: 'Referral links that show signs of abuse may be disabled by the platform. If yours is disabled, contact support.' },
               { q: 'Are bonus credits the same as regular credits?', a: 'Bonus credits are bid-only — they work exactly like regular credits for bidding, but cannot be withdrawn as SOL.' },
               { q: 'When exactly do I receive the credits?', a: 'The moment your friend places their first bid after depositing enough SOL. It is automatic — you will see your credit balance update.' },

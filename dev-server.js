@@ -1125,7 +1125,7 @@ function tryBid(auctionId, user, displayName) {
 }
 
 // ─── Referral reward helper ────────────────────────────────────
-// Fires once per referred user when they have deposited ≥ 0.045 SOL total AND placed ≥ 1 bid.
+// Fires once per referred user when they have deposited ≥ 0.04 SOL total (displayed as 0.05 — tx fees accounted for) AND placed ≥ 1 bid.
 function checkReferralReward(userId) {
   const refInfo = db.prepare('SELECT referred_by, ref_rewarded FROM users WHERE id = ?').get(userId);
   if (!refInfo?.referred_by || refInfo.ref_rewarded) return; // no referrer or already rewarded
@@ -1133,7 +1133,7 @@ function checkReferralReward(userId) {
   const { totalDeposited } = db.prepare(
     "SELECT COALESCE(SUM(sol), 0) as totalDeposited FROM transactions WHERE user_id = ? AND type = 'deposit'"
   ).get(userId);
-  if (totalDeposited < 0.045) return; // not enough deposited yet
+  if (totalDeposited < 0.04) return; // 0.04 threshold accounts for Solana tx fees (shown as 0.05 in UI)
 
   const { bidCount } = db.prepare(
     "SELECT COUNT(*) as bidCount FROM transactions WHERE user_id = ? AND type = 'bid'"
