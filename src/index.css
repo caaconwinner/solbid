@@ -138,16 +138,18 @@ a:hover { text-decoration: underline; }
 
 .header-ref-btn {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   background: var(--orange-dim);
   box-shadow: inset 0 0 0 1px rgba(255, 98, 0, 0.25);
   border-radius: 20px;
-  padding: 4px 12px;
+  padding: 0 12px;
+  height: 30px;
   border: none;
   cursor: pointer;
   font-family: var(--mono);
   font-size: 14px;
   font-weight: 700;
+  line-height: 1;
   color: var(--orange);
   transition: box-shadow 0.15s;
 }
@@ -162,23 +164,25 @@ a:hover { text-decoration: underline; }
 
 .header-credits {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 4px;
   background: var(--green-dim);
   box-shadow: inset 0 0 0 1px rgba(0, 232, 122, 0.25);
   border-radius: 20px;
-  padding: 4px 12px;
+  padding: 0 12px;
+  height: 30px;
 }
 .credits-value { font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--green); }
 .credits-label { font-size: 11px; color: var(--text-muted); }
 
 .header-user {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   background: var(--green-dim);
   box-shadow: inset 0 0 0 1px rgba(0, 232, 122, 0.25);
   border-radius: 20px;
-  padding: 4px 12px;
+  padding: 0 12px;
+  height: 30px;
   transition: box-shadow 0.15s;
 }
 .header-user:hover { box-shadow: inset 0 0 0 1px rgba(0, 232, 122, 0.5); }
