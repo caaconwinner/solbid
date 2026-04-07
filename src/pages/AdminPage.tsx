@@ -363,8 +363,22 @@ function UsersPanel({ token }: { token: string }) {
   const [amounts,   setAmounts]   = useState<Record<string, string>>({});
   const [allAmount, setAllAmount] = useState('');
   const [loading,   setLoading]   = useState<string | null>(null);
+  const [balances,  setBalances]  = useState<Record<string, number> | null>(null);
+  const [fetchingBal, setFetchingBal] = useState(false);
 
   const load = () => api(token, '/api/admin/users').then(({ users: u }) => setUsers(u));
+
+  const fetchBalances = async () => {
+    setFetchingBal(true);
+    try {
+      const { balances: b } = await api(token, '/api/admin/users/balances');
+      setBalances(b);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setFetchingBal(false);
+    }
+  };
   useEffect(() => { load(); }, []);
 
   const filtered = users.filter(u =>
@@ -440,6 +454,9 @@ function UsersPanel({ token }: { token: string }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <button className="btn-ghost" disabled={fetchingBal} onClick={fetchBalances}>
+          {fetchingBal ? 'Fetching…' : 'Fetch SOL balances'}
+        </button>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
             className="form-input"
@@ -465,6 +482,7 @@ function UsersPanel({ token }: { token: string }) {
               <th>Deposit address</th>
               <th>SOL cr.</th>
               <th>Bonus</th>
+              <th>On-chain SOL</th>
               <th style={{ width: 100 }}>Adjust bonus</th>
               <th style={{ width: 70 }}></th>
               <th style={{ width: 70 }}></th>
@@ -487,6 +505,9 @@ function UsersPanel({ token }: { token: string }) {
                 </td>
                 <td>{u.credits}</td>
                 <td style={{ color: 'var(--orange)' }}>{u.bonus_credits}</td>
+                <td style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--text-muted)' }}>
+                  {balances ? balances[u.id]?.toFixed(4) ?? '0.0000' : '—'}
+                </td>
                 <td>
                   <input
                     className="form-input"

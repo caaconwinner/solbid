@@ -914,6 +914,21 @@ app.post('/api/admin/credits/all', requireAdmin, (req, res) => {
   res.json({ ok: true, usersAffected: result.changes });
 });
 
+app.get('/api/admin/users/balances', requireAdmin, async (req, res) => {
+  const rows = db.prepare("SELECT id, deposit_address FROM users WHERE id NOT LIKE 'bot-%'").all();
+  try {
+    const pubkeys = rows.map(r => new PublicKey(r.deposit_address));
+    const accounts = await connection.getMultipleAccountsInfo(pubkeys, 'confirmed');
+    const balances = {};
+    rows.forEach((r, i) => {
+      balances[r.id] = (accounts[i]?.lamports ?? 0) / 1e9;
+    });
+    res.json({ balances });
+  } catch (e) {
+    res.status(500).json({ message: 'RPC error: ' + e.message });
+  }
+});
+
 app.delete('/api/admin/user/:id', requireAdmin, (req, res) => {
   const row = stmt.getUserById.get(req.params.id);
   if (!row) return res.status(404).json({ message: 'User not found' });
