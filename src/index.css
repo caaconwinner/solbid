@@ -1947,14 +1947,15 @@ a:hover { text-decoration: underline; }
 .penny-mock-split-notes { display: flex; gap: 12px; }
 .penny-mock-split-note {
   flex: 1;
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
   line-height: 1.5;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
 }
-.penny-mock-split-note--burn { background: rgba(255,120,0,0.06); border: 1px solid rgba(255,120,0,0.15); }
-.penny-mock-split-note--ops  { background: var(--surface-2); border: 1px solid var(--border); }
+.penny-mock-split-note--burn { background: rgba(255,120,0,0.08); border: 1px solid rgba(255,120,0,0.25); color: var(--orange); }
+.penny-mock-split-note--ops  { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
 
 /* credit compare mock */
 .penny-mock-compare {
