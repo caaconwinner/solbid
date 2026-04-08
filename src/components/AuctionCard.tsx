@@ -170,7 +170,10 @@ export function AuctionCard({ auction }: Props) {
           {auction.viewers != null && auction.viewers > 0 && (
             <span className="card-viewers">👁 {auction.viewers}</span>
           )}
-          <span className="card-retail">Retail ${auction.item.retailValue.toLocaleString()}</span>
+          <span className="card-retail">
+            <span className="item-retail-label">RETAIL VALUE:</span>
+            <span className="item-retail-value">${auction.item.retailValue.toLocaleString()}</span>
+          </span>
         </div>
 
         {ended && liveLeader && (
