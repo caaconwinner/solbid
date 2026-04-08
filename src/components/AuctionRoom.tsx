@@ -61,7 +61,8 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
         <div className="item-meta">
           <h1 className="item-name">{auction.item.name}</h1>
           <p className="item-retail">
-            Retail value: <strong>${auction.item.retailValue.toLocaleString()}</strong>
+            <span className="item-retail-label">RETAIL VALUE:</span>
+            <span className="item-retail-value">${auction.item.retailValue.toLocaleString()}</span>
           </p>
           <p className="item-bids">
             {auction.totalBids} bids placed

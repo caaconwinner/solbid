@@ -1069,8 +1069,9 @@ a:hover { text-decoration: underline; }
 }
 .item-meta { padding: 16px 16px 16px 0; display: flex; flex-direction: column; gap: 6px; }
 .item-name { font-size: clamp(16px, 1.5vw, 24px); font-weight: 700; line-height: 1.25; }
-.item-retail { font-size: 13px; color: var(--text-muted); }
-.item-retail strong { color: var(--text); }
+.item-retail { font-size: 15px; display: flex; align-items: baseline; gap: 8px; }
+.item-retail-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: #c9a84c; }
+.item-retail-value { font-size: 22px; font-weight: 700; color: var(--green); }
 .item-bids { font-size: 12px; color: var(--text-muted); margin-top: auto; }
 
 .live-state { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
