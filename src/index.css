@@ -2174,8 +2174,8 @@ a:hover { text-decoration: underline; }
 
 /* ─── Cashback panel ─────────────────────────────────────────── */
 .cashback-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: linear-gradient(160deg, rgba(180,140,40,0.08) 0%, var(--surface) 60%);
+  border: 1px solid rgba(180,140,40,0.25);
   border-radius: var(--radius);
   overflow: hidden;
   display: flex;
