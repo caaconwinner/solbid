@@ -2360,7 +2360,7 @@ a:hover { text-decoration: underline; }
 .ref-mock-reward-title { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
 .ref-mock-reward-amount { font-size: 32px; font-weight: 900; color: var(--orange); }
 .ref-mock-reward-sub { font-size: 13px; color: var(--text-muted); }
-.ref-mock-reward-note { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+.ref-mock-reward-note { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; }
 .ref-mock-reward-note-outer { font-size: 12px; color: var(--text-muted); text-align: center; }
 
 .brand-page { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
