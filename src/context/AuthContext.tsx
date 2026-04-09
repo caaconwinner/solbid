@@ -35,13 +35,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!token) { setAndCacheUser(null); setLoading(false); return; }
-    api.me(token)
-      .then(({ user: u }) => { setAndCacheUser(u); setCreditsReady(true); updateSocketAuth(token); })
-      .catch((e) => {
-        // Only clear session on a real 401 — network errors (e.g. server restart) keep cached user
-        if (e?.status === 401) { setToken(null); setAndCacheUser(null); localStorage.removeItem('token'); }
-      })
-      .finally(() => setLoading(false));
+
+    let cancelled = false;
+    const tryMe = async (attemptsLeft: number, delay: number) => {
+      try {
+        const { user: u } = await api.me(token);
+        if (cancelled) return;
+        setAndCacheUser(u); setCreditsReady(true); updateSocketAuth(token);
+        setLoading(false);
+      } catch (e: any) {
+        if (cancelled) return;
+        if (e?.status === 401) {
+          // Real invalid token — log out
+          setToken(null); setAndCacheUser(null); localStorage.removeItem('token');
+          setLoading(false);
+        } else if (attemptsLeft > 0) {
+          // Network error (server restarting) — retry after delay, keep showing cached user
+          setTimeout(() => tryMe(attemptsLeft - 1, Math.min(delay * 2, 8000)), delay);
+        } else {
+          // All retries exhausted — give up, keep cached user if any
+          setLoading(false);
+        }
+      }
+    };
+    tryMe(6, 1000); // up to ~30s total retry window
+    return () => { cancelled = true; };
   }, []);
 
   const save = (t: string, u: User) => {
