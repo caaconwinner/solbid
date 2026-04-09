@@ -2305,7 +2305,7 @@ a:hover { text-decoration: underline; }
 .cashback-disclaimer {
   margin: 0;
   padding: 10px 16px;
-  font-size: 10px; color: rgba(255,255,255,0.55); line-height: 1.6;
+  font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.6;
   border-top: 1px solid var(--border);
   background: var(--surface-2);
   margin-top: auto;
