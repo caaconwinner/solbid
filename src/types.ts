@@ -81,7 +81,6 @@ export interface Win {
   id:            string;
   auctionId:     string;
   itemName:      string;
-  itemImage:     string | null;
   prize:         { type: 'sol'; amount: number }
                | { type: 'digital'; code: string }
                | { type: 'physical'; description: string }

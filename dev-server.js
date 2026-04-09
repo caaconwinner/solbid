@@ -176,7 +176,6 @@ try { db.exec('ALTER TABLE users ADD COLUMN reset_expires INTEGER'); } catch { /
 try { db.exec('ALTER TABLE winners ADD COLUMN purchase_price REAL NOT NULL DEFAULT 0'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE winners ADD COLUMN purchased INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE winners ADD COLUMN purchase_sig TEXT'); } catch { /* already exists */ }
-try { db.exec('ALTER TABLE winners ADD COLUMN item_image TEXT'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE users ADD COLUMN bonus_credits INTEGER NOT NULL DEFAULT 0'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE transactions ADD COLUMN real_credit INTEGER NOT NULL DEFAULT 1'); } catch { /* already exists */ }
 try { db.exec(`
@@ -240,8 +239,8 @@ const stmt = {
   getTxByUser:        db.prepare('SELECT * FROM transactions WHERE user_id = ? ORDER BY ts DESC LIMIT 100'),
   netDepositedSolByUser: db.prepare(`SELECT COALESCE(SUM(CASE WHEN type='deposit' THEN sol WHEN type='withdraw' THEN -sol WHEN type='sweep' THEN -sol ELSE 0 END), 0) as net FROM transactions WHERE user_id = ?`),
   insertWinner: db.prepare(`
-    INSERT INTO winners (id, auction_id, user_id, item_name, item_image, prize_type, prize_data, final_price, purchase_price, ts)
-    VALUES (@id, @auction_id, @user_id, @item_name, @item_image, @prize_type, @prize_data, @final_price, @purchase_price, @ts)
+    INSERT INTO winners (id, auction_id, user_id, item_name, prize_type, prize_data, final_price, purchase_price, ts)
+    VALUES (@id, @auction_id, @user_id, @item_name, @prize_type, @prize_data, @final_price, @purchase_price, @ts)
   `),
   getWinsByUser:  db.prepare('SELECT * FROM winners WHERE user_id = ? ORDER BY ts DESC'),
   getWinById:     db.prepare('SELECT * FROM winners WHERE id = ?'),
@@ -742,7 +741,6 @@ app.get('/api/my-wins', requireAuth, (req, res) => {
     id:            r.id,
     auctionId:     r.auction_id,
     itemName:      r.item_name,
-    itemImage:     r.item_image ?? null,
     prize:         JSON.parse(r.prize_data),
     finalPrice:    r.final_price,
     purchasePrice: r.purchase_price || r.final_price,
@@ -1309,7 +1307,6 @@ setInterval(async () => {
             auction_id:     a.auctionId,
             user_id:        a.leaderId,
             item_name:      a.item.name,
-            item_image:     a.item.image ?? null,
             prize_type:     a.prize.type,
             prize_data:     JSON.stringify(a.prize),
             final_price:    a.currentPrice,
