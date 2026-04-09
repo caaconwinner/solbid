@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { ImageCropUploader } from '../components/ImageCropUploader';
 
 const STORAGE_KEY = 'admin_token';
 
@@ -217,14 +218,9 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
         </div>
 
         <div className="form-group admin-col-span">
-          <label className="form-label">Image URL</label>
-          <input className="form-input" value={image} onChange={(e) => setImage(e.target.value)}
-            placeholder="https://…" required />
-          {image && (
-            <img src={image} alt="preview" className="admin-img-preview"
-              onError={(e) => (e.currentTarget.style.display = 'none')}
-              onLoad={(e)  => (e.currentTarget.style.display = 'block')} />
-          )}
+          <label className="form-label">Image</label>
+          <ImageCropUploader value={image} onChange={setImage} adminToken={token} baseUrl={BASE} />
+          <input type="hidden" value={image} required />
         </div>
 
         <div className="form-group">
@@ -329,8 +325,9 @@ function EditForm({ token, auction, onDone }: { token: string; auction: AdminAuc
           <input className="form-input" type="number" min={1} value={retailValue} onChange={(e) => setRetailValue(e.target.value)} required />
         </div>
         <div className="form-group admin-col-span">
-          <label className="form-label">Image URL</label>
-          <input className="form-input" value={image} onChange={(e) => setImage(e.target.value)} required />
+          <label className="form-label">Image</label>
+          <ImageCropUploader value={image} onChange={setImage} adminToken={token} baseUrl={BASE} />
+          <input type="hidden" value={image} required />
         </div>
         <div className="form-group">
           <label className="form-label">Start time</label>

@@ -1551,6 +1551,66 @@ a:hover { text-decoration: underline; }
   border-radius: var(--radius); margin-top: 8px;
   border: 1px solid var(--border);
 }
+
+/* ─── Image crop uploader ──────────────────────────────────────── */
+.img-uploader { display: flex; flex-direction: column; gap: 10px; }
+.img-uploader-preview-wrap {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.img-uploader-preview { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.btn-upload {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  align-self: flex-start;
+}
+.btn-upload:hover { border-color: var(--orange); background: var(--surface); }
+
+/* crop modal */
+.crop-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+}
+.crop-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  width: min(680px, 96vw);
+  display: flex; flex-direction: column; gap: 16px;
+}
+.crop-modal-title {
+  font-size: 14px; font-weight: 600; color: var(--text); margin: 0;
+}
+.crop-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.crop-controls {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.crop-zoom-label { font-size: 12px; color: var(--text-muted); }
+.crop-zoom-slider { width: 100%; accent-color: var(--orange); }
+.crop-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
 .admin-auction-list { display: flex; flex-direction: column; gap: 10px; }
 .admin-auction-row {
   display: flex; align-items: center; gap: 14px;

@@ -12,6 +12,8 @@ import { Resend }       from 'resend';
 import Database         from 'better-sqlite3';
 import { fileURLToPath } from 'url';
 import { dirname, join }  from 'path';
+import { mkdirSync }      from 'fs';
+import multer             from 'multer';
 import {
   generateKeyPairSync,
   randomBytes,
@@ -113,8 +115,10 @@ const MASTER_KEY = scryptSync(
 );
 
 // ─── Database ──────────────────────────────────────────────────
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR  = process.env.DATA_DIR ?? __dirname;   // Railway: set DATA_DIR=/data (volume)
+const __dirname   = dirname(fileURLToPath(import.meta.url));
+const DATA_DIR    = process.env.DATA_DIR ?? __dirname;   // Railway: set DATA_DIR=/data (volume)
+const UPLOADS_DIR = join(DATA_DIR, 'uploads');
+mkdirSync(UPLOADS_DIR, { recursive: true });
 const db = new Database(join(DATA_DIR, 'solbid.db'));
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
@@ -837,6 +841,22 @@ function requireAdmin(req, res, next) {
     return res.status(403).json({ message: 'Forbidden' });
   next();
 }
+
+// ─── Image upload ──────────────────────────────────────────────
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
+    filename:    (_req,  file, cb) => cb(null, `${Date.now()}-${file.originalname.replace(/[^a-z0-9._-]/gi, '_')}`),
+  }),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => cb(null, file.mimetype.startsWith('image/')),
+});
+app.use('/uploads', express.static(UPLOADS_DIR));
+
+app.post('/api/admin/upload-image', requireAdmin, upload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'No file' });
+  res.json({ url: `/uploads/${req.file.filename}` });
+});
 
 app.get('/api/admin/auctions', requireAdmin, (req, res) => {
   const list = [...auctions.values()].map((a) => ({
