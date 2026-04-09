@@ -5,6 +5,7 @@ import { api } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { DepositAddress } from '../components/DepositAddress';
 import { PasswordInput } from '../components/PasswordInput';
+import { WinShareModal } from '../components/WinShareModal';
 import type { Transaction, Win } from '../types';
 
 type MainTab = 'credits' | 'refer' | 'history' | 'wins' | 'settings';
@@ -250,8 +251,9 @@ function HistoryTab({ txs }: { txs: Transaction[] }) {
 
 // ─── Wins tab ───────────────────────────────────────────────────
 function WinsTab({ token }: { token: string }) {
-  const [wins,   setWins]   = useState<Win[]>([]);
-  const [paying, setPaying] = useState<string | null>(null);
+  const [wins,       setWins]       = useState<Win[]>([]);
+  const [paying,     setPaying]     = useState<string | null>(null);
+  const [shareWin,   setShareWin]   = useState<Win | null>(null);
 
   const reload = () => api.myWins(token).then(({ wins: w }) => setWins(w));
   useEffect(() => { reload(); }, [token]);
@@ -287,9 +289,14 @@ function WinsTab({ token }: { token: string }) {
 
   return (
     <div className="dash-tab-content">
+      {shareWin && <WinShareModal win={shareWin} onClose={() => setShareWin(null)} />}
       <div className="wins-list">
         {wins.map((win) => (
-          <div key={win.id} className={`win-card ${win.purchased ? 'win-card--claimed' : 'win-card--pending'}`}>
+          <div key={win.id} className={`win-card ${win.purchased ? 'win-card--claimed' : 'win-card--pending'}`}
+            onClick={() => setShareWin(win)} role="button" tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setShareWin(win)}
+            style={{ cursor: 'pointer' }}
+          >
             <div className="win-card-header">
               <span className="win-card-name">{win.itemName}</span>
               <span className="win-card-price">Auction ended at ${win.finalPrice.toFixed(2)}</span>
@@ -310,7 +317,7 @@ function WinsTab({ token }: { token: string }) {
                   <strong>{win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL</strong>{' '}
                   will be drawn from your deposit wallet.
                 </p>
-                <button className="btn-outline" disabled={paying === win.id} onClick={() => purchase(win)}>
+                <button className="btn-outline" disabled={paying === win.id} onClick={(e) => { e.stopPropagation(); purchase(win); }}>
                   {paying === win.id ? 'Processing…' : `Pay ${win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL & claim`}
                 </button>
               </div>
