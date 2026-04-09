@@ -448,14 +448,22 @@ function makeToken(userId) {
 function userFromHeader(authHeader) {
   if (!authHeader?.startsWith('Bearer ')) return null;
   const incoming = authHeader.slice(7);
-  for (const [tok, userId] of tokens) {
-    try {
-      if (timingSafeEqual(Buffer.from(tok), Buffer.from(incoming))) {
-        return rowToUser(stmt.getUserById.get(userId));
-      }
-    } catch { /* length mismatch */ }
+  if (!incoming) return null;
+
+  // O(1) direct Map lookup
+  let userId = tokens.get(incoming);
+
+  // Fallback to DB if not in Map (handles edge cases: startup race, Map cleared, etc.)
+  if (!userId) {
+    const row = db.prepare('SELECT user_id FROM sessions WHERE token = ?').get(incoming);
+    if (row?.user_id) {
+      tokens.set(incoming, row.user_id); // re-warm the cache
+      userId = row.user_id;
+    }
   }
-  return null;
+
+  if (!userId) return null;
+  return rowToUser(stmt.getUserById.get(userId));
 }
 
 // ─── Auth middleware ───────────────────────────────────────────

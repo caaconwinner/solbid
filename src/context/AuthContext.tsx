@@ -37,29 +37,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) { setAndCacheUser(null); setLoading(false); return; }
 
     let cancelled = false;
-    const tryMe = async (attemptsLeft: number, delay: number) => {
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+    const verify = async (): Promise<'ok' | 'retry' | 'logout'> => {
       try {
         const { user: u } = await api.me(token);
-        if (cancelled) return;
+        if (cancelled) return 'ok';
         setAndCacheUser(u); setCreditsReady(true); updateSocketAuth(token);
         setLoading(false);
+        return 'ok';
       } catch (e: any) {
-        if (cancelled) return;
-        if (e?.status === 401) {
-          // Real invalid token — log out
-          setToken(null); setAndCacheUser(null); localStorage.removeItem('token');
-          setLoading(false);
-        } else if (attemptsLeft > 0) {
-          // Network error (server restarting) — retry after delay, keep showing cached user
-          setTimeout(() => tryMe(attemptsLeft - 1, Math.min(delay * 2, 8000)), delay);
-        } else {
-          // All retries exhausted — give up, keep cached user if any
-          setLoading(false);
-        }
+        if (e?.status === 401) return 'logout';
+        return 'retry';
       }
     };
-    tryMe(6, 1000); // up to ~30s total retry window
-    return () => { cancelled = true; };
+
+    const tryMe = async (attemptsLeft: number, delay: number) => {
+      if (cancelled) return;
+      const result = await verify();
+      if (result === 'ok') return;
+      if (result === 'logout') {
+        setToken(null); setAndCacheUser(null); localStorage.removeItem('token');
+        setLoading(false);
+        return;
+      }
+      // Network/server error
+      if (attemptsLeft > 0) {
+        setTimeout(() => tryMe(attemptsLeft - 1, Math.min(delay * 2, 8000)), delay);
+      } else {
+        // Retries exhausted — keep cached user, poll in background every 20s
+        setLoading(false);
+        pollTimer = setInterval(async () => {
+          if (cancelled) { clearInterval(pollTimer!); return; }
+          const r = await verify();
+          if (r === 'logout') {
+            clearInterval(pollTimer!);
+            setToken(null); setAndCacheUser(null); localStorage.removeItem('token');
+          } else if (r === 'ok') {
+            clearInterval(pollTimer!);
+          }
+        }, 20_000);
+      }
+    };
+
+    tryMe(8, 1000); // ~60s window before falling back to background poll
+    return () => {
+      cancelled = true;
+      if (pollTimer) clearInterval(pollTimer);
+    };
   }, []);
 
   const save = (t: string, u: User) => {
