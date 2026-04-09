@@ -27,7 +27,7 @@ function MiniTimer({ endsAtMs, startsAtMs, status }: { endsAtMs: number; startsA
 
   if (status === 'scheduled') {
     return startsAtMs
-      ? <span className="card-status scheduled">starts in {formatCountdown(scheduledMs)}</span>
+      ? <span className="card-status scheduled">{formatCountdown(scheduledMs)}</span>
       : <span className="card-status scheduled">UPCOMING</span>;
   }
   if (status === 'ended' || status === 'settled') return <span className="card-status ended">ENDED</span>;
@@ -160,7 +160,7 @@ export function AuctionCard({ auction }: Props) {
             <span className="card-stat-value card-stat-value--green">${livePrice.toFixed(2)}</span>
           </div>
           <div className="card-stat">
-            <span className="card-stat-label">Time left</span>
+            <span className="card-stat-label">{auction.status === 'scheduled' ? 'Starts in' : 'Time left'}</span>
             <MiniTimer endsAtMs={auction.endsAtMs} startsAtMs={auction.startsAtMs} status={auction.status} />
           </div>
         </div>

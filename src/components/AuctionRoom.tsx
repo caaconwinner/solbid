@@ -73,7 +73,7 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
 
       <div className="live-state">
         <PriceDisplay price={auction.currentPrice} />
-        <Timer endsAtMs={auction.endsAtMs} clockDrift={clockDrift} ended={ended} />
+        <Timer endsAtMs={auction.endsAtMs} clockDrift={clockDrift} ended={ended} status={auction.status} startsAtMs={auction.startsAtMs} />
       </div>
 
       <div className="leader-bar" data-outbid={outbid}>

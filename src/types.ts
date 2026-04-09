@@ -10,7 +10,8 @@ export interface AuctionState {
   currentPrice: number;
   leaderId: string | null;
   leaderName: string | null;
-  endsAtMs: number;
+  endsAtMs:   number;
+  startsAtMs?: number;
   status: 'scheduled' | 'active' | 'ended' | 'settled';
   totalBids: number;
 }
