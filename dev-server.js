@@ -416,7 +416,7 @@ const tokens = new Map(); // token → userId (in-memory cache)
 for (const row of db.prepare('SELECT token, user_id FROM sessions').all()) {
   tokens.set(row.token, row.user_id);
 }
-const stmtInsertSession = db.prepare('INSERT OR IGNORE INTO sessions (token, user_id, ts) VALUES (?, ?, ?)');
+const stmtInsertSession = db.prepare('INSERT OR IGNORE INTO sessions (token, user_id, ts, created_at) VALUES (?, ?, ?, ?)');
 const stmtDeleteSession = db.prepare('DELETE FROM sessions WHERE token = ?');
 
 async function makeUser(username, passwordHash, email = null, referredBy = null) {
@@ -442,8 +442,9 @@ async function makeUser(username, passwordHash, email = null, referredBy = null)
 
 function makeToken(userId) {
   const t = randomBytes(32).toString('hex');
+  const now = Date.now();
   tokens.set(t, userId);
-  stmtInsertSession.run(t, userId, Date.now());
+  stmtInsertSession.run(t, userId, now, now);
   return t;
 }
 
