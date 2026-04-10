@@ -54,27 +54,31 @@ export function AuctionCard({ auction }: Props) {
   const [livePrice,  setLivePrice]  = useState(auction.currentPrice);
   const [liveBids,   setLiveBids]   = useState(auction.totalBids);
   const [liveLeader, setLiveLeader] = useState(auction.leaderName);
+  const [liveEndsAt, setLiveEndsAt] = useState(auction.endsAtMs);
 
   // Sync from parent if auction prop changes (e.g. initial load / poll refresh)
   useEffect(() => {
     setLivePrice(auction.currentPrice);
     setLiveBids(auction.totalBids);
     setLiveLeader(auction.leaderName);
-  }, [auction.currentPrice, auction.totalBids, auction.leaderName]);
+    setLiveEndsAt(auction.endsAtMs);
+  }, [auction.currentPrice, auction.totalBids, auction.leaderName, auction.endsAtMs]);
 
   // Listen to socket events for instant updates
   useEffect(() => {
     if (!active) return;
-    const onBidPlaced = (e: { p: number; n: string }) => {
+    const onBidPlaced = (e: { p: number; n: string; t: number }) => {
       setLivePrice(e.p);
       setLiveBids((b) => b + 1);
       setLiveLeader(e.n);
+      setLiveEndsAt(e.t);
     };
     const onSync = (e: { auction: any }) => {
       if (e.auction?.auctionId !== auction.auctionId) return;
       setLivePrice(e.auction.currentPrice);
       setLiveBids(e.auction.totalBids);
       setLiveLeader(e.auction.leaderName);
+      setLiveEndsAt(e.auction.endsAtMs);
     };
     socket.on('bid-placed',   onBidPlaced);
     socket.on('auction-sync', onSync);
@@ -161,7 +165,7 @@ export function AuctionCard({ auction }: Props) {
           </div>
           <div className="card-stat">
             <span className="card-stat-label">{auction.status === 'scheduled' ? 'Starts in' : 'Time left'}</span>
-            <MiniTimer endsAtMs={auction.endsAtMs} startsAtMs={auction.startsAtMs} status={auction.status} />
+            <MiniTimer endsAtMs={liveEndsAt} startsAtMs={auction.startsAtMs} status={auction.status} />
           </div>
         </div>
 
@@ -178,6 +182,9 @@ export function AuctionCard({ auction }: Props) {
 
         {ended && liveLeader && (
           <div className="card-winner">🏆 {liveLeader} won at ${livePrice.toFixed(2)}</div>
+        )}
+        {active && liveLeader && (
+          <div className="card-leader">👑 {liveLeader}</div>
         )}
 
         {active && !user ? (
