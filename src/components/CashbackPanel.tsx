@@ -33,8 +33,8 @@ export function CashbackPanel({ participants, winner, userId, ended }: Props) {
     if (!winner || prevWinner.current) return;
     prevWinner.current = winner;
 
-    // Auction already ended when winner data arrived (e.g. page refresh / navigation) — skip animation
-    if (eligible.length === 0 || ended) { setPhase('revealed'); return; }
+    // No participants to spin through — skip animation
+    if (eligible.length === 0) { setPhase('revealed'); return; }
 
     const winnerId  = winner.userId ?? winner.user_id;
     const winnerIdx = eligible.findIndex(p => p.id === winnerId);
