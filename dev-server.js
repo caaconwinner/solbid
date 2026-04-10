@@ -1463,6 +1463,59 @@ setInterval(async () => {
   }
 }, 15_000);
 
+// ─── Public win data (for OG page) ────────────────────────────
+app.get('/api/win-public/:id', (req, res) => {
+  const row = db.prepare('SELECT * FROM winners WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ message: 'Not found' });
+  res.json({
+    itemName:   row.item_name,
+    itemImage:  row.item_image ?? null,
+    finalPrice: row.final_price,
+  });
+});
+
+// ─── Shareable win page (OG tags for X / Telegram) ─────────────
+const SITE_ORIGIN = process.env.FRONTEND_URL ?? 'https://penny.bid';
+app.get('/win/:id', (req, res) => {
+  const row = db.prepare('SELECT * FROM winners WHERE id = ?').get(req.params.id);
+  if (!row) return res.redirect('/');
+
+  const title   = `🏆 Just won ${row.item_name} for only $${row.final_price.toFixed(2)} at penny.bid!`;
+  const desc    = 'Penny auctions on Solana — bid, win, save big.';
+  const imgUrl  = row.item_image
+    ? (row.item_image.startsWith('http') ? row.item_image : `${SITE_ORIGIN}${row.item_image}`)
+    : `${SITE_ORIGIN}/raffle-icon.png`;
+  const pageUrl = `${SITE_ORIGIN}/win/${req.params.id}`;
+
+  res.setHeader('Content-Type', 'text/html');
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>${title}</title>
+  <meta name="description" content="${desc}" />
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="${pageUrl}" />
+  <meta property="og:title"       content="${title}" />
+  <meta property="og:description" content="${desc}" />
+  <meta property="og:image"       content="${imgUrl}" />
+  <meta property="og:image:width"  content="1200" />
+  <meta property="og:image:height" content="630" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="${title}" />
+  <meta name="twitter:description" content="${desc}" />
+  <meta name="twitter:image"       content="${imgUrl}" />
+  <!-- Redirect humans to the app -->
+  <script>window.location.replace('/account?tab=wins');</script>
+</head>
+<body style="background:#0a0a0f;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
+  <p>Redirecting… <a href="/account?tab=wins" style="color:#ff6200">Go to your wins →</a></p>
+</body>
+</html>`);
+});
+
 // ─── Static frontend (production) ─────────────────────────────
 if (IS_PROD) {
   const distPath = join(__dirname, 'dist');
