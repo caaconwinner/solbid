@@ -8,13 +8,10 @@ interface Props {
 const SITE = 'https://penny.bid';
 
 export function WinShareModal({ win, onClose }: Props) {
-  const winUrl = `${SITE}/win/${win.id}`;
-  // Short text — the URL preview card shows the image + title automatically
-  const tweetText   = `🏆 Just won ${win.itemName} for only $${win.finalPrice.toFixed(2)} at penny.bid!`;
-  const tgText      = `🏆 Just won ${win.itemName} for only $${win.finalPrice.toFixed(2)} at penny.bid!`;
+  const shareText   = `🏆 Just won ${win.itemName} for only $${win.finalPrice.toFixed(2)}. Check out penny.bid`;
 
-  const twitterUrl  = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(winUrl)}`;
-  const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(winUrl)}&text=${encodeURIComponent(tgText)}`;
+  const twitterUrl  = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(SITE)}`;
+  const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(SITE)}&text=${encodeURIComponent(shareText)}`;
 
   return (
     <div className="win-share-overlay" onClick={onClose}>
