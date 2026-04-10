@@ -786,7 +786,7 @@ a:hover { text-decoration: underline; }
 }
 
 .card-winner { font-size: 12px; font-weight: 600; color: var(--gold); margin-top: 8px; }
-.card-leader { font-size: 12px; font-weight: 600; color: var(--text-dim); margin-top: 8px; }
+.card-leader { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-top: 8px; }
 .card-enter {
   font-size: 13px;
   font-weight: 600;
