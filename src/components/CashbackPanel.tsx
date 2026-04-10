@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CashbackParticipant, CashbackWinner } from '../types';
 
 interface Props {
@@ -11,24 +11,32 @@ interface Props {
 
 export function CashbackPanel({ participants, winner, userId, ended, leaderId }: Props) {
   // Exclude the auction winner from the cashback eligible pool
-  const eligible = participants.filter(p => p.id !== leaderId);
+  const eligible = useMemo(
+    () => participants.filter(p => p.id !== leaderId),
+    [participants, leaderId],
+  );
 
   // Three phases: 'idle' (static list), 'spinning' (fast→slow reveal), 'revealed' (winner)
   const [phase, setPhase] = useState<'idle' | 'spinning' | 'revealed'>((winner || ended) ? 'revealed' : 'idle');
   const [animIdx, setAnimIdx] = useState(0);
-  const prevWinner = useRef<CashbackWinner | null>(winner);
+  const prevWinner  = useRef<CashbackWinner | null>(winner);
+  const eligibleRef = useRef(eligible);
+  eligibleRef.current = eligible;
   const iidRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tidRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Spin reveal when winner first arrives
+  // Spin reveal when winner first arrives — only depends on winner so eligible
+  // changes (from leaderId updating on auction-ended) don't kill the animation
   useEffect(() => {
     if (!winner || prevWinner.current) return;
     prevWinner.current = winner;
 
-    if (eligible.length === 0) { setPhase('revealed'); return; }
+    // Snapshot eligible at the moment winner arrives
+    const snap = eligibleRef.current;
+    if (snap.length === 0) { setPhase('revealed'); return; }
 
     const winnerId  = winner.userId ?? winner.user_id;
-    const winnerIdx = eligible.findIndex(p => p.id === winnerId);
+    const winnerIdx = snap.findIndex(p => p.id === winnerId);
     const landing   = winnerIdx >= 0 ? winnerIdx : 0;
 
     setPhase('spinning');
@@ -56,7 +64,7 @@ export function CashbackPanel({ participants, winner, userId, ended, leaderId }:
       }
       const [interval, duration] = steps[stepIdx];
       iidRef.current = setInterval(() => {
-        idx = (idx + 1) % eligible.length;
+        idx = (idx + 1) % snap.length;
         setAnimIdx(idx);
       }, interval);
       tidRef.current = setTimeout(() => {
@@ -68,7 +76,7 @@ export function CashbackPanel({ participants, winner, userId, ended, leaderId }:
 
     runStep();
     return clearAll;
-  }, [winner, eligible]);
+  }, [winner]);
 
   const rollingName = eligible.length > 0 ? (eligible[animIdx]?.username ?? '—') : '—';
   const rollingId   = eligible[animIdx]?.id;
