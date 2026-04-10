@@ -39,15 +39,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     let pollTimer: ReturnType<typeof setInterval> | null = null;
 
-    const verify = async (): Promise<'ok' | 'retry' | 'logout'> => {
+    // Never auto-logout during startup verify — sessions live in SQLite and never
+    // expire on their own, so a 401 here is always a transient restart artifact.
+    // Only explicit user action (clicking Sign out) should clear the session.
+    const verify = async (): Promise<'ok' | 'retry'> => {
       try {
         const { user: u } = await api.me(token);
         if (cancelled) return 'ok';
         setAndCacheUser(u); setCreditsReady(true); updateSocketAuth(token);
         setLoading(false);
         return 'ok';
-      } catch (e: any) {
-        if (e?.status === 401) return 'logout';
+      } catch {
         return 'retry';
       }
     };
@@ -56,27 +58,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       const result = await verify();
       if (result === 'ok') return;
-      if (result === 'logout') {
-        setToken(null); setAndCacheUser(null); localStorage.removeItem('token');
-        setLoading(false);
-        return;
-      }
-      // Network/server error
+      // Network/server error — keep cached user visible, keep retrying
       if (attemptsLeft > 0) {
         setTimeout(() => tryMe(attemptsLeft - 1, Math.min(delay * 2, 8000)), delay);
       } else {
-        // Retries exhausted — keep cached user, poll in background every 20s
+        // Retries exhausted — keep cached user, poll in background every 30s forever
         setLoading(false);
         pollTimer = setInterval(async () => {
           if (cancelled) { clearInterval(pollTimer!); return; }
           const r = await verify();
-          if (r === 'logout') {
-            clearInterval(pollTimer!);
-            setToken(null); setAndCacheUser(null); localStorage.removeItem('token');
-          } else if (r === 'ok') {
-            clearInterval(pollTimer!);
-          }
-        }, 20_000);
+          if (r === 'ok') clearInterval(pollTimer!);
+        }, 30_000);
       }
     };
 

@@ -1223,17 +1223,17 @@ io.use((socket, next) => {
   const incoming = socket.handshake.auth?.token;
   if (!incoming) return next(new Error('Authentication required'));
 
-  let resolvedUser = null;
-  for (const [tok, userId] of tokens) {
-    try {
-      if (timingSafeEqual(Buffer.from(tok), Buffer.from(incoming))) {
-        resolvedUser = rowToUser(stmt.getUserById.get(userId));
-        break;
-      }
-    } catch { /* length mismatch */ }
+  // O(1) Map lookup, same as userFromHeader
+  let userId = tokens.get(incoming);
+  if (!userId) {
+    const row = db.prepare('SELECT user_id FROM sessions WHERE token = ?').get(incoming);
+    if (row?.user_id) { tokens.set(incoming, row.user_id); userId = row.user_id; }
   }
+  if (!userId) return next(new Error('Invalid token'));
 
-  if (!resolvedUser) return next(new Error('Invalid token'));
+  const resolvedUser = rowToUser(stmt.getUserById.get(userId));
+  if (!resolvedUser) return next(new Error('User not found'));
+
   socket.data.user = resolvedUser;
   next();
 });
