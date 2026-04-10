@@ -8,7 +8,7 @@ interface Props {
 const SITE = 'https://penny.bid';
 
 export function WinShareModal({ win, onClose }: Props) {
-  const text = `🏆 I just won the right to buy "${win.itemName}" for $${win.finalPrice.toFixed(2)} on penny.bid!`;
+  const text = `🏆 Just won ${win.itemName} for only $${win.finalPrice.toFixed(2)} at penny.bid!`;
 
   const twitterUrl  = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(SITE)}`;
   const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(SITE)}&text=${encodeURIComponent(text)}`;
