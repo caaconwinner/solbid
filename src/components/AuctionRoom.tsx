@@ -123,6 +123,7 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
           winner={cashback.winner}
           userId={userId}
           ended={ended}
+          leaderId={auction.leaderId}
         />
         <BidFeed bids={bids.slice(0, 100)} userId={userId} />
       </div>
