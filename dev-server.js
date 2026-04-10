@@ -1519,8 +1519,14 @@ app.get('/win/:id', (req, res) => {
 // ─── Static frontend (production) ─────────────────────────────
 if (IS_PROD) {
   const distPath = join(__dirname, 'dist');
-  app.use(express.static(distPath));
-  app.get('/{*splat}', (_req, res) => res.sendFile(join(distPath, 'index.html')));
+  // Hashed assets (JS/CSS) — cache 1 year
+  app.use('/assets', express.static(join(distPath, 'assets'), { maxAge: '1y', immutable: true }));
+  // Everything else — no cache so index.html is always fresh
+  app.use(express.static(distPath, { maxAge: 0, etag: false }));
+  app.get('/{*splat}', (_req, res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(join(distPath, 'index.html'));
+  });
 }
 
 // ─── Start ─────────────────────────────────────────────────────
