@@ -14,7 +14,6 @@ import { fileURLToPath } from 'url';
 import { dirname, join }  from 'path';
 import { mkdirSync }      from 'fs';
 import multer             from 'multer';
-import sharp              from 'sharp';
 import {
   generateKeyPairSync,
   randomBytes,
@@ -121,24 +120,6 @@ const DATA_DIR    = process.env.DATA_DIR ?? __dirname;   // Railway: set DATA_DI
 const UPLOADS_DIR = join(DATA_DIR, 'uploads');
 mkdirSync(UPLOADS_DIR, { recursive: true });
 
-// ─── OG brand image (generated once on startup) ────────────────
-const OG_SVG = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
-  <defs>
-    <radialGradient id="g" cx="50%" cy="50%" r="60%">
-      <stop offset="0%"   stop-color="#ff6200" stop-opacity="0.13"/>
-      <stop offset="100%" stop-color="#0a0a0f" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <rect width="1200" height="630" fill="#0a0a0f"/>
-  <rect width="1200" height="630" fill="url(#g)"/>
-  <text x="600" y="308" font-family="system-ui,sans-serif" font-size="112" text-anchor="middle">
-    <tspan font-weight="300" fill="#e0e0e0">penny</tspan><tspan font-weight="900" fill="#ff6200">Bid</tspan>
-  </text>
-  <text x="600" y="390" font-family="system-ui,sans-serif" font-size="30" fill="rgba(255,255,255,0.45)" text-anchor="middle">Penny auctions on Solana</text>
-  <text x="600" y="448" font-family="system-ui,sans-serif" font-size="24" fill="#ff6200" font-weight="600" text-anchor="middle">penny.bid</text>
-</svg>`);
-const OG_IMG_PATH = join(DATA_DIR, 'og-image.png');
-sharp(OG_SVG).png().toFile(OG_IMG_PATH).catch(() => {});
 
 const db = new Database(join(DATA_DIR, 'solbid.db'));
 db.pragma('journal_mode = WAL');
@@ -889,10 +870,6 @@ app.post('/api/admin/upload-image', requireAdmin, upload.single('image'), (req, 
   res.json({ url: `/uploads/${req.file.filename}` });
 });
 
-app.get('/og-image.png', (_req, res) => {
-  res.setHeader('Cache-Control', 'public, max-age=86400');
-  res.sendFile(OG_IMG_PATH);
-});
 
 app.get('/api/admin/auctions', requireAdmin, (req, res) => {
   const list = [...auctions.values()].map((a) => ({
