@@ -184,7 +184,7 @@ export function AuctionCard({ auction }: Props) {
           <div className="card-winner">🏆 {liveLeader} won at ${livePrice.toFixed(2)}</div>
         )}
         {active && liveLeader && (
-          <div className="card-leader">👑 {liveLeader}</div>
+          <div className="card-leader">👑 Current leader: {liveLeader}</div>
         )}
 
         {active && !user ? (
