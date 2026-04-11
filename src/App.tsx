@@ -16,6 +16,7 @@ import { BrandPage }           from './pages/BrandPage';
 import { ReferPage }           from './pages/ReferPage';
 import { PublicAuctionsPage }  from './pages/PublicAuctionsPage';
 import { FloatingParticles }   from './components/FloatingParticles';
+import { Footer }              from './components/Footer';
 import { ReactNode }           from 'react';
 
 function Protected({ children }: { children: ReactNode }) {
@@ -50,6 +51,7 @@ function AppRoutes() {
         <Route path="/admin"           element={<AdminPage />} />
         <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
+      <Footer />
       </div>
     </>
   );
