@@ -204,6 +204,7 @@ try { db.exec(`
   )
 `); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE sessions ADD COLUMN ts INTEGER'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE sessions ADD COLUMN created_at INTEGER'); } catch { /* already exists */ }
 
 // ─── Prepared statements ───────────────────────────────────────
 const stmt = {
@@ -1261,10 +1262,15 @@ io.on('connection', (socket) => {
       serverTimeMs: Date.now(),
       userCredits:  user.credits + user.bonusCredits,
       recentBids,
-      cashback: {
-        participants: stmt.getCashbackParticipants.all(auctionId),
-        winner:       stmt.getCashbackWinner.get(auctionId) ?? auction.cashbackWinner ?? null,
-      },
+      cashback: (() => {
+        const cbWinner = stmt.getCashbackWinner.get(auctionId) ?? auction.cashbackWinner ?? null;
+        return {
+          participants: stmt.getCashbackParticipants.all(auctionId),
+          winner:       cbWinner,
+          // settled = server has already run the raffle; frontend must not animate on load
+          settled:      !!(cbWinner) || auction.status === 'ended',
+        };
+      })(),
     });
     await broadcastViewers(auctionId);
   });

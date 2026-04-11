@@ -4,14 +4,15 @@ import { socket } from '../socket';
 import { AuctionListing, AuctionState, BidEvent, BidResult, CashbackParticipant, CashbackState, CashbackWinner, SyncPayload } from '../types';
 
 interface State {
-  auction:     AuctionState | null;
-  bids:        BidEvent[];
-  userCredits: number;
-  clockDrift:  number;
-  isConnected: boolean;
-  bidResult:   BidResult;
-  viewers:     number;
-  cashback:    CashbackState;
+  auction:              AuctionState | null;
+  bids:                 BidEvent[];
+  userCredits:          number;
+  clockDrift:           number;
+  isConnected:          boolean;
+  bidResult:            BidResult;
+  viewers:              number;
+  cashback:        CashbackState;
+  cashbackSettled: boolean; // true = server confirmed raffle already ran (don't animate on load)
 }
 
 type Action =
@@ -36,11 +37,13 @@ function reducer(state: State, action: Action): State {
     case 'SYNC':
       return {
         ...state,
-        auction:     action.payload.auction,
-        userCredits: action.payload.userCredits,
-        clockDrift:  action.payload.serverTimeMs - Date.now(),
-        cashback:    action.payload.cashback ?? state.cashback,
-        bids:        action.payload.recentBids ?? state.bids,
+        auction:         action.payload.auction,
+        userCredits:     action.payload.userCredits,
+        clockDrift:      action.payload.serverTimeMs - Date.now(),
+        cashback:        action.payload.cashback ?? state.cashback,
+        bids:            action.payload.recentBids ?? state.bids,
+        // Latch true when server confirms raffle is settled — never revert to false
+        cashbackSettled: state.cashbackSettled || !!(action.payload.cashback?.settled),
       };
 
     case 'BID_PLACED': {
@@ -95,7 +98,8 @@ export function useAuction(auctionId: string, currentUserId: string, initialAuct
     auction: initialAuction ? listingToState(initialAuction) : null,
     bids: [], userCredits: 0, clockDrift: 0, isConnected: false,
     bidResult: null as BidResult, viewers: initialAuction?.viewers ?? 0,
-    cashback: { participants: [], winner: null } as { participants: CashbackParticipant[]; winner: CashbackWinner | null },
+    cashback:        { participants: [], winner: null, settled: false } as CashbackState,
+    cashbackSettled: false,
   }));
 
   useEffect(() => {

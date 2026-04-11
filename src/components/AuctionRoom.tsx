@@ -17,7 +17,7 @@ interface Props {
 }
 
 export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction, winClaimed }: Props) {
-  const { auction, bids, userCredits, clockDrift, isConnected, bidResult, viewers, cashback, placeBid } =
+  const { auction, bids, userCredits, clockDrift, isConnected, bidResult, viewers, cashback, cashbackSettled, placeBid } =
     useAuction(auctionId, userId, initialAuction);
 
   useEffect(() => { onCreditsChange?.(userCredits); }, [userCredits]);
@@ -121,6 +121,7 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
         <CashbackPanel
           participants={cashback.participants}
           winner={cashback.winner}
+          raffleSettled={cashbackSettled}
           userId={userId}
           ended={ended}
           leaderId={auction.leaderId}

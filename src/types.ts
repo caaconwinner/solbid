@@ -43,7 +43,8 @@ export interface CashbackWinner {
 
 export interface CashbackState {
   participants: CashbackParticipant[];
-  winner: CashbackWinner | null;
+  winner:       CashbackWinner | null;
+  settled:      boolean; // server confirms raffle has already run — skip animation on load
 }
 
 export interface SyncPayload {

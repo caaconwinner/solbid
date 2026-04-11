@@ -1,90 +1,96 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CashbackParticipant, CashbackWinner } from '../types';
 
 interface Props {
-  participants: CashbackParticipant[];
-  winner:       CashbackWinner | null;
-  userId:       string;
-  ended:        boolean;
-  leaderId:     string | null;
+  participants:  CashbackParticipant[];
+  winner:        CashbackWinner | null;
+  raffleSettled: boolean;
+  userId:        string;
+  ended:         boolean;
+  leaderId:      string | null;
 }
 
-export function CashbackPanel({ participants, winner, userId, ended, leaderId }: Props) {
-  // Exclude the auction winner from the cashback eligible pool
-  const eligible = useMemo(
-    () => participants.filter(p => p.id !== leaderId),
-    [participants, leaderId],
-  );
+type Phase = 'idle' | 'spinning' | 'revealed';
 
-  // Three phases: 'idle' (static list), 'spinning' (fast→slow reveal), 'revealed' (winner)
-  const [phase, setPhase] = useState<'idle' | 'spinning' | 'revealed'>((winner || ended) ? 'revealed' : 'idle');
-  const [animIdx, setAnimIdx] = useState(0);
-  const prevWinner  = useRef<CashbackWinner | null>(winner);
-  const eligibleRef = useRef(eligible);
-  eligibleRef.current = eligible;
-  const iidRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const tidRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+// Fast → slow spin steps: [interval between ticks ms, total duration ms]
+const SPIN_STEPS: [number, number][] = [
+  [60,  1400],
+  [120, 1000],
+  [220,  800],
+  [380,  600],
+];
 
-  // Spin reveal when winner first arrives — only depends on winner so eligible
-  // changes (from leaderId updating on auction-ended) don't kill the animation
+export function CashbackPanel({ participants, winner, raffleSettled, userId, ended, leaderId }: Props) {
+  // Raffle pool: all bidders except the auction winner (once auction ends)
+  const eligible = ended
+    ? participants.filter(p => p.id !== leaderId)
+    : participants;
+
+  const winnerId   = winner?.userId ?? winner?.user_id ?? null;
+  const winnerName = winner?.username ?? '—';
+  const winnerAmt  = winner?.creditsRefunded ?? winner?.credits_refunded ?? 0;
+  const isMyWin    = winnerId === userId;
+
+  // Start 'revealed' immediately if winner already known (refresh / rejoin)
+  const [phase, setPhase]           = useState<Phase>(winner ? 'revealed' : 'idle');
+  const [displayIdx, setDisplayIdx] = useState(0);
+
+  // Which winner ID we've already animated — prevents re-running on re-renders
+  const seenWinnerId = useRef(winnerId);
+  const iidRef       = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tidsRef      = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearAll = () => {
+    if (iidRef.current) { clearInterval(iidRef.current); iidRef.current = null; }
+    tidsRef.current.forEach(clearTimeout);
+    tidsRef.current = [];
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!winner || prevWinner.current) return;
-    prevWinner.current = winner;
+    // No winner yet, or already animated this winner
+    if (!winner || seenWinnerId.current === winnerId) return;
+    seenWinnerId.current = winnerId;
 
-    // Snapshot eligible at the moment winner arrives
-    const snap = eligibleRef.current;
-    if (snap.length === 0) { setPhase('revealed'); return; }
+    // Server confirmed raffle already ran before this session → skip animation
+    if (raffleSettled || eligible.length === 0) {
+      setPhase('revealed');
+      return;
+    }
 
-    const winnerId  = winner.userId ?? winner.user_id;
-    const winnerIdx = snap.findIndex(p => p.id === winnerId);
-    const landing   = winnerIdx >= 0 ? winnerIdx : 0;
+    // Snapshot the raffle pool and find where the winner sits
+    const snap       = [...eligible];
+    const landingIdx = Math.max(0, snap.findIndex(p => p.id === winnerId));
 
     setPhase('spinning');
 
     let idx = 0;
-    const clearAll = () => {
-      if (iidRef.current) clearInterval(iidRef.current);
-      if (tidRef.current) clearTimeout(tidRef.current);
-    };
 
-    const steps: [number, number][] = [
-      [60,  1400],
-      [120, 1000],
-      [220, 800],
-      [380, 600],
-    ];
-
-    let stepIdx = 0;
-    function runStep() {
-      if (stepIdx >= steps.length) {
-        clearAll();
-        setAnimIdx(landing);
-        tidRef.current = setTimeout(() => setPhase('revealed'), 700);
+    function runSteps(steps: typeof SPIN_STEPS) {
+      if (steps.length === 0) {
+        // Land on the winner then reveal
+        setDisplayIdx(landingIdx);
+        tidsRef.current.push(setTimeout(() => setPhase('revealed'), 700));
         return;
       }
-      const [interval, duration] = steps[stepIdx];
+      const [[interval, duration], ...rest] = steps;
       iidRef.current = setInterval(() => {
         idx = (idx + 1) % snap.length;
-        setAnimIdx(idx);
+        setDisplayIdx(idx);
       }, interval);
-      tidRef.current = setTimeout(() => {
+      tidsRef.current.push(setTimeout(() => {
         clearInterval(iidRef.current!);
-        stepIdx++;
-        runStep();
-      }, duration);
+        iidRef.current = null;
+        runSteps(rest);
+      }, duration));
     }
 
-    runStep();
+    runSteps(SPIN_STEPS);
     return clearAll;
-  }, [winner]);
+  }, [winnerId]); // keyed on ID string — object reference changes from re-sync won't interrupt
 
-  const rollingName = eligible.length > 0 ? (eligible[animIdx]?.username ?? '—') : '—';
-  const rollingId   = eligible[animIdx]?.id;
-
-  const winnerId   = winner?.userId ?? winner?.user_id;
-  const winnerName = winner?.username ?? '—';
-  const winnerAmt  = winner?.creditsRefunded ?? winner?.credits_refunded ?? 0;
-  const isMyWin    = winnerId === userId;
+  const displayName = eligible[displayIdx]?.username ?? '—';
+  const displayId   = eligible[displayIdx]?.id;
 
   return (
     <div className="cashback-panel">
@@ -96,41 +102,31 @@ export function CashbackPanel({ participants, winner, userId, ended, leaderId }:
         </div>
       </div>
 
-      {/* Winner revealed */}
-      {phase === 'revealed' && winner && (
+      {winner && phase !== 'spinning' ? (
+        /* Winner card — short-circuit: if winner exists and we're not mid-animation, show immediately */
         <div className={`cashback-winner-reveal ${isMyWin ? 'cashback-winner-reveal--you' : ''}`}>
           <div className="cashback-winner-emoji">{isMyWin ? '🎉' : '🏅'}</div>
           <div className="cashback-winner-name">{isMyWin ? 'You won!' : winnerName}</div>
           <div className="cashback-winner-amount">+{winnerAmt} bonus credits</div>
         </div>
-      )}
-
-      {/* Spinning drum — shown only during spin reveal */}
-      {phase === 'spinning' && eligible.length > 0 && (
-        <div className="cashback-drum">
-          <div
-            key={animIdx}
-            className="cashback-drum-name cashback-drum-name--spin"
-          >
-            {rollingId === userId ? '⭐ You' : rollingName}
-          </div>
-          <div className="cashback-drum-sub">picking winner…</div>
-        </div>
-      )}
-
-      {/* Static participant list — shown during idle and spinning */}
-      {phase !== 'revealed' && (
+      ) : (
+        /* Idle list, with spinning drum overlaid while animating */
         <>
+          {phase === 'spinning' && (
+            <div className="cashback-drum">
+              <div key={displayIdx} className="cashback-drum-name cashback-drum-name--spin">
+                {displayId === userId ? '⭐ You' : displayName}
+              </div>
+              <div className="cashback-drum-sub">picking winner…</div>
+            </div>
+          )}
+
           {eligible.length > 0 ? (
             <div className="cashback-list">
               {eligible.slice(0, 10).map(p => (
                 <div key={p.id} className={`cashback-row ${p.id === userId ? 'cashback-row--you' : ''}`}>
-                  <span className="cashback-row-name">
-                    {p.id === userId ? '⭐ You' : p.username}
-                  </span>
-                  <span className="cashback-row-bids">
-                    {p.total_bids} {p.total_bids === 1 ? 'bid' : 'bids'}
-                  </span>
+                  <span className="cashback-row-name">{p.id === userId ? '⭐ You' : p.username}</span>
+                  <span className="cashback-row-bids">{p.total_bids} {p.total_bids === 1 ? 'bid' : 'bids'}</span>
                 </div>
               ))}
               {eligible.length > 10 && (
@@ -139,7 +135,9 @@ export function CashbackPanel({ participants, winner, userId, ended, leaderId }:
             </div>
           ) : (
             <div className="cashback-empty">
-              {participants.length > 0 ? 'Only the auction winner bid — no cashback this round.' : 'No bids yet — be the first to enter!'}
+              {participants.length > 0
+                ? 'Only the auction winner bid — no cashback this round.'
+                : 'No bids yet — be the first to enter!'}
             </div>
           )}
 
