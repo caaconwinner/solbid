@@ -1260,6 +1260,20 @@ a:hover { text-decoration: underline; }
   color: var(--green); font-size: 18px;
 }
 
+.winner-share-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.winner-share-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 700;
+  padding: 5px 12px; border-radius: 20px;
+  text-decoration: none; transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.winner-share-btn:hover { opacity: 0.85; transform: translateY(-1px); text-decoration: none; }
+.winner-share-btn--x  { background: #000; color: #fff; }
+.winner-share-btn--tg { background: #2AABEE; color: #fff; }
+
 /* ─── Bid Feed ───────────────────────────────────────────────── */
 .bid-feed-wrap {
   background: var(--surface);
