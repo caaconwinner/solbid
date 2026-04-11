@@ -248,6 +248,17 @@ a:hover { text-decoration: underline; }
 .mobile-menu-link.active { background: var(--surface-2); color: var(--text); text-decoration: none; }
 .mobile-menu-link.active { color: var(--orange); font-weight: 600; }
 
+.menu-icon {
+  flex-shrink: 0;
+  color: var(--orange);
+  opacity: 0.7;
+  transition: opacity 0.12s;
+}
+.mobile-menu-link:hover .menu-icon,
+.mobile-menu-link.active .menu-icon { opacity: 1; }
+.mobile-menu-link--danger .menu-icon { color: var(--red); }
+.mobile-menu-link--cta .menu-icon { color: var(--orange); opacity: 1; }
+
 .mobile-menu-link--btn { font-weight: 500; }
 .mobile-menu-link--danger { color: var(--red); }
 .mobile-menu-link--danger:hover { background: var(--red-dim); color: var(--red); }

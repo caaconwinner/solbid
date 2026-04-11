@@ -125,30 +125,96 @@ export function Header() {
         <>
           <div className="mobile-menu-overlay" onClick={close} />
           <nav className="mobile-menu">
-            <NavLink to="/auctions"     className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>🏷 Auctions</NavLink>
-            <NavLink to="/how-it-works" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>📖 How it works</NavLink>
-            <NavLink to="/penny"        className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>🪙 $penny</NavLink>
-            <NavLink to="/refer"        className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>🎁 Refer a friend</NavLink>
-            <NavLink to="/brand"        className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>🎨 Brand</NavLink>
+            <NavLink to="/auctions"     className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
+              {/* Gavel — auction */}
+              <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 4l6 6-10 10H4v-6L14 4z"/><line x1="14" y1="4" x2="20" y2="10"/>
+              </svg>
+              Auctions
+            </NavLink>
+
+            <NavLink to="/how-it-works" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
+              {/* Question mark in circle */}
+              <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              How it works
+            </NavLink>
+
+            <NavLink to="/penny" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
+              {/* Coin with $ — $penny token */}
+              <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v2m0 8v2m-3-7h4.5a1.5 1.5 0 0 1 0 3H9a1.5 1.5 0 0 0 0 3H13"/>
+              </svg>
+              $penny
+            </NavLink>
+
+            <NavLink to="/refer" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
+              {/* Person + arrow right — referral */}
+              <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <line x1="19" y1="8" x2="23" y2="12"/><line x1="23" y1="8" x2="19" y2="12"/>
+              </svg>
+              Refer a friend
+            </NavLink>
+
+            <NavLink to="/brand" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
+              {/* Diamond — brand assets */}
+              <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 19 9 12 22 5 9 12 2"/>
+                <line x1="5" y1="9" x2="19" y2="9"/>
+              </svg>
+              Brand
+            </NavLink>
 
             <div className="mobile-menu-divider" />
 
             {user ? (
               <>
-                <NavLink to="/account" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>👤 Account</NavLink>
+                <NavLink to="/account" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
+                  {/* Wallet — account */}
+                  <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h2"/><path d="M2 10h20"/>
+                  </svg>
+                  Account
+                </NavLink>
                 {user.refCode && (
                   <button className="mobile-menu-link mobile-menu-link--btn" onClick={() => {
                     navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user.refCode}`);
                     toast.success('Referral link copied!');
                     close();
-                  }}>🔗 Copy referral link</button>
+                  }}>
+                    {/* Chain links — copy referral */}
+                    <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    </svg>
+                    Copy referral link
+                  </button>
                 )}
-                <button className="mobile-menu-link mobile-menu-link--btn mobile-menu-link--danger" onClick={() => { logout(); close(); }}>Sign out</button>
+                <button className="mobile-menu-link mobile-menu-link--btn mobile-menu-link--danger" onClick={() => { logout(); close(); }}>
+                  {/* Arrow out of box — sign out */}
+                  <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                  Sign out
+                </button>
               </>
             ) : (
               <>
-                <NavLink to="/login"    className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>Login</NavLink>
-                <NavLink to="/register" className={({ isActive }) => `mobile-menu-link mobile-menu-link--cta${isActive ? ' active' : ''}`} onClick={close}>Create account</NavLink>
+                <NavLink to="/login" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
+                  <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+                  </svg>
+                  Login
+                </NavLink>
+                <NavLink to="/register" className={({ isActive }) => `mobile-menu-link mobile-menu-link--cta${isActive ? ' active' : ''}`} onClick={close}>
+                  <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/>
+                  </svg>
+                  Create account
+                </NavLink>
               </>
             )}
           </nav>
