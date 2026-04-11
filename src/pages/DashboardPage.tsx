@@ -300,53 +300,59 @@ function WinsTab({ token }: { token: string }) {
             <div className="win-card-header">
               <span className="win-card-name">{win.itemName}</span>
               <span className="win-card-price">Auction ended at ${win.finalPrice.toFixed(2)}</span>
-              {win.purchased
+              {win.purchased || win.purchaseSig?.startsWith('admin-')
                 ? <span className="win-badge">Claimed</span>
                 : <span className="win-badge win-badge--pending">Awaiting payment</span>}
             </div>
-            {!win.purchased ? (
-              <div className="win-prize">
-                <p className="win-purchase-info">
-                  {win.prize.type === 'sol'
-                    ? <>You won a <strong style={{ color: 'var(--green)' }}>{win.prize.amount} SOL</strong> prize! Pay the auction price to claim it.</>
-                    : win.prize.type === 'credits'
-                    ? <>You won <strong style={{ color: 'var(--orange)' }}>{win.prize.amount} bonus credits</strong>! Pay the auction price and they'll be added to your account instantly.</>
-                    : <>You won the right to buy this item.</>
-                  }{' '}
-                  The payment of{' '}
-                  <strong>{win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL</strong>{' '}
-                  will be drawn from your deposit wallet.
-                </p>
-                <button className="btn-outline" disabled={paying === win.id} onClick={(e) => { e.stopPropagation(); purchase(win); }}>
-                  {paying === win.id ? 'Processing…' : `Pay ${win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL & claim`}
-                </button>
-              </div>
-            ) : (
-              <div className="win-prize">
-                {win.prize.type === 'digital' && (
-                  <><p className="win-prize-label">Gift card / download code</p><p className="win-code">{win.prize.code}</p></>
-                )}
-                {win.prize.type === 'physical' && (
-                  <><p className="win-prize-label">Physical item</p><p className="win-prize-desc">{win.prize.description}</p></>
-                )}
-                {win.prize.type === 'sol' && (
-                  <><p className="win-prize-label">SOL prize</p>
-                  <p className="win-prize-desc" style={{ color: 'var(--green)' }}>{win.prize.amount} SOL sent to your deposit wallet ✓</p></>
-                )}
-                {win.prize.type === 'credits' && (
-                  <><p className="win-prize-label">Credits prize</p>
-                  <p className="win-prize-desc" style={{ color: 'var(--orange)' }}>+{win.prize.amount} bonus credits added to your account ✓</p></>
-                )}
-                {win.purchaseSig && (
-                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-                    Payment tx:{' '}
-                    <a href={`https://solscan.io/tx/${win.purchaseSig}`} target="_blank" rel="noreferrer">
-                      {win.purchaseSig.slice(0, 16)}…
-                    </a>
-                  </p>
-                )}
-              </div>
-            )}
+            {(() => {
+              const adminSent = win.purchaseSig?.startsWith('admin-');
+              if (!win.purchased && !adminSent) {
+                return (
+                  <div className="win-prize">
+                    <p className="win-purchase-info">
+                      {win.prize.type === 'sol'
+                        ? <>You won a <strong style={{ color: 'var(--green)' }}>{win.prize.amount} SOL</strong> prize! Pay the auction price to claim it.</>
+                        : win.prize.type === 'credits'
+                        ? <>You won <strong style={{ color: 'var(--orange)' }}>{win.prize.amount} bonus credits</strong>! Pay the auction price and they'll be added to your account instantly.</>
+                        : <>You won the right to buy this item.</>
+                      }{' '}
+                      The payment of{' '}
+                      <strong>{win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL</strong>{' '}
+                      will be drawn from your deposit wallet.
+                    </p>
+                    <button className="btn-outline" disabled={paying === win.id} onClick={(e) => { e.stopPropagation(); purchase(win); }}>
+                      {paying === win.id ? 'Processing…' : `Pay ${win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL & claim`}
+                    </button>
+                  </div>
+                );
+              }
+              return (
+                <div className="win-prize">
+                  {win.prize.type === 'digital' && (
+                    <><p className="win-prize-label">Gift card / download code</p><p className="win-code">{win.prize.code}</p></>
+                  )}
+                  {win.prize.type === 'physical' && (
+                    <><p className="win-prize-label">Physical item</p><p className="win-prize-desc">{win.prize.description}</p></>
+                  )}
+                  {win.prize.type === 'sol' && (
+                    <><p className="win-prize-label">SOL prize</p>
+                    <p className="win-prize-desc" style={{ color: 'var(--green)' }}>{win.prize.amount} SOL sent to your deposit wallet ✓</p></>
+                  )}
+                  {win.prize.type === 'credits' && (
+                    <><p className="win-prize-label">Credits prize</p>
+                    <p className="win-prize-desc" style={{ color: 'var(--orange)' }}>+{win.prize.amount} bonus credits added to your account ✓</p></>
+                  )}
+                  {win.purchaseSig && !adminSent && (
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                      Payment tx:{' '}
+                      <a href={`https://solscan.io/tx/${win.purchaseSig}${suffix}`} target="_blank" rel="noreferrer">
+                        {win.purchaseSig.slice(0, 16)}…
+                      </a>
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
             <p className="win-card-date">{fmtDate(win.ts)}</p>
           </div>
         ))}
