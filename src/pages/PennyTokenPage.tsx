@@ -155,6 +155,10 @@ export function PennyTokenPage() {
                 <div className="penny-token-stat-label">Supply model</div>
                 <div className="penny-token-stat-val">Deflationary 🔥</div>
               </div>
+              <div className="penny-token-stat penny-token-stat--full">
+                <div className="penny-token-stat-label">Mint address</div>
+                <div className="penny-token-stat-val penny-token-stat-val--muted">TBA</div>
+              </div>
             </div>
           </div>
         </Step>
