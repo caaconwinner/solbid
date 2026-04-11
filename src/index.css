@@ -2288,6 +2288,24 @@ a:hover { text-decoration: underline; }
   /* ── How It Works ── */
   .hiw-step { padding: 20px 16px 18px; }
   .hiw-hero { padding: 40px 16px 32px; }
+
+  /* ── Login / landing page ── */
+  .lp-layout {
+    flex-direction: column;
+    padding: 20px 16px 48px;
+    gap: 12px;
+    min-height: unset;
+  }
+  .lp-login-card { max-width: 100%; }
+  .lp-right-col  { display: none; }
+
+  /* ── Public auctions page (guest /auctions) ── */
+  .pub-auctions-page { padding: 20px 16px 48px; }
+  .pub-auctions-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .pub-auctions-header-cta { flex-direction: column; width: 100%; }
+  .pub-auctions-header-cta .btn-primary,
+  .pub-auctions-header-cta .btn-outline { width: 100%; text-align: center; display: block; }
+  .pub-auctions-grid { grid-template-columns: 1fr 1fr; }
 }
 
 /* ─── Auction bottom: cashback + bid feed side by side ───────── */
@@ -2297,7 +2315,7 @@ a:hover { text-decoration: underline; }
   gap: 16px;
   align-items: stretch;
 }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
   .auction-bottom { grid-template-columns: 1fr; }
 }
 
@@ -2310,6 +2328,9 @@ a:hover { text-decoration: underline; }
   display: flex;
   flex-direction: column;
   min-height: 580px;
+}
+@media (max-width: 700px) {
+  .cashback-panel { min-height: 200px; }
 }
 
 .cashback-header {
@@ -2550,3 +2571,10 @@ a:hover { text-decoration: underline; }
 .referral-stat-val { font-size: 22px; font-weight: 900; line-height: 1; }
 .referral-stat-label { font-size: 11px; color: var(--muted); margin-top: 3px; }
 .referral-stat-divider { width: 1px; align-self: stretch; background: var(--border); }
+
+/* ─── Very small phones (≤ 380px) ───────────────────────────── */
+@media (max-width: 380px) {
+  .pub-auctions-grid { grid-template-columns: 1fr; }
+  .item-image-wrap   { height: 140px; }
+  .price-value       { font-size: 26px; }
+}
