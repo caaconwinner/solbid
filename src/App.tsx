@@ -15,6 +15,8 @@ import { PennyTokenPage }      from './pages/PennyTokenPage';
 import { BrandPage }           from './pages/BrandPage';
 import { ReferPage }           from './pages/ReferPage';
 import { PublicAuctionsPage }  from './pages/PublicAuctionsPage';
+import { TermsPage }           from './pages/TermsPage';
+import { PrivacyPage }         from './pages/PrivacyPage';
 import { FloatingParticles }   from './components/FloatingParticles';
 import { Footer }              from './components/Footer';
 import { ReactNode }           from 'react';
@@ -49,6 +51,8 @@ function AppRoutes() {
         <Route path="/brand"           element={<BrandPage />} />
         <Route path="/refer"           element={<ReferPage />} />
         <Route path="/admin"           element={<AdminPage />} />
+        <Route path="/terms"           element={<TermsPage />} />
+        <Route path="/privacy"         element={<PrivacyPage />} />
         <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
       <Footer />

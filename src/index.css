@@ -2798,6 +2798,53 @@ a:hover { text-decoration: underline; }
 .referral-stat-label { font-size: 11px; color: var(--muted); margin-top: 3px; }
 .referral-stat-divider { width: 1px; align-self: stretch; background: var(--border); }
 
+/* ─── Legal pages (Terms / Privacy) ─────────────────────────── */
+.legal-page {
+  padding: 48px 24px 80px;
+}
+
+.legal-container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.legal-title {
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.legal-updated {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+}
+
+.legal-section {
+  margin-bottom: 32px;
+}
+
+.legal-section h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.legal-section p {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+
+.legal-section p:last-child { margin-bottom: 0; }
+
+.legal-section a { color: var(--orange); }
+
 /* ─── Footer ─────────────────────────────────────────────────── */
 .footer {
   margin-top: auto;
