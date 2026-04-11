@@ -1110,9 +1110,44 @@ app.post('/api/admin/winners/:id/mark-sent', requireAdmin, async (req, res) => {
     }
   }
 
-  // physical / digital — manual delivery, just mark as sent
+  if (prize.type === 'digital') {
+    const code = prize.code ?? '(no code set)';
+    if (winner.email) {
+      await sendEmail(winner.email, `Your prize code for ${row.item_name} — pennyBid`, `
+        <p>Hi ${winner.username},</p>
+        <p>Congratulations on winning <strong>${row.item_name}</strong>!</p>
+        <p>Your digital prize code is:</p>
+        <p style="font-size:24px;font-weight:bold;letter-spacing:2px;background:#111;color:#ff6200;padding:16px 24px;border-radius:8px;display:inline-block;">${code}</p>
+        <p>Enjoy your prize!</p>
+        <p><a href="${SITE_URL}/account?tab=wins">View your wins →</a></p>
+      `);
+      console.log(`[admin] emailed digital code to ${winner.username} (${winner.email}) for win ${row.id}`);
+    } else {
+      console.warn(`[admin] digital prize for ${winner.username} — no email on file, code not sent`);
+    }
+    stmt.markPurchased.run({ id: row.id, sig: 'admin-digital' });
+    return res.json({ ok: true, delivered: 'digital', emailed: !!winner.email });
+  }
+
+  if (prize.type === 'physical') {
+    const note = req.body.note ?? '';
+    if (winner.email) {
+      await sendEmail(winner.email, `Your prize is on its way — ${row.item_name} — pennyBid`, `
+        <p>Hi ${winner.username},</p>
+        <p>Great news! Your prize <strong>${row.item_name}</strong> has been sent.</p>
+        ${note ? `<p><strong>Message from pennyBid:</strong><br>${note}</p>` : ''}
+        <p><a href="${SITE_URL}/account?tab=wins">View your wins →</a></p>
+      `);
+      console.log(`[admin] emailed physical prize dispatch to ${winner.username} (${winner.email}) for win ${row.id}`);
+    } else {
+      console.warn(`[admin] physical prize for ${winner.username} — no email on file`);
+    }
+    stmt.markPurchased.run({ id: row.id, sig: 'admin-physical' });
+    return res.json({ ok: true, delivered: 'physical', emailed: !!winner.email });
+  }
+
+  // fallback
   stmt.markPurchased.run({ id: row.id, sig: 'admin-manual' });
-  console.log(`[admin] manually marked win ${row.id} as sent (${prize.type})`);
   res.json({ ok: true, delivered: prize.type });
 });
 

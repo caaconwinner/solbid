@@ -614,19 +614,35 @@ function WinnersPanel({ token }: { token: string }) {
   useEffect(() => { load(); }, []);
 
   const sendPrize = async (w: AdminWinner) => {
-    const prizeLabel =
-      w.prizeType === 'sol'     ? `${w.prizeData.amount} SOL`
-      : w.prizeType === 'credits' ? `${w.prizeData.amount} bonus credits`
-      : w.prizeType === 'digital' ? 'digital code (mark as sent)'
-      : 'physical prize (mark as sent)';
-    if (!confirm(`Send prize to ${w.username}?\n\n${prizeLabel}`)) return;
+    let note = '';
+
+    if (w.prizeType === 'physical') {
+      const input = prompt(
+        `Send physical prize to ${w.username}?\n\nPrize: ${w.prizeData.description ?? 'Physical item'}\n\nOptional: enter a tracking number or message to include in the email (leave blank to skip):`,
+        ''
+      );
+      if (input === null) return; // cancelled
+      note = input.trim();
+    } else {
+      const prizeLabel =
+        w.prizeType === 'sol'     ? `${w.prizeData.amount} SOL`
+        : w.prizeType === 'credits' ? `${w.prizeData.amount} bonus credits`
+        : `digital code: ${w.prizeData.code ?? '(none)'}`;
+      if (!confirm(`Send prize to ${w.username}?\n\n${prizeLabel}`)) return;
+    }
+
     setLoading(w.id);
     try {
-      const data = await api(token, `/api/admin/winners/${w.id}/mark-sent`, { method: 'POST' });
+      const data = await api(token, `/api/admin/winners/${w.id}/mark-sent`, {
+        method: 'POST',
+        body: JSON.stringify({ note }),
+      });
       if (data.sig) {
-        toast.success(`Sent! tx: ${data.sig.slice(0, 12)}…`);
+        toast.success(`Sent on-chain! tx: ${data.sig.slice(0, 12)}…`);
+      } else if (data.emailed === false) {
+        toast.success(`Prize sent — user has no email on file`);
       } else {
-        toast.success(`Prize sent: ${data.delivered}`);
+        toast.success(`Prize sent + email delivered to ${w.username}`);
       }
       load();
     } catch (e: any) {
@@ -690,8 +706,10 @@ function WinnersPanel({ token }: { token: string }) {
                 <td>
                   {w.purchased ? (
                     <span className="tx-badge tx-badge--deposit">
-                      {w.purchaseSig === 'admin-manual' ? 'Manual'
-                       : w.purchaseSig === 'admin-credits' ? 'Credited'
+                      {w.purchaseSig === 'admin-credits'  ? 'Credited'
+                       : w.purchaseSig === 'admin-digital'  ? 'Code sent'
+                       : w.purchaseSig === 'admin-physical' ? 'Shipped'
+                       : w.purchaseSig === 'admin-manual'   ? 'Manual'
                        : 'Sent'}
                     </span>
                   ) : (
