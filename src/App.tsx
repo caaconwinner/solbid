@@ -15,6 +15,7 @@ import { PennyTokenPage }      from './pages/PennyTokenPage';
 import { BrandPage }           from './pages/BrandPage';
 import { ReferPage }           from './pages/ReferPage';
 import { PublicAuctionsPage }  from './pages/PublicAuctionsPage';
+import { FloatingParticles }   from './components/FloatingParticles';
 import { ReactNode }           from 'react';
 
 function Protected({ children }: { children: ReactNode }) {
@@ -30,6 +31,7 @@ function AppRoutes() {
 
   return (
     <>
+      <FloatingParticles />
       <Header />
       <Routes>
         <Route path="/"               element={user ? <Navigate to="/auctions" replace /> : <LoginPage />} />

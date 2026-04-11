@@ -81,6 +81,31 @@ body {
 a { color: var(--orange); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
+/* ─── Floating particles (staging only) ─────────────────────── */
+@keyframes float-up {
+  0%   { transform: translateY(0) scale(1);    opacity: 0; }
+  8%   { opacity: 0.22; }
+  88%  { opacity: 0.22; }
+  100% { transform: translateY(-102vh) scale(0.7); opacity: 0; }
+}
+
+.particles-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  bottom: -6px;
+  border-radius: 50%;
+  background: var(--orange);
+  animation: float-up linear infinite;
+  will-change: transform, opacity;
+}
+
 /* ─── Header ────────────────────────────────────────────────── */
 .header {
   position: sticky;
