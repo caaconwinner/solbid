@@ -97,6 +97,11 @@ a:hover { text-decoration: underline; }
   overflow: hidden;
 }
 
+.app-shell {
+  position: relative;
+  z-index: 1;
+}
+
 .particle {
   position: absolute;
   bottom: -6px;

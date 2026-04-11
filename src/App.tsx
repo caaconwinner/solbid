@@ -32,6 +32,7 @@ function AppRoutes() {
   return (
     <>
       <FloatingParticles />
+      <div className="app-shell">
       <Header />
       <Routes>
         <Route path="/"               element={user ? <Navigate to="/auctions" replace /> : <LoginPage />} />
@@ -49,6 +50,7 @@ function AppRoutes() {
         <Route path="/admin"           element={<AdminPage />} />
         <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
+      </div>
     </>
   );
 }
