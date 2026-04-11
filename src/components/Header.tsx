@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { usePing } from '../hooks/usePing';
@@ -20,10 +20,12 @@ export function Header() {
   const { user, logout, creditsReady } = useAuth();
   const { status, latencyMs } = usePing();
   const { theme, toggle } = useTheme();
+  const location = useLocation();
 
   // Pulse animation when credits change
   const prevCredits = useRef<number | null>(null);
   const [pulse, setPulse] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (user === null) { prevCredits.current = null; return; }
@@ -35,7 +37,11 @@ export function Header() {
     prevCredits.current = user.credits;
   }, [user?.credits]);
 
+  // Close menu on route change
+  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
+
   const pingLabel = latencyMs != null ? `${latencyMs}ms` : '';
+  const close = () => setMenuOpen(false);
 
   return (
     <header className="header">
@@ -47,7 +53,7 @@ export function Header() {
         <nav className="header-nav">
           <NavLink to="/auctions"     className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Auctions</NavLink>
           <NavLink to="/how-it-works" className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>How it works</NavLink>
-              <NavLink to="/penny"        className={({ isActive }) => isActive ? 'nav-link nav-link--penny active' : 'nav-link nav-link--penny'}>$penny</NavLink>
+          <NavLink to="/penny"        className={({ isActive }) => isActive ? 'nav-link nav-link--penny active' : 'nav-link nav-link--penny'}>$penny</NavLink>
           <NavLink to="/refer"        className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Refer</NavLink>
           <NavLink to="/brand"        className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Brand</NavLink>
         </nav>
@@ -67,7 +73,7 @@ export function Header() {
             <>
               {user.refCode && (
                 <button
-                  className="header-ref-btn"
+                  className="header-ref-btn header-ref-btn--desktop"
                   title="Copy your referral link"
                   onClick={() => {
                     navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user.refCode}`);
@@ -85,7 +91,7 @@ export function Header() {
                 <span className="credits-value">{creditsReady ? user.credits + (user.bonusCredits ?? 0) : '—'}</span>
                 <span className="credits-label">credits</span>
               </Link>
-              <button className="btn-ghost" onClick={logout}>Sign out</button>
+              <button className="btn-ghost header-signout--desktop" onClick={logout}>Sign out</button>
             </>
           ) : (
             <>
@@ -98,8 +104,56 @@ export function Header() {
               </div>
             </>
           )}
+
+          {/* Hamburger — mobile only */}
+          <button
+            className="header-hamburger"
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+          >
+            {menuOpen
+              ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+            }
+          </button>
         </div>
       </div>
+
+      {/* Mobile drawer */}
+      {menuOpen && (
+        <>
+          <div className="mobile-menu-overlay" onClick={close} />
+          <nav className="mobile-menu">
+            <NavLink to="/auctions"     className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>🏷 Auctions</NavLink>
+            <NavLink to="/how-it-works" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>📖 How it works</NavLink>
+            <NavLink to="/penny"        className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>🪙 $penny</NavLink>
+            <NavLink to="/refer"        className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>🎁 Refer a friend</NavLink>
+            <NavLink to="/brand"        className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>🎨 Brand</NavLink>
+
+            <div className="mobile-menu-divider" />
+
+            {user ? (
+              <>
+                <NavLink to="/account" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>👤 Account</NavLink>
+                {user.refCode && (
+                  <button className="mobile-menu-link mobile-menu-link--btn" onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/register?ref=${user.refCode}`);
+                    toast.success('Referral link copied!');
+                    close();
+                  }}>🔗 Copy referral link</button>
+                )}
+                <button className="mobile-menu-link mobile-menu-link--btn mobile-menu-link--danger" onClick={() => { logout(); close(); }}>Sign out</button>
+              </>
+            ) : (
+              <>
+                <NavLink to="/login"    className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>Login</NavLink>
+                <NavLink to="/register" className={({ isActive }) => `mobile-menu-link mobile-menu-link--cta${isActive ? ' active' : ''}`} onClick={close}>Create account</NavLink>
+              </>
+            )}
+          </nav>
+        </>
+      )}
     </header>
   );
 }
