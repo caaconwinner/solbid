@@ -69,6 +69,7 @@ const CORS_ORIGINS = [
 const app        = express();
 const httpServer = createServer(app);
 
+app.set('trust proxy', 1); // Required for express-rate-limit behind Caddy/reverse proxy
 app.use(express.json());
 app.use((req, res, next) => {
   const origin = req.headers.origin;
