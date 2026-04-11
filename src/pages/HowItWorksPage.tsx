@@ -229,6 +229,58 @@ export function HowItWorksPage() {
           </div>
         </Step>
 
+        <Arrow />
+
+        {/* ── Provably fair raffle ── */}
+        <Step n={7} title="Provably fair — verify the winner yourself"
+          body="The raffle winner is not chosen by us after the auction. Before the auction starts, we commit to a random seed by publishing its SHA-256 hash. After the draw, we reveal the seed. Anyone can verify the result using nothing but a browser console or the command line.">
+          <div className="hiw-proof-demo">
+
+            <div className="hiw-proof-step">
+              <div className="hiw-proof-step-label">① Before auction starts — commitment published</div>
+              <div className="hiw-proof-code-block">
+                <span className="hiw-proof-comment">// Seed is secret. Commitment is public from the start.</span>{'\n'}
+                <span className="hiw-proof-key">commitment</span> = <span className="hiw-proof-fn">sha256</span>(<span className="hiw-proof-str">seed</span>){'\n'}
+                <span className="hiw-proof-comment">// e.g. "a3f8...c12" — visible on the raffle panel</span>
+              </div>
+            </div>
+
+            <div className="hiw-proof-arrow">↓ auction runs, bids are placed ↓</div>
+
+            <div className="hiw-proof-step">
+              <div className="hiw-proof-step-label">② At auction end — winner drawn from seed + participants</div>
+              <div className="hiw-proof-code-block">
+                <span className="hiw-proof-comment">// Sort all eligible bidders by ID (deterministic)</span>{'\n'}
+                <span className="hiw-proof-key">drawHash</span> = <span className="hiw-proof-fn">sha256</span>(<span className="hiw-proof-str">seed + ":" + sortedParticipants</span>){'\n'}
+                <span className="hiw-proof-key">winnerIndex</span> = <span className="hiw-proof-fn">BigInt</span>(<span className="hiw-proof-str">"0x" + drawHash</span>) % <span className="hiw-proof-key">count</span>
+              </div>
+            </div>
+
+            <div className="hiw-proof-arrow">↓ seed revealed after draw ↓</div>
+
+            <div className="hiw-proof-step">
+              <div className="hiw-proof-step-label">③ Verify yourself — paste in any browser console</div>
+              <div className="hiw-proof-code-block hiw-proof-code-block--verify">
+                <span className="hiw-proof-comment">// Replace values from the raffle panel on the auction page</span>{'\n'}
+                <span className="hiw-proof-key">const</span> seed = <span className="hiw-proof-str">"your_seed_here"</span>;{'\n'}
+                <span className="hiw-proof-key">const</span> participants = <span className="hiw-proof-str">"id1:bids,id2:bids,..."</span>;{'\n\n'}
+                {'(async () => {\n'}
+                {'  const h = async s => [...new Uint8Array(\n'}
+                {'    await crypto.subtle.digest("SHA-256",\n'}
+                {'      new TextEncoder().encode(s)))]\n'}
+                {'    .map(b=>b.toString(16).padStart(2,"0")).join("");\n\n'}
+                {'  console.log("commitment:", await h(seed));\n'}
+                {'  console.log("draw hash: ", await h(seed+":"+participants));\n'}
+                {'})()'}
+              </div>
+            </div>
+
+            <div className="hiw-proof-note">
+              The seed is fixed before anyone bids — the commitment proves it. The winner follows mathematically from the seed and the actual participant list. Neither can be manipulated after the fact.
+            </div>
+          </div>
+        </Step>
+
         {/* ── FAQ ── */}
         <div className="hiw-faq">
           <h2 className="hiw-faq-title">Common questions</h2>

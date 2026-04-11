@@ -2078,6 +2078,46 @@ a:hover { text-decoration: underline; }
 .hiw-cashback-win-amount { display: inline-block; background: var(--green-dim); border: 1px solid var(--green); color: var(--green); font-weight: 700; font-size: 13px; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px; }
 .hiw-cashback-win-sub    { font-size: 12px; color: var(--text); font-weight: 500; }
 
+/* ── Provably fair demo ── */
+.hiw-proof-demo {
+  display: flex; flex-direction: column; gap: 0;
+}
+.hiw-proof-step {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.hiw-proof-step-label {
+  font-size: 12px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.hiw-proof-arrow {
+  text-align: center; font-size: 12px; color: var(--text-dim);
+  padding: 10px 0; font-style: italic;
+}
+.hiw-proof-code-block {
+  background: #0d0d0d;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--text);
+}
+.hiw-proof-code-block--verify { font-size: 11px; }
+.hiw-proof-comment { color: #555; }
+.hiw-proof-key     { color: #79b8ff; }
+.hiw-proof-fn      { color: var(--orange); }
+.hiw-proof-str     { color: #9ecbff; }
+
+.hiw-proof-note {
+  margin-top: 14px;
+  font-size: 12px; color: var(--text-muted); line-height: 1.7;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+}
+
 /* CTA */
 .hiw-cta { margin-top: 48px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .hiw-cta .btn-primary,
