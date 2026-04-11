@@ -1064,8 +1064,11 @@ app.post('/api/admin/winners/:id/send-prize', requireAdmin, async (req, res) => 
       SystemProgram.transfer({ fromPubkey: PRIZE_KEYPAIR.publicKey, toPubkey, lamports })
     );
     const sig = await sendAndConfirmTransaction(connection, tx, [PRIZE_KEYPAIR]);
+    // Credit the user so the sweep loop doesn't immediately reclaim the prize SOL
+    const creditsToAdd = Math.round(prize.amount * 100);
+    db.prepare('UPDATE users SET credits = credits + ? WHERE id = ?').run(creditsToAdd, winner.id);
     stmt.markPurchased.run({ id: row.id, sig });
-    console.log(`[admin] sent ${prize.amount} SOL prize to ${winner.username} | ${sig}`);
+    console.log(`[admin] sent ${prize.amount} SOL prize to ${winner.username} (+${creditsToAdd} credits to protect from sweep) | ${sig}`);
     res.json({ ok: true, sig, amount: prize.amount });
   } catch (e) {
     console.error('[admin] send-prize failed:', e.message);
@@ -1105,8 +1108,11 @@ app.post('/api/admin/winners/:id/mark-sent', requireAdmin, async (req, res) => {
         SystemProgram.transfer({ fromPubkey: PRIZE_KEYPAIR.publicKey, toPubkey, lamports })
       );
       const sig = await sendAndConfirmTransaction(connection, tx, [PRIZE_KEYPAIR]);
+      // Credit the user so the sweep loop doesn't immediately reclaim the prize SOL
+      const creditsToAdd = Math.round(prize.amount * 100);
+      db.prepare('UPDATE users SET credits = credits + ? WHERE id = ?').run(creditsToAdd, winner.id);
       stmt.markPurchased.run({ id: row.id, sig });
-      console.log(`[admin] sent ${prize.amount} SOL prize to ${winner.username} | ${sig}`);
+      console.log(`[admin] sent ${prize.amount} SOL prize to ${winner.username} (+${creditsToAdd} credits to protect from sweep) | ${sig}`);
       return res.json({ ok: true, sig, delivered: `${prize.amount} SOL` });
     } catch (e) {
       console.error('[admin] send-prize failed:', e.message);
