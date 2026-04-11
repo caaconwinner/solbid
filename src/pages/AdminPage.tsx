@@ -613,25 +613,21 @@ function WinnersPanel({ token }: { token: string }) {
   const load = () => api(token, '/api/admin/winners').then(({ winners: w }) => setWinners(w));
   useEffect(() => { load(); }, []);
 
-  const sendPrize = async (id: string, username: string, amount: number) => {
-    if (!confirm(`Send ${amount} SOL prize to ${username}?`)) return;
-    setLoading(id);
+  const sendPrize = async (w: AdminWinner) => {
+    const prizeLabel =
+      w.prizeType === 'sol'     ? `${w.prizeData.amount} SOL`
+      : w.prizeType === 'credits' ? `${w.prizeData.amount} bonus credits`
+      : w.prizeType === 'digital' ? 'digital code (mark as sent)'
+      : 'physical prize (mark as sent)';
+    if (!confirm(`Send prize to ${w.username}?\n\n${prizeLabel}`)) return;
+    setLoading(w.id);
     try {
-      const { sig } = await api(token, `/api/admin/winners/${id}/send-prize`, { method: 'POST' });
-      toast.success(`Sent! tx: ${sig.slice(0, 12)}…`);
-      load();
-    } catch (e: any) {
-      toast.error(e.message);
-    } finally {
-      setLoading(null);
-    }
-  };
-
-  const markSent = async (id: string) => {
-    setLoading(id);
-    try {
-      await api(token, `/api/admin/winners/${id}/mark-sent`, { method: 'POST' });
-      toast.success('Marked as sent');
+      const data = await api(token, `/api/admin/winners/${w.id}/mark-sent`, { method: 'POST' });
+      if (data.sig) {
+        toast.success(`Sent! tx: ${data.sig.slice(0, 12)}…`);
+      } else {
+        toast.success(`Prize sent: ${data.delivered}`);
+      }
       load();
     } catch (e: any) {
       toast.error(e.message);
@@ -681,6 +677,9 @@ function WinnersPanel({ token }: { token: string }) {
                   {w.prizeType === 'sol' && (
                     <span style={{ color: 'var(--orange)' }}>{w.prizeData.amount} SOL</span>
                   )}
+                  {w.prizeType === 'credits' && (
+                    <span style={{ color: 'var(--green)' }}>{w.prizeData.amount} credits</span>
+                  )}
                   {w.prizeType === 'physical' && (
                     <span title={w.prizeData.description}>Physical</span>
                   )}
@@ -691,34 +690,26 @@ function WinnersPanel({ token }: { token: string }) {
                 <td>
                   {w.purchased ? (
                     <span className="tx-badge tx-badge--deposit">
-                      {w.purchaseSig === 'admin-manual' ? 'Manual' : 'Sent'}
+                      {w.purchaseSig === 'admin-manual' ? 'Manual'
+                       : w.purchaseSig === 'admin-credits' ? 'Credited'
+                       : 'Sent'}
                     </span>
                   ) : (
                     <span className="tx-badge tx-badge--withdraw">Pending</span>
                   )}
                 </td>
                 <td>
-                  {!w.purchased && w.prizeType === 'sol' && (
+                  {!w.purchased && (
                     <button
                       className="btn-primary"
                       style={{ padding: '4px 10px', fontSize: 12 }}
                       disabled={loading === w.id}
-                      onClick={() => sendPrize(w.id, w.username, w.prizeData.amount!)}
+                      onClick={() => sendPrize(w)}
                     >
-                      {loading === w.id ? 'Sending…' : 'Send SOL'}
+                      {loading === w.id ? 'Sending…' : 'Send Prize'}
                     </button>
                   )}
-                  {!w.purchased && w.prizeType !== 'sol' && (
-                    <button
-                      className="btn-ghost"
-                      style={{ padding: '4px 10px', fontSize: 12 }}
-                      disabled={loading === w.id}
-                      onClick={() => markSent(w.id)}
-                    >
-                      Mark sent
-                    </button>
-                  )}
-                  {w.purchased && w.purchaseSig && w.purchaseSig !== 'admin-manual' && (
+                  {w.purchased && w.purchaseSig && w.purchaseSig !== 'admin-manual' && w.purchaseSig !== 'admin-credits' && (
                     <span style={{ fontSize: 11, color: 'var(--text-muted)' }} title={w.purchaseSig}>
                       {w.purchaseSig.slice(0, 10)}…
                     </span>

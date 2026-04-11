@@ -1069,12 +1069,51 @@ app.post('/api/admin/winners/:id/send-prize', requireAdmin, async (req, res) => 
   }
 });
 
-app.post('/api/admin/winners/:id/mark-sent', requireAdmin, (req, res) => {
+app.post('/api/admin/winners/:id/mark-sent', requireAdmin, async (req, res) => {
   const row = stmt.getWinById.get(req.params.id);
-  if (!row) return res.status(404).json({ message: 'Win not found' });
+  if (!row)          return res.status(404).json({ message: 'Win not found' });
+  if (row.purchased) return res.status(400).json({ message: 'Already sent' });
+
+  const prize  = JSON.parse(row.prize_data);
+  const winner = stmt.getUserById.get(row.user_id);
+  if (!winner) return res.status(404).json({ message: 'Winner user not found' });
+
+  if (prize.type === 'credits') {
+    // Directly add bonus credits to the winner's account
+    const amount = Number(prize.amount) || 0;
+    if (amount <= 0) return res.status(400).json({ message: 'Invalid credits amount' });
+    db.prepare('UPDATE users SET bonus_credits = bonus_credits + ? WHERE id = ?').run(amount, winner.id);
+    stmt.markPurchased.run({ id: row.id, sig: 'admin-credits' });
+    console.log(`[admin] credited ${amount} bonus credits to ${winner.username} for win ${row.id}`);
+    return res.json({ ok: true, delivered: `${amount} credits` });
+  }
+
+  if (prize.type === 'sol') {
+    // Send SOL from prize wallet to winner's custodial deposit address
+    if (!PRIZE_KEYPAIR) return res.status(503).json({ message: 'Prize wallet not configured' });
+    const lamports = Math.round(prize.amount * LAMPORTS_PER_SOL);
+    const toPubkey = new PublicKey(winner.deposit_address);
+    try {
+      const prizeBalance = await connection.getBalance(PRIZE_KEYPAIR.publicKey);
+      if (prizeBalance < lamports + 5000)
+        return res.status(400).json({ message: 'Prize wallet has insufficient funds' });
+      const tx = new Transaction().add(
+        SystemProgram.transfer({ fromPubkey: PRIZE_KEYPAIR.publicKey, toPubkey, lamports })
+      );
+      const sig = await sendAndConfirmTransaction(connection, tx, [PRIZE_KEYPAIR]);
+      stmt.markPurchased.run({ id: row.id, sig });
+      console.log(`[admin] sent ${prize.amount} SOL prize to ${winner.username} | ${sig}`);
+      return res.json({ ok: true, sig, delivered: `${prize.amount} SOL` });
+    } catch (e) {
+      console.error('[admin] send-prize failed:', e.message);
+      return res.status(500).json({ message: 'SOL send failed: ' + e.message });
+    }
+  }
+
+  // physical / digital — manual delivery, just mark as sent
   stmt.markPurchased.run({ id: row.id, sig: 'admin-manual' });
-  console.log(`[admin] manually marked win ${row.id} as sent`);
-  res.json({ ok: true });
+  console.log(`[admin] manually marked win ${row.id} as sent (${prize.type})`);
+  res.json({ ok: true, delivered: prize.type });
 });
 
 app.get('/api/admin/wallets', requireAdmin, async (req, res) => {
