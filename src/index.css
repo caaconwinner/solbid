@@ -62,12 +62,14 @@
   --card-ended-border: rgba(0, 0, 0, 0.1);
 }
 
-html { scroll-behavior: smooth; }
-
-body {
+html {
+  scroll-behavior: smooth;
   background: var(--bg);
   background-image: radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,98,0,0.07) 0%, transparent 70%);
   background-attachment: fixed;
+}
+
+body {
   color: var(--text);
   font-family: var(--font);
   font-size: clamp(14px, 1vw, 16px);
@@ -93,14 +95,11 @@ a:hover { text-decoration: underline; }
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
   overflow: hidden;
 }
 
-.app-shell {
-  position: relative;
-  z-index: 1;
-}
+.app-shell { position: relative; }
 
 .particle {
   position: absolute;
