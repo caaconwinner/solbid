@@ -98,7 +98,7 @@ export function useAuction(auctionId: string, currentUserId: string, initialAuct
     auction: initialAuction ? listingToState(initialAuction) : null,
     bids: [], userCredits: 0, clockDrift: 0, isConnected: false,
     bidResult: null as BidResult, viewers: initialAuction?.viewers ?? 0,
-    cashback:        { participants: [], winner: null, settled: false } as CashbackState,
+    cashback:        { participants: [], winner: null, settled: false, raffleCommitment: null } as CashbackState,
     cashbackSettled: false,
   }));
 

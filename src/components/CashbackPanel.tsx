@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import type { CashbackParticipant, CashbackWinner } from '../types';
 
 interface Props {
-  participants:  CashbackParticipant[];
-  winner:        CashbackWinner | null;
-  raffleSettled: boolean;
-  userId:        string;
-  ended:         boolean;
-  leaderId:      string | null;
+  participants:     CashbackParticipant[];
+  winner:           CashbackWinner | null;
+  raffleSettled:    boolean;
+  userId:           string;
+  ended:            boolean;
+  leaderId:         string | null;
+  raffleCommitment: string | null;
 }
 
 type Phase = 'idle' | 'spinning' | 'revealed';
@@ -20,7 +21,12 @@ const SPIN_STEPS: [number, number][] = [
   [380,  600],
 ];
 
-export function CashbackPanel({ participants, winner, raffleSettled, userId, ended, leaderId }: Props) {
+async function verifySha256(input: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+export function CashbackPanel({ participants, winner, raffleSettled, userId, ended, leaderId, raffleCommitment }: Props) {
   // Raffle pool: all bidders except the auction winner (once auction ends)
   const eligible = ended
     ? participants.filter(p => p.id !== leaderId)
@@ -34,6 +40,20 @@ export function CashbackPanel({ participants, winner, raffleSettled, userId, end
   // Start 'revealed' immediately if winner already known (refresh / rejoin)
   const [phase, setPhase]           = useState<Phase>(winner ? 'revealed' : 'idle');
   const [displayIdx, setDisplayIdx] = useState(0);
+
+  // Provably fair verify state
+  const [verifyResult, setVerifyResult] = useState<'idle' | 'ok' | 'fail'>('idle');
+  const [showProof, setShowProof]       = useState(false);
+
+  const handleVerify = async () => {
+    if (!winner?.raffleSeed || !winner?.raffleCommitment || !winner?.drawHash || !winner?.participantsSnapshot) return;
+    try {
+      const commitCheck = await verifySha256(winner.raffleSeed);
+      const drawCheck   = await verifySha256(`${winner.raffleSeed}:${winner.participantsSnapshot}`);
+      const ok = commitCheck === winner.raffleCommitment && drawCheck === winner.drawHash;
+      setVerifyResult(ok ? 'ok' : 'fail');
+    } catch { setVerifyResult('fail'); }
+  };
 
   // Which winner ID we've already animated — prevents re-running on re-renders
   const seenWinnerId = useRef(winnerId);
@@ -108,6 +128,44 @@ export function CashbackPanel({ participants, winner, raffleSettled, userId, end
           <div className="cashback-winner-emoji">{isMyWin ? '🎉' : '🏅'}</div>
           <div className="cashback-winner-name">{isMyWin ? 'You won!' : winnerName}</div>
           <div className="cashback-winner-amount">+{winnerAmt} bonus credits</div>
+
+          {/* Provably fair proof section */}
+          {winner.raffleSeed && (
+            <div className="raffle-proof">
+              <button className="raffle-proof-toggle" onClick={() => setShowProof(p => !p)}>
+                🔍 {showProof ? 'Hide' : 'Verify'} provably fair draw
+              </button>
+              {showProof && (
+                <div className="raffle-proof-body">
+                  <div className="raffle-proof-row">
+                    <span className="raffle-proof-label">Seed (revealed)</span>
+                    <code className="raffle-proof-val">{winner.raffleSeed}</code>
+                  </div>
+                  <div className="raffle-proof-row">
+                    <span className="raffle-proof-label">Commitment sha256(seed)</span>
+                    <code className="raffle-proof-val">{winner.raffleCommitment}</code>
+                  </div>
+                  <div className="raffle-proof-row">
+                    <span className="raffle-proof-label">Draw hash sha256(seed:participants)</span>
+                    <code className="raffle-proof-val">{winner.drawHash}</code>
+                  </div>
+                  <div className="raffle-proof-row">
+                    <span className="raffle-proof-label">Participants (id:bids, sorted)</span>
+                    <code className="raffle-proof-val raffle-proof-val--wrap">{winner.participantsSnapshot}</code>
+                  </div>
+                  <button className="raffle-proof-verify-btn" onClick={handleVerify}>
+                    Run verification in browser
+                  </button>
+                  {verifyResult === 'ok' && (
+                    <div className="raffle-proof-status raffle-proof-status--ok">✓ Verified — draw is fair</div>
+                  )}
+                  {verifyResult === 'fail' && (
+                    <div className="raffle-proof-status raffle-proof-status--fail">✗ Verification failed</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         /* Idle list, with spinning drum overlaid while animating */
@@ -144,6 +202,11 @@ export function CashbackPanel({ participants, winner, raffleSettled, userId, end
           {phase === 'idle' && (
             <div className="cashback-disclaimer">
               At auction end, 1 random bidder wins back their bid count as bonus credits (non-refundable, bid-only).
+              {raffleCommitment && (
+                <span className="raffle-commitment-pill" title={raffleCommitment}>
+                  🔒 Seed committed
+                </span>
+              )}
             </div>
           )}
         </>

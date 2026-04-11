@@ -206,6 +206,10 @@ try { db.exec(`
 `); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE sessions ADD COLUMN ts INTEGER'); } catch { /* already exists */ }
 try { db.exec('ALTER TABLE sessions ADD COLUMN created_at INTEGER'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE cashback_winners ADD COLUMN raffle_seed TEXT'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE cashback_winners ADD COLUMN raffle_commitment TEXT'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE cashback_winners ADD COLUMN draw_hash TEXT'); } catch { /* already exists */ }
+try { db.exec('ALTER TABLE cashback_winners ADD COLUMN participants_snapshot TEXT'); } catch { /* already exists */ }
 
 // ─── Prepared statements ───────────────────────────────────────
 const stmt = {
@@ -238,8 +242,8 @@ const stmt = {
   `),
   getCashbackWinner:    db.prepare('SELECT * FROM cashback_winners WHERE auction_id = ?'),
   insertCashbackWinner: db.prepare(`
-    INSERT OR IGNORE INTO cashback_winners (auction_id, user_id, username, credits_refunded, ts)
-    VALUES (@auction_id, @user_id, @username, @credits_refunded, @ts)
+    INSERT OR IGNORE INTO cashback_winners (auction_id, user_id, username, credits_refunded, ts, raffle_seed, raffle_commitment, draw_hash, participants_snapshot)
+    VALUES (@auction_id, @user_id, @username, @credits_refunded, @ts, @raffle_seed, @raffle_commitment, @draw_hash, @participants_snapshot)
   `),
   getTxByUser:        db.prepare('SELECT * FROM transactions WHERE user_id = ? ORDER BY ts DESC LIMIT 100'),
   netDepositedSolByUser: db.prepare(`SELECT COALESCE(SUM(CASE WHEN type='deposit' THEN sol WHEN type='withdraw' THEN -sol WHEN type='sweep' THEN -sol ELSE 0 END), 0) as net FROM transactions WHERE user_id = ?`),
@@ -1188,19 +1192,23 @@ const auctions = new Map();
 let   bidSeq   = 0;
 
 function makeAuction(id, item, durationMs, delayMs = 0, snapTimerMs = 15_000, prize = null) {
+  const raffleSeed       = randomBytes(32).toString('hex');
+  const raffleCommitment = createHash('sha256').update(raffleSeed).digest('hex');
   return {
-    auctionId:    id,
+    auctionId:         id,
     item,
-    currentPrice: 0.00,
-    leaderId:     null,
-    leaderName:   null,
-    endsAtMs:     Date.now() + delayMs + durationMs,
-    status:       delayMs > 0 ? 'scheduled' : 'active',
-    totalBids:    0,
+    currentPrice:      0.00,
+    leaderId:          null,
+    leaderName:        null,
+    endsAtMs:          Date.now() + delayMs + durationMs,
+    status:            delayMs > 0 ? 'scheduled' : 'active',
+    totalBids:         0,
     snapTimerMs,
     prize,
-    _durationMs:  durationMs,
-    _delayMs:     delayMs,
+    _durationMs:       durationMs,
+    _delayMs:          delayMs,
+    raffleSeed,        // kept secret until after draw
+    raffleCommitment,  // published immediately — proves seed was fixed before auction ran
   };
 }
 
@@ -1338,12 +1346,22 @@ io.on('connection', (socket) => {
       userCredits:  user.credits + user.bonusCredits,
       recentBids,
       cashback: (() => {
-        const cbWinner = stmt.getCashbackWinner.get(auctionId) ?? auction.cashbackWinner ?? null;
+        const cbRow    = stmt.getCashbackWinner.get(auctionId);
+        const cbWinner = cbRow ?? auction.cashbackWinner ?? null;
+        const winner   = cbWinner ? {
+          userId:                 cbWinner.userId   ?? cbWinner.user_id,
+          username:               cbWinner.username,
+          creditsRefunded:        cbWinner.creditsRefunded ?? cbWinner.credits_refunded,
+          raffleSeed:             cbRow?.raffle_seed            ?? cbWinner.raffleSeed            ?? null,
+          raffleCommitment:       cbRow?.raffle_commitment      ?? cbWinner.raffleCommitment       ?? null,
+          drawHash:               cbRow?.draw_hash              ?? cbWinner.drawHash              ?? null,
+          participantsSnapshot:   cbRow?.participants_snapshot  ?? cbWinner.participantsSnapshot  ?? null,
+        } : null;
         return {
-          participants: stmt.getCashbackParticipants.all(auctionId),
-          winner:       cbWinner,
-          // settled = server has already run the raffle; frontend must not animate on load
-          settled:      !!(cbWinner) || auction.status === 'ended',
+          participants:      stmt.getCashbackParticipants.all(auctionId),
+          winner,
+          settled:           !!(cbWinner) || auction.status === 'ended',
+          raffleCommitment:  auction.raffleCommitment ?? null,
         };
       })(),
     });
@@ -1420,21 +1438,48 @@ setInterval(async () => {
           `);
         } catch (e) { console.error('[auction] failed to record winner:', e.message); }
       }
-      // ── Cashback raffle ──
+      // ── Cashback raffle (provably fair) ──
       try {
         const allParticipants = stmt.getCashbackParticipants.all(a.auctionId);
         const participants = allParticipants.filter(p => p.id !== a.leaderId);
         if (participants.length > 0) {
-          const lucky  = participants[Math.floor(Math.random() * participants.length)];
-          const refund = lucky.total_bids; // bonus credits = total bids placed in this auction
+          // Sort by user_id for a deterministic, canonical participant order
+          const sorted = [...participants].sort((x, y) => x.id < y.id ? -1 : 1);
+          const participantsSnapshot = sorted.map(p => `${p.id}:${p.total_bids}`).join(',');
+
+          // Draw: sha256(seed + ':' + sorted_ids)
+          const drawInput = `${a.raffleSeed}:${participantsSnapshot}`;
+          const drawHash  = createHash('sha256').update(drawInput).digest('hex');
+
+          // Pick winner index from draw hash (BigInt to avoid precision loss)
+          const winnerIndex = Number(BigInt('0x' + drawHash) % BigInt(sorted.length));
+          const lucky  = sorted[winnerIndex];
+          const refund = lucky.total_bids;
+
           stmt.addBonusOne.run({ id: lucky.id, amount: refund });
           stmt.insertCashbackWinner.run({
-            auction_id: a.auctionId, user_id: lucky.id,
-            username: lucky.username, credits_refunded: refund, ts: now,
+            auction_id:             a.auctionId,
+            user_id:                lucky.id,
+            username:               lucky.username,
+            credits_refunded:       refund,
+            ts:                     now,
+            raffle_seed:            a.raffleSeed,
+            raffle_commitment:      a.raffleCommitment,
+            draw_hash:              drawHash,
+            participants_snapshot:  participantsSnapshot,
           });
-          a.cashbackWinner = { userId: lucky.id, username: lucky.username, creditsRefunded: refund };
+
+          // Reveal seed on the auction object now that draw is done
+          a.raffleSeedRevealed = a.raffleSeed;
+          a.raffleDrawHash     = drawHash;
+
+          a.cashbackWinner = {
+            userId: lucky.id, username: lucky.username, creditsRefunded: refund,
+            raffleSeed: a.raffleSeed, raffleCommitment: a.raffleCommitment,
+            drawHash, participantsSnapshot,
+          };
           io.to(id).emit('cashback-winner', a.cashbackWinner);
-          console.log(`[cashback] ${lucky.username} wins ${refund} bonus credits (${a.item.name})`);
+          console.log(`[cashback] provably fair draw — winner: ${lucky.username} (index ${winnerIndex}/${sorted.length}) | drawHash: ${drawHash.slice(0,12)}…`);
         }
       } catch (e) { console.error('[cashback] failed:', e.message); }
 

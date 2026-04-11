@@ -2512,6 +2512,56 @@ a:hover { text-decoration: underline; }
   text-align: center; font-style: italic;
 }
 
+/* Provably fair commitment pill */
+.raffle-commitment-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-left: 8px; font-size: 10px; font-weight: 700;
+  background: var(--surface-3); border: 1px solid var(--border-2);
+  border-radius: 10px; padding: 1px 7px; color: var(--text-muted);
+  vertical-align: middle; cursor: default;
+}
+
+/* Provably fair proof block */
+.raffle-proof {
+  margin-top: 14px; width: 100%; text-align: left;
+}
+.raffle-proof-toggle {
+  background: none; border: 1px solid var(--border-2); border-radius: var(--radius-sm);
+  color: var(--text-muted); font-size: 11px; padding: 5px 10px; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s; width: 100%;
+}
+.raffle-proof-toggle:hover { border-color: var(--orange); color: var(--text); }
+
+.raffle-proof-body {
+  margin-top: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.raffle-proof-row { display: flex; flex-direction: column; gap: 2px; }
+.raffle-proof-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+.raffle-proof-val {
+  font-family: var(--mono); font-size: 10px; color: var(--text);
+  background: var(--surface-3); border-radius: 4px; padding: 3px 6px;
+  word-break: break-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.raffle-proof-val--wrap { white-space: normal; }
+
+.raffle-proof-verify-btn {
+  background: var(--orange); color: #fff; border: none; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 700; padding: 7px 14px; cursor: pointer;
+  transition: background 0.15s; align-self: flex-start; margin-top: 4px;
+}
+.raffle-proof-verify-btn:hover { background: #e55800; }
+
+.raffle-proof-status {
+  font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: var(--radius-sm);
+}
+.raffle-proof-status--ok   { background: var(--green-dim); color: var(--green); }
+.raffle-proof-status--fail { background: var(--red-dim);   color: var(--red); }
+
 /* Winner reveal */
 .cashback-winner-reveal {
   flex: 1;

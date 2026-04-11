@@ -39,12 +39,25 @@ export interface CashbackWinner {
   username: string;
   creditsRefunded?: number;
   credits_refunded?: number;
+  // provably fair proof (present after draw)
+  raffleSeed?:           string | null;
+  raffleCommitment?:     string | null;
+  drawHash?:             string | null;
+  participantsSnapshot?: string | null;
 }
 
 export interface CashbackState {
-  participants: CashbackParticipant[];
-  winner:       CashbackWinner | null;
-  settled:      boolean; // server confirms raffle has already run — skip animation on load
+  participants:      CashbackParticipant[];
+  winner:            CashbackWinner | null;
+  settled:           boolean;
+  raffleCommitment:  string | null; // sha256(seed) — published before draw
+}
+
+export interface RaffleProof {
+  raffleSeed:           string;
+  raffleCommitment:     string;
+  drawHash:             string;
+  participantsSnapshot: string;
 }
 
 export interface SyncPayload {

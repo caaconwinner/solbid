@@ -147,6 +147,7 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
           userId={userId}
           ended={ended}
           leaderId={auction.leaderId}
+          raffleCommitment={cashback.raffleCommitment ?? null}
         />
         <BidFeed bids={bids.slice(0, 100)} userId={userId} />
       </div>
