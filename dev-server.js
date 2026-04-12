@@ -1312,7 +1312,10 @@ const io = new Server(httpServer, {
 
 io.use((socket, next) => {
   const incoming = socket.handshake.auth?.token;
-  if (!incoming) return next(new Error('Authentication required'));
+  if (!incoming) {
+    socket.data.user = null; // guest — read-only, cannot bid
+    return next();
+  }
 
   // O(1) Map lookup, same as userFromHeader
   let userId = tokens.get(incoming);
@@ -1349,7 +1352,7 @@ io.on('connection', (socket) => {
     socket.emit('auction-sync', {
       auction,
       serverTimeMs: Date.now(),
-      userCredits:  user.credits + user.bonusCredits,
+      userCredits:  user ? user.credits + user.bonusCredits : 0,
       recentBids,
       cashback: (() => {
         const cbRow    = stmt.getCashbackWinner.get(auctionId);
@@ -1375,6 +1378,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('place-bid', ({ auctionId }) => {
+    if (!user) return socket.emit('bid-rejected', { reason: 'NOT_AUTHENTICATED' });
     const result = tryBid(auctionId, user, user.username);
     if (!result.ok) { socket.emit('bid-rejected', { reason: result.reason }); return; }
 

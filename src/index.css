@@ -1366,6 +1366,20 @@ a:hover { text-decoration: underline; }
   flex-direction: column;
 }
 
+.account-panel--guest { padding: 24px; gap: 0; }
+.guest-panel-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.guest-panel-body  { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 18px; }
+.guest-panel-hint  { margin-top: 16px; font-size: 12px; color: var(--text-muted); text-align: center; }
+
+.guest-bid-cta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  flex-wrap: wrap;
+}
+
 .account-panel-section {
   padding: 16px;
   border-bottom: 1px solid var(--border);

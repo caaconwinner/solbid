@@ -45,7 +45,7 @@ function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password"  element={<ResetPasswordPage />} />
         <Route path="/auctions"        element={<HomePage />} />
-        <Route path="/auction/:auctionId" element={<Protected><AuctionPage /></Protected>} />
+        <Route path="/auction/:auctionId" element={<AuctionPage />} />
         <Route path="/account"         element={<Protected><DashboardPage /></Protected>} />
         <Route path="/how-it-works"    element={<HowItWorksPage />} />
         <Route path="/penny"           element={<PennyTokenPage />} />

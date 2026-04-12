@@ -5,7 +5,7 @@ import { PriceDisplay } from './PriceDisplay';
 import { BidButton }    from './BidButton';
 import { BidFeed }      from './BidFeed';
 import { CashbackPanel } from './CashbackPanel';
-import { Link }         from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import type { AuctionListing } from '../types';
 
 interface Props {
@@ -45,7 +45,9 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
     );
   }
 
-  const ended = auction.status === 'ended' || auction.status === 'settled';
+  const ended   = auction.status === 'ended' || auction.status === 'settled';
+  const isGuest = !userId;
+  const location = useLocation();
 
   return (
     <div className="auction-room">
@@ -90,7 +92,16 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
         )}
       </div>
 
-      {!ended && (
+      {!ended && isGuest && (
+        <div className="guest-bid-cta">
+          <Link to={`/register?next=${encodeURIComponent(location.pathname)}`} className="btn-primary">
+            Create account to bid
+          </Link>
+          <Link to="/login" className="btn-outline">Login</Link>
+        </div>
+      )}
+
+      {!ended && !isGuest && (
         <BidButton
           credits={userCredits}
           onBid={placeBid}
