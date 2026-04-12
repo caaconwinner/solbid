@@ -21,7 +21,6 @@ const PARTICLES = [
 ];
 
 export function FloatingParticles() {
-  if (!window.location.hostname.startsWith('staging.')) return null;
 
   return (
     <div className="particles-bg" aria-hidden="true">
