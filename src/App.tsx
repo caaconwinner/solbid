@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Header }       from './components/Header';
@@ -25,6 +26,12 @@ import { FloatingParticles }   from './components/FloatingParticles';
 import { Footer }              from './components/Footer';
 import { ReactNode }           from 'react';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
+
 function Protected({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   console.log('[protected] isLoading:', isLoading, 'user:', user?.email);
@@ -38,6 +45,7 @@ function AppRoutes() {
 
   return (
     <>
+      <ScrollToTop />
       <FloatingParticles />
       <div className="app-shell">
       <Header />
