@@ -29,6 +29,7 @@ export function Footer() {
           <div className="footer-col-title">Platform</div>
           <Link to="/auctions"     className="footer-link">Auctions</Link>
           <Link to="/how-it-works" className="footer-link">How it works</Link>
+          <Link to="/faq"          className="footer-link">FAQ</Link>
           <Link to="/penny"        className="footer-link">$penny token</Link>
           <Link to="/refer"        className="footer-link">Refer a friend</Link>
           <Link to="/brand"        className="footer-link">Brand</Link>

@@ -2798,6 +2798,100 @@ a:hover { text-decoration: underline; }
 .referral-stat-label { font-size: 11px; color: var(--muted); margin-top: 3px; }
 .referral-stat-divider { width: 1px; align-self: stretch; background: var(--border); }
 
+/* ─── FAQ page ───────────────────────────────────────────────── */
+.faq-page { padding: 0 24px 80px; }
+
+.faq-hero {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 0 36px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+
+.faq-title {
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.faq-sub { font-size: 14px; color: var(--text-muted); }
+
+.faq-container { max-width: 720px; margin: 0 auto; }
+
+.faq-section { margin-bottom: 40px; }
+
+.faq-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--orange);
+  margin-bottom: 12px;
+}
+
+.faq-list { display: flex; flex-direction: column; gap: 2px; }
+
+.faq-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+
+.faq-item[data-open="true"] { border-color: var(--orange); }
+
+.faq-q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  font-family: var(--font);
+  transition: color 0.15s;
+}
+
+.faq-q:hover { color: var(--orange); }
+
+.faq-chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.faq-item[data-open="true"] .faq-chevron {
+  transform: rotate(180deg);
+  color: var(--orange);
+}
+
+.faq-a {
+  padding: 0 16px 14px;
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.faq-cta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
 /* ─── Legal pages (Terms / Privacy) ─────────────────────────── */
 .legal-page {
   padding: 48px 24px 80px;

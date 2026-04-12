@@ -16,6 +16,7 @@ import { BrandPage }           from './pages/BrandPage';
 import { ReferPage }           from './pages/ReferPage';
 import { PublicAuctionsPage }  from './pages/PublicAuctionsPage';
 import { TermsPage }           from './pages/TermsPage';
+import { FAQPage }             from './pages/FAQPage';
 import { PrivacyPage }         from './pages/PrivacyPage';
 import { FloatingParticles }   from './components/FloatingParticles';
 import { Footer }              from './components/Footer';
@@ -51,6 +52,7 @@ function AppRoutes() {
         <Route path="/brand"           element={<BrandPage />} />
         <Route path="/refer"           element={<ReferPage />} />
         <Route path="/admin"           element={<AdminPage />} />
+        <Route path="/faq"             element={<FAQPage />} />
         <Route path="/terms"           element={<TermsPage />} />
         <Route path="/privacy"         element={<PrivacyPage />} />
         <Route path="*"                element={<Navigate to="/" replace />} />

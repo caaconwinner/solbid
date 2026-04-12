@@ -53,6 +53,7 @@ export function Header() {
         <nav className="header-nav">
           <NavLink to="/auctions"     className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Auctions</NavLink>
           <NavLink to="/how-it-works" className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>How it works</NavLink>
+          <NavLink to="/faq"          className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>FAQ</NavLink>
           <NavLink to="/penny"        className={({ isActive }) => isActive ? 'nav-link nav-link--penny active' : 'nav-link nav-link--penny'}>$penny</NavLink>
           <NavLink to="/refer"        className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Refer</NavLink>
           <NavLink to="/brand"        className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Brand</NavLink>
@@ -135,11 +136,17 @@ export function Header() {
             </NavLink>
 
             <NavLink to="/how-it-works" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
-              {/* Question mark in circle */}
               <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
               </svg>
               How it works
+            </NavLink>
+
+            <NavLink to="/faq" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
+              <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              FAQ
             </NavLink>
 
             <NavLink to="/penny" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>

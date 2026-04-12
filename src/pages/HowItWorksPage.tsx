@@ -281,29 +281,10 @@ export function HowItWorksPage() {
           </div>
         </Step>
 
-        {/* ── FAQ ── */}
-        <div className="hiw-faq">
-          <h2 className="hiw-faq-title">Common questions</h2>
-          <div className="hiw-faq-grid">
-            {[
-              { q: 'Are credits refundable?', a: 'Credits used to bid are not refundable — that\'s how the auction model works. Unspent credits can always be withdrawn as SOL.' },
-              { q: 'What is snap-mode?', a: 'When the timer drops to 15 seconds or below, any new bid resets it back to 15s. During the long countdown phase, bids don\'t affect the timer.' },
-              { q: 'Can I get sniped at the last second?', a: 'Yes — that\'s the game! The snap timer means the auction can\'t end until 15 full seconds pass with no bids. Watch the feed and time your bids.' },
-              { q: 'What happens to my SOL after I bid?', a: 'Your credits decrease by 1 per bid. The SOL backing those credits is swept to the platform. Only unspent credits retain SOL value.' },
-              { q: 'Is my wallet safe?', a: 'Your deposit wallet is custodial (we hold the key) and encrypted with AES-256-GCM. Only withdrawal and sweep operations ever sign a transaction.' },
-              { q: 'How is the auction price so low?', a: 'The price only goes up $0.01 per bid, so even 200 bids = $2.00. Winners get high-value items for a fraction of retail.' },
-            ].map(({ q, a }) => (
-              <div key={q} className="hiw-faq-item">
-                <div className="hiw-faq-q">{q}</div>
-                <div className="hiw-faq-a">{a}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         <div className="hiw-cta">
-          <Link to="/register" className="btn-outline">Create account &amp; start bidding</Link>
-          <Link to="/auctions" className="btn-outline">View live auctions</Link>
+          <Link to="/register"   className="btn-outline">Create account &amp; start bidding</Link>
+          <Link to="/auctions"   className="btn-outline">View live auctions</Link>
+          <Link to="/faq"        className="btn-outline">Common questions →</Link>
         </div>
 
       </div>
