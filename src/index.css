@@ -3023,7 +3023,8 @@ a:hover { text-decoration: underline; }
   font-size: 13px;
   color: var(--text-muted);
 }
-.lp-section-link a { color: var(--orange); }
+.lp-section-link a { color: var(--orange); text-decoration: none; }
+.lp-section-link a:hover { text-decoration: underline; }
 
 /* Featured auction card */
 .lp-feat-wrap { display: flex; justify-content: center; }
@@ -3225,14 +3226,53 @@ a:hover { text-decoration: underline; }
 
 /* Responsive */
 @media (max-width: 700px) {
-  .lp-steps    { grid-template-columns: 1fr; }
-  .lp-why-row  { grid-template-columns: 1fr; }
-  .lp-wins-row { grid-template-columns: repeat(2, 1fr); }
+  /* Hero */
+  .lp-hero { padding: 48px 20px 40px; }
+  .lp-hero-headline { letter-spacing: -1px; margin-bottom: 14px; }
+  .lp-hero-sub { font-size: 15px; margin-bottom: 28px; }
   .lp-br-desktop { display: none; }
+  .lp-hero-ctas { flex-direction: column; align-items: stretch; gap: 10px; }
+  .lp-cta-btn { text-align: center; font-size: 15px; padding: 14px 20px; }
+
+  /* Sections */
+  .lp-section { padding: 40px 20px; }
+  .lp-section-label { margin-bottom: 18px; }
+
+  /* Featured card — full width, shorter image */
+  .lp-feat-card { max-width: 100%; border-radius: 12px; }
+  .lp-feat-img-wrap { height: 160px; }
+  .lp-feat-name { font-size: 16px; }
+  .lp-feat-price { font-size: 24px; }
+  .lp-feat-timer { font-size: 20px; }
+  .lp-feat-body { padding: 16px; gap: 8px; }
+
+  /* Steps — horizontal num + text layout */
+  .lp-steps { grid-template-columns: 1fr; gap: 20px; }
+  .lp-step { flex-direction: row; gap: 14px; align-items: flex-start; }
+  .lp-step-num { flex-shrink: 0; width: 32px; height: 32px; font-size: 14px; margin-top: 2px; }
+  .lp-step-title { font-size: 14px; }
+  .lp-step-body { font-size: 13px; }
+
+  /* Recent wins — 2 col */
+  .lp-wins-row { grid-template-columns: repeat(2, 1fr); gap: 10px; overflow-x: unset; }
+  .lp-win-card { min-width: unset; padding: 12px; }
+  .lp-win-price { font-size: 18px; }
+  .lp-win-item { font-size: 12px; }
+
+  /* Why cards — single col, less padding */
+  .lp-why-row { grid-template-columns: 1fr; gap: 12px; }
+  .lp-why-card { padding: 18px; flex-direction: row; align-items: flex-start; gap: 14px; }
+  .lp-why-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+
+  /* Final CTA */
+  .lp-final-headline { letter-spacing: -0.5px; }
+  .lp-final-sub { font-size: 14px; }
+  .lp-final-cta-inner .lp-cta-btn { width: 100%; max-width: 320px; }
 }
 
-@media (max-width: 480px) {
-  .lp-wins-row { grid-template-columns: 1fr 1fr; }
+@media (max-width: 380px) {
+  .lp-wins-row { grid-template-columns: 1fr; }
+  .lp-why-card { flex-direction: column; gap: 8px; }
 }
 
 /* ─── Footer ─────────────────────────────────────────────────── */
