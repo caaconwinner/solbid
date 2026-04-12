@@ -1603,6 +1603,26 @@ setInterval(async () => {
   }
 }, 15_000);
 
+// ─── Recent wins (public, for landing page social proof) ───────
+app.get('/api/winners/recent', (req, res) => {
+  const rows = db.prepare(`
+    SELECT w.item_name, w.final_price, w.item_image, w.prize_data, u.username
+    FROM winners w
+    JOIN users u ON u.id = w.user_id
+    ORDER BY w.ts DESC
+    LIMIT 6
+  `).all();
+  res.json({
+    wins: rows.map(r => ({
+      itemName:   r.item_name,
+      itemImage:  r.item_image ?? null,
+      finalPrice: r.final_price,
+      username:   r.username,
+      retailValue: (() => { try { return JSON.parse(r.prize_data)?.retailValue ?? null; } catch { return null; } })(),
+    })),
+  });
+});
+
 // ─── Public win data (for OG page) ────────────────────────────
 app.get('/api/win-public/:id', (req, res) => {
   const row = db.prepare('SELECT * FROM winners WHERE id = ?').get(req.params.id);

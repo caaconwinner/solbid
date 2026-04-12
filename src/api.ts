@@ -41,6 +41,9 @@ export const api = {
   auctionsPublic: () =>
     req<{ auctions: AuctionListing[] }>('GET', '/api/auctions/public'),
 
+  recentWins: () =>
+    req<{ wins: { itemName: string; itemImage: string | null; finalPrice: number; username: string; retailValue: number | null }[] }>('GET', '/api/winners/recent'),
+
   balance: (token: string) =>
     req<{ lamports: number; sol: number }>('GET', '/api/balance', undefined, token),
 

@@ -17,6 +17,9 @@ import { ReferPage }           from './pages/ReferPage';
 import { PublicAuctionsPage }  from './pages/PublicAuctionsPage';
 import { TermsPage }           from './pages/TermsPage';
 import { FAQPage }             from './pages/FAQPage';
+import { LandingPage }         from './pages/LandingPage';
+
+const isStaging = typeof window !== 'undefined' && window.location.hostname.startsWith('staging.');
 import { PrivacyPage }         from './pages/PrivacyPage';
 import { FloatingParticles }   from './components/FloatingParticles';
 import { Footer }              from './components/Footer';
@@ -39,7 +42,7 @@ function AppRoutes() {
       <div className="app-shell">
       <Header />
       <Routes>
-        <Route path="/"               element={user ? <Navigate to="/auctions" replace /> : <LoginPage />} />
+        <Route path="/"               element={user ? <Navigate to="/auctions" replace /> : isStaging ? <LandingPage /> : <LoginPage />} />
         <Route path="/login"          element={user ? <Navigate to="/auctions" replace /> : <LoginPage />} />
         <Route path="/register"       element={user ? <Navigate to="/auctions" replace /> : <RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
