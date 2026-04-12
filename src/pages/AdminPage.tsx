@@ -727,10 +727,16 @@ function WinnersPanel({ token }: { token: string }) {
                       {loading === w.id ? 'Sending…' : 'Send Prize'}
                     </button>
                   )}
-                  {w.purchased && w.purchaseSig && w.purchaseSig !== 'admin-manual' && w.purchaseSig !== 'admin-credits' && (
-                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }} title={w.purchaseSig}>
-                      {w.purchaseSig.slice(0, 10)}…
-                    </span>
+                  {w.purchased && w.purchaseSig && !w.purchaseSig.startsWith('admin-') && (
+                    <a
+                      href={`https://solscan.io/tx/${w.purchaseSig}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ fontSize: 11, color: 'var(--orange)' }}
+                      title={w.purchaseSig}
+                    >
+                      {w.purchaseSig.slice(0, 10)}… ↗
+                    </a>
                   )}
                 </td>
               </tr>
