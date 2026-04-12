@@ -715,6 +715,13 @@ a:hover { text-decoration: underline; }
 .pub-auction-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
 .pub-auction-retail { font-size: 11px; color: var(--text-dim); }
 
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 60px 24px 80px;
+}
+
 .auth-card {
   width: 100%;
   max-width: 400px;
