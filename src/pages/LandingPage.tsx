@@ -80,7 +80,7 @@ function FeaturedCard({ auction }: { auction: AuctionListing }) {
 }
 
 // ── Mock card (no live auctions) ──────────────────────────────────
-function MockFeaturedCard() {
+function MockFeaturedCard({ user }: { user: boolean }) {
   return (
     <div className="lp-feat-card lp-feat-card--mock">
       <div className="lp-feat-img-wrap lp-feat-img-wrap--mock">
@@ -101,7 +101,10 @@ function MockFeaturedCard() {
           </div>
         </div>
         <div className="lp-feat-meta">Be the first to bid</div>
-        <Link to="/register" className="lp-feat-cta lp-feat-cta--link">Create account to get notified</Link>
+        {user
+          ? <Link to="/auctions" className="lp-feat-cta lp-feat-cta--link">View all auctions</Link>
+          : <Link to="/register" className="lp-feat-cta lp-feat-cta--link">Create account to get notified</Link>
+        }
       </div>
     </div>
   );
@@ -123,22 +126,22 @@ function WinCard({ win, example }: { win: RecentWin; example?: boolean }) {
 }
 
 const EXAMPLE_WINS: RecentWin[] = [
-  { itemName: 'PS5 Console',       finalPrice: 1.43, username: 'shadow99', retailValue: 499,  itemImage: null },
-  { itemName: 'iPhone 16 Pro',     finalPrice: 0.87, username: 'xLancer',  retailValue: 999,  itemImage: null },
-  { itemName: 'Apple Watch S10',   finalPrice: 0.54, username: 'cryptobid', retailValue: 399, itemImage: null },
-  { itemName: 'AirPods Pro',       finalPrice: 0.31, username: 'moon_sol', retailValue: 249,  itemImage: null },
+  { itemName: 'PS5 Console',     finalPrice: 1.43, username: 'shadow99',  retailValue: 499, itemImage: null },
+  { itemName: 'iPhone 16 Pro',   finalPrice: 0.87, username: 'xLancer',   retailValue: 999, itemImage: null },
+  { itemName: 'Apple Watch S10', finalPrice: 0.54, username: 'cryptobid', retailValue: 399, itemImage: null },
+  { itemName: 'AirPods Pro',     finalPrice: 0.31, username: 'moon_sol',  retailValue: 249, itemImage: null },
 ];
 
 // ── Main page ─────────────────────────────────────────────────────
 export function LandingPage() {
   const { user } = useAuth();
-  const [auctions,    setAuctions]    = useState<AuctionListing[]>([]);
-  const [recentWins,  setRecentWins]  = useState<RecentWin[]>([]);
-  const [winsLoaded,  setWinsLoaded]  = useState(false);
+  const [auctions, setAuctions] = useState<AuctionListing[]>([]);
+  const [loaded,   setLoaded]   = useState(false);
 
   useEffect(() => {
-    api.auctionsPublic().then(({ auctions: a }) => setAuctions(a)).catch(() => {});
-    api.recentWins().then(({ wins }) => { setRecentWins(wins); setWinsLoaded(true); }).catch(() => setWinsLoaded(true));
+    api.auctionsPublic()
+      .then(({ auctions: a }) => { setAuctions(a); setLoaded(true); })
+      .catch(() => setLoaded(true));
 
     const id = setInterval(() => {
       api.auctionsPublic().then(({ auctions: a }) => setAuctions(a)).catch(() => {});
@@ -146,11 +149,25 @@ export function LandingPage() {
     return () => clearInterval(id);
   }, []);
 
-  // Pick best auction to feature: prefer active, then scheduled
-  const featured = auctions.find(a => a.status === 'active') ?? auctions.find(a => a.status === 'scheduled') ?? null;
+  // Featured: prefer active, then scheduled
+  const featured = auctions.find(a => a.status === 'active')
+    ?? auctions.find(a => a.status === 'scheduled')
+    ?? null;
 
-  const showExampleWins = winsLoaded && recentWins.length === 0;
-  const winsToShow      = showExampleWins ? EXAMPLE_WINS : recentWins.slice(0, 4);
+  // Recent wins — same source as /auctions sidebar: ended auctions with a winner
+  const realWins: RecentWin[] = auctions
+    .filter(a => (a.status === 'ended' || a.status === 'settled') && a.leaderName)
+    .slice(0, 4)
+    .map(a => ({
+      itemName:    a.item.name,
+      itemImage:   a.item.image,
+      finalPrice:  a.currentPrice,
+      username:    a.leaderName!,
+      retailValue: a.item.retailValue,
+    }));
+
+  const showExampleWins = loaded && realWins.length === 0;
+  const winsToShow      = showExampleWins ? EXAMPLE_WINS : realWins;
 
   const primaryCta = user
     ? <Link to="/auctions" className="btn-primary lp-cta-btn">View auctions</Link>
@@ -184,7 +201,9 @@ export function LandingPage() {
             ) : featured ? 'COMING SOON' : 'AUCTIONS'}
           </div>
           <div className="lp-feat-wrap">
-            {featured ? <FeaturedCard auction={featured} /> : <MockFeaturedCard />}
+            {featured
+              ? <FeaturedCard auction={featured} />
+              : <MockFeaturedCard user={!!user} />}
           </div>
           <div className="lp-section-link">
             <Link to="/auctions">View all auctions →</Link>
@@ -204,8 +223,10 @@ export function LandingPage() {
             ].map(s => (
               <div key={s.n} className="lp-step">
                 <div className="lp-step-num">{s.n}</div>
-                <div className="lp-step-title">{s.title}</div>
-                <div className="lp-step-body">{s.body}</div>
+                <div>
+                  <div className="lp-step-title">{s.title}</div>
+                  <div className="lp-step-body">{s.body}</div>
+                </div>
               </div>
             ))}
           </div>
@@ -233,14 +254,16 @@ export function LandingPage() {
           <div className="lp-section-label">WHY PENNYBID</div>
           <div className="lp-why-row">
             {[
-              { icon: '🔗', title: 'Built on Solana',           body: 'Fast, low-fee transactions. Your deposit wallet is generated instantly — no setup needed.' },
-              { icon: '🎲', title: 'Provably fair raffles',      body: 'Every cashback raffle is committed before the auction starts. Verify the result yourself with a browser console.' },
-              { icon: '🔥', title: '$penny buyback & burn',      body: '50% of platform revenue buys and burns $penny. Every bid makes the token more scarce.' },
+              { icon: '🔗', title: 'Built on Solana',      body: 'Fast, low-fee transactions. Your deposit wallet is generated instantly — no setup needed.' },
+              { icon: '🎲', title: 'Provably fair raffles', body: 'Every cashback raffle is committed before the auction starts. Verify the result yourself with a browser console.' },
+              { icon: '🔥', title: '$penny buyback & burn', body: '50% of platform revenue buys and burns $penny. Every bid makes the token more scarce.' },
             ].map(c => (
               <div key={c.title} className="lp-why-card">
                 <div className="lp-why-icon">{c.icon}</div>
-                <div className="lp-why-title">{c.title}</div>
-                <div className="lp-why-body">{c.body}</div>
+                <div>
+                  <div className="lp-why-title">{c.title}</div>
+                  <div className="lp-why-body">{c.body}</div>
+                </div>
               </div>
             ))}
           </div>

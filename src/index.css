@@ -3129,7 +3129,7 @@ a:hover { text-decoration: underline; }
 .lp-step {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .lp-step-num {
@@ -3146,7 +3146,7 @@ a:hover { text-decoration: underline; }
   flex-shrink: 0;
 }
 
-.lp-step-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.lp-step-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
 .lp-step-body  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
 
 /* Recent wins */
@@ -3209,11 +3209,11 @@ a:hover { text-decoration: underline; }
   padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-.lp-why-icon  { font-size: 28px; }
-.lp-why-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.lp-why-icon  { font-size: 28px; line-height: 1; }
+.lp-why-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
 .lp-why-body  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
 
 /* Final CTA */
@@ -3249,9 +3249,9 @@ a:hover { text-decoration: underline; }
   /* Steps — horizontal num + text layout */
   .lp-steps { grid-template-columns: 1fr; gap: 20px; }
   .lp-step { flex-direction: row; gap: 14px; align-items: flex-start; }
-  .lp-step-num { flex-shrink: 0; width: 32px; height: 32px; font-size: 14px; margin-top: 2px; }
-  .lp-step-title { font-size: 14px; }
-  .lp-step-body { font-size: 13px; }
+  .lp-step-num { flex-shrink: 0; width: 32px; height: 32px; font-size: 14px; margin-top: 1px; }
+  .lp-step-title { font-size: 14px; margin-bottom: 2px; }
+  .lp-step-body { font-size: 13px; margin-top: 0; }
 
   /* Recent wins — 2 col */
   .lp-wins-row { grid-template-columns: repeat(2, 1fr); gap: 10px; overflow-x: unset; }
@@ -3259,10 +3259,10 @@ a:hover { text-decoration: underline; }
   .lp-win-price { font-size: 18px; }
   .lp-win-item { font-size: 12px; }
 
-  /* Why cards — single col, less padding */
+  /* Why cards — single col, horizontal icon+text */
   .lp-why-row { grid-template-columns: 1fr; gap: 12px; }
   .lp-why-card { padding: 18px; flex-direction: row; align-items: flex-start; gap: 14px; }
-  .lp-why-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+  .lp-why-icon { font-size: 24px; flex-shrink: 0; margin-top: 1px; }
 
   /* Final CTA */
   .lp-final-headline { letter-spacing: -0.5px; }
