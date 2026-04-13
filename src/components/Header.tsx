@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { usePing } from '../hooks/usePing';
+import { useXNotification } from '../hooks/useXNotification';
 
 function useTheme() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() =>
@@ -20,6 +21,7 @@ export function Header() {
   const { user, logout, creditsReady } = useAuth();
   const { status, latencyMs } = usePing();
   const { theme, toggle } = useTheme();
+  const { hasNew, dismiss } = useXNotification();
   const location = useLocation();
 
   // Pulse animation when credits change
@@ -67,8 +69,16 @@ export function Header() {
               : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             }
           </button>
-          <a href="#" className="header-x-link" title="Follow us on X" onClick={e => e.preventDefault()}>
+          <a
+            href="https://x.com/pennyBid_"
+            target="_blank"
+            rel="noreferrer"
+            className="header-x-link"
+            title="Follow @pennyBid_ on X"
+            onClick={dismiss}
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.63 5.905-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            {hasNew && <span className="header-x-badge">1</span>}
           </a>
 
           {user ? (

@@ -1603,6 +1603,41 @@ setInterval(async () => {
   }
 }, 15_000);
 
+// ─── X (Twitter) latest tweet (cached, public) ────────────────
+const X_HANDLE = 'pennyBid_';
+let xCache = { tweetId: null, checkedAt: 0 };
+const X_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+app.get('/api/x-latest', async (req, res) => {
+  const bearer = process.env.X_BEARER_TOKEN;
+  if (!bearer) return res.json({ tweetId: null });
+
+  if (Date.now() - xCache.checkedAt < X_CACHE_TTL) {
+    return res.json({ tweetId: xCache.tweetId });
+  }
+
+  try {
+    const userRes = await fetch(
+      `https://api.twitter.com/2/users/by/username/${X_HANDLE}`,
+      { headers: { Authorization: `Bearer ${bearer}` } }
+    );
+    const userData = await userRes.json();
+    const userId = userData.data?.id;
+    if (!userId) { xCache = { tweetId: null, checkedAt: Date.now() }; return res.json({ tweetId: null }); }
+
+    const tweetsRes = await fetch(
+      `https://api.twitter.com/2/users/${userId}/tweets?max_results=5&exclude=replies,retweets`,
+      { headers: { Authorization: `Bearer ${bearer}` } }
+    );
+    const tweetsData = await tweetsRes.json();
+    const tweetId = tweetsData.data?.[0]?.id ?? null;
+    xCache = { tweetId, checkedAt: Date.now() };
+    res.json({ tweetId });
+  } catch {
+    res.json({ tweetId: xCache.tweetId });
+  }
+});
+
 // ─── Recent wins (public, for landing page social proof) ───────
 app.get('/api/winners/recent', (req, res) => {
   const rows = db.prepare(`
