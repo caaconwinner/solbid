@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1500px; height:500px; overflow:hidden; background:#060509; }
+
+  .wrap {
+    width:1500px; height:500px;
+    background:#060509;
+    position:relative; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex; align-items:stretch;
+  }
+
+  .bg-svg { position:absolute; inset:0; z-index:0; pointer-events:none; }
+
+  /* ── Left text panel ── */
+  .left {
+    width:560px; flex-shrink:0; position:relative; z-index:5;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:0 56px 0 64px;
+  }
+
+  /* vertical orange line */
+  .left::after {
+    content:''; position:absolute; right:0; top:50px; bottom:50px;
+    width:1px;
+    background:linear-gradient(to bottom, transparent, rgba(255,98,0,0.2) 30%, rgba(255,98,0,0.2) 70%, transparent);
+  }
+
+  .logo { font-size:26px; font-weight:900; letter-spacing:-1px; color:#fff; margin-bottom:20px; }
+  .logo strong { color:#ff6200; }
+
+  .ann-label {
+    display:inline-flex; align-items:center; gap:10px;
+    font-size:10px; font-weight:700; letter-spacing:4px; text-transform:uppercase;
+    color:#ff6200; margin-bottom:16px;
+  }
+  .ann-dot { width:6px; height:6px; border-radius:50%; background:#ff6200; box-shadow:0 0 8px #ff6200; }
+
+  .headline {
+    font-size:72px; font-weight:900; letter-spacing:-3.5px; line-height:0.88; color:#fff;
+  }
+  .headline em { font-style:normal; color:#ff6200; }
+
+  .sub { font-size:15px; color:#2e2e2e; line-height:1.6; margin-top:20px; font-weight:500; }
+  .sub strong { color:#444; }
+
+  /* date badge */
+  .date-badge {
+    display:inline-flex; align-items:center; gap:10px; margin-top:26px;
+    background:rgba(255,98,0,0.08); border:1px solid rgba(255,98,0,0.2);
+    border-radius:12px; padding:10px 18px;
+    width:fit-content;
+  }
+  .date-icon { font-size:18px; }
+  .date-text { font-size:13px; font-weight:800; color:#ff6200; letter-spacing:0.3px; }
+  .date-sub  { font-size:10px; color:#2a2a2a; font-weight:600; margin-top:1px; }
+
+  /* ── Right: perspective card grid ── */
+  .right {
+    flex:1; position:relative; overflow:hidden;
+  }
+
+  .scene {
+    position:absolute;
+    top:-30px; left:-100px;
+    width:1400px;
+    transform: perspective(900px) rotateX(-28deg) rotateY(-8deg);
+    transform-origin: 10% 40%;
+    display:flex; flex-direction:column; gap:18px;
+    z-index:1;
+  }
+  .row { display:flex; gap:18px; }
+  .row:last-child { transform:translateX(-100px); }
+
+  .card {
+    width:186px; height:226px; border-radius:18px;
+    flex-shrink:0; position:relative; overflow:hidden;
+    box-shadow:0 10px 40px rgba(0,0,0,0.65);
+    border:1px solid rgba(255,255,255,0.065);
+  }
+  .card-bg {
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:74px;
+  }
+  .b1{background:linear-gradient(150deg,#0d1f6e,#2a1080);}
+  .b2{background:linear-gradient(150deg,#0a4060,#0a7070);}
+  .b3{background:linear-gradient(150deg,#5a0a80,#8a0a60);}
+  .b4{background:linear-gradient(150deg,#6a0010,#9a1a00);}
+  .b5{background:linear-gradient(150deg,#1a4a10,#0a6a40);}
+  .b6{background:linear-gradient(150deg,#4a3000,#7a5000);}
+  .b7{background:linear-gradient(150deg,#080830,#101068);}
+  .b8{background:linear-gradient(150deg,#3a0050,#7a0080);}
+
+  .card-label {
+    position:absolute; bottom:0; left:0; right:0;
+    background:linear-gradient(to top,rgba(0,0,0,0.92) 0%,rgba(0,0,0,0.5) 55%,transparent 100%);
+    padding:34px 13px 13px;
+  }
+  .card-name { font-size:13px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:0.5px; line-height:1.15; }
+  .card-sub  { font-size:10px; font-weight:700; color:#ff6200; margin-top:3px; font-family:'Courier New',monospace; }
+
+  .bar { position:absolute; top:0; left:0; right:0; height:3px; }
+  .bar-o { background:linear-gradient(to right,#ff6200,#ffaa00); }
+  .bar-d { background:linear-gradient(to right,#2a2a2a,#444); }
+
+  /* Fades on the right side */
+  .fade-left {
+    position:absolute; left:0; top:0; bottom:0; width:40px; z-index:3;
+    background:linear-gradient(to right, rgba(6,5,9,0.95), transparent);
+    pointer-events:none;
+  }
+  .fade-top {
+    position:absolute; top:0; left:0; right:0; height:60px; z-index:3;
+    background:linear-gradient(to bottom, rgba(6,5,9,0.85), transparent);
+    pointer-events:none;
+  }
+  .fade-right {
+    position:absolute; right:0; top:0; bottom:0; width:60px; z-index:3;
+    background:linear-gradient(to left, rgba(6,5,9,0.9), transparent);
+    pointer-events:none;
+  }
+  .fade-bot {
+    position:absolute; bottom:0; left:0; right:0; height:100px; z-index:3;
+    background:linear-gradient(to top, rgba(6,5,9,0.95), transparent);
+    pointer-events:none;
+  }
+
+  /* bottom bar */
+  .bot {
+    position:absolute; bottom:0; left:0; right:0; height:36px; z-index:8;
+    background:rgba(255,98,0,0.03); border-top:1px solid rgba(255,98,0,0.07);
+    display:flex; align-items:center; justify-content:center; gap:28px;
+  }
+  .bot-item { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#1c1c1c; }
+  .bot-sep  { width:3px; height:3px; border-radius:50%; background:#1c1c1c; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <svg class="bg-svg" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="j1" cx="25%" cy="50%" r="40%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.07"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="j2" cx="75%" cy="40%" r="45%">
+        <stop offset="0%" stop-color="#4400cc" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#4400cc" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1500" height="500" fill="url(#j1)"/>
+    <rect width="1500" height="500" fill="url(#j2)"/>
+    <g stroke="rgba(255,98,0,0.02)" stroke-width="1">
+      <line x1="0" y1="125" x2="1500" y2="125"/>
+      <line x1="0" y1="250" x2="1500" y2="250"/>
+      <line x1="0" y1="375" x2="1500" y2="375"/>
+    </g>
+    <g fill="#ff6200" opacity="0.35">
+      <rect x="0" y="0" width="32" height="2"/>
+      <rect x="0" y="0" width="2" height="32"/>
+      <rect x="1468" y="0" width="32" height="2"/>
+      <rect x="1498" y="0" width="2" height="32"/>
+      <rect x="0" y="498" width="32" height="2"/>
+      <rect x="0" y="468" width="2" height="32"/>
+    </g>
+  </svg>
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="logo">penny<strong>Bid</strong></div>
+    <div class="ann-label"><div class="ann-dot"></div>Dropping Tomorrow</div>
+    <div class="headline">Live<br/><em>Auctions</em><br/>Are Here.</div>
+    <div class="sub">Win items for <strong>90–99% off</strong> retail.<br/>Every bid costs just <strong>$0.01</strong>.</div>
+    <div class="date-badge">
+      <div class="date-icon">🟠</div>
+      <div>
+        <div class="date-text">penny.bid · @pennyBid_</div>
+        <div class="date-sub">Solana · No KYC · Withdrawable credits</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="scene">
+      <div class="row">
+        <div class="card"><div class="card-bg b1">🎮</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">PS5 Bundle</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+        <div class="card"><div class="card-bg b7">💻</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">MacBook Pro M4</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+        <div class="card"><div class="card-bg b2">📱</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">iPhone 17 Pro</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+        <div class="card"><div class="card-bg b3">⌚</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">Rolex Watch</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+        <div class="card"><div class="card-bg b4">🚗</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Tesla Model 3</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+        <div class="card"><div class="card-bg b8">💎</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">Diamond Chain</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+      </div>
+      <div class="row">
+        <div class="card"><div class="card-bg b5">🎸</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">Gibson Les Paul</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+        <div class="card"><div class="card-bg b6">🏆</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">$500 Cash Prize</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+        <div class="card"><div class="card-bg b1">🖥️</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">RTX 4090 PC</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+        <div class="card"><div class="card-bg b2">🎧</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">Sony XM5</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+        <div class="card"><div class="card-bg b3">🕶️</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Designer Shades</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+        <div class="card"><div class="card-bg b7">🎮</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Steam Deck OLED</div><div class="card-sub">LIVE TOMORROW</div></div></div>
+      </div>
+    </div>
+    <div class="fade-left"></div>
+    <div class="fade-top"></div>
+    <div class="fade-right"></div>
+    <div class="fade-bot"></div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bot">
+    <div class="bot-item">$0.01 per bid</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Last bidder wins</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">No KYC</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Built on Solana</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">$penny buyback & burn</div>
+  </div>
+
+</div>
+</body>
+</html>

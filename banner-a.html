@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1500px; height:500px; overflow:hidden; background:#0a0908; }
+
+  .wrap {
+    width:1500px; height:500px;
+    background:#0a0908;
+    position:relative; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex; align-items:stretch;
+  }
+
+  /* ── Left panel ── */
+  .left {
+    width:580px; flex-shrink:0;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:0 64px;
+    position:relative; z-index:2;
+  }
+
+  .eyebrow {
+    font-size:11px; font-weight:700; letter-spacing:3px;
+    text-transform:uppercase; color:#ff6200; margin-bottom:18px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow-line { width:28px; height:2px; background:#ff6200; border-radius:1px; }
+
+  .headline {
+    font-size:72px; font-weight:900; letter-spacing:-3.5px; line-height:0.9;
+    color:#fff; margin-bottom:28px;
+  }
+  .headline em { color:#ff6200; font-style:normal; }
+
+  .sub {
+    font-size:15px; color:#444; line-height:1.6; font-weight:500;
+    max-width:360px; margin-bottom:32px;
+  }
+  .sub strong { color:#666; }
+
+  .pills { display:flex; gap:10px; flex-wrap:wrap; }
+  .pill {
+    font-size:11px; font-weight:700; letter-spacing:0.5px;
+    color:#333; border:1px solid rgba(255,255,255,0.07);
+    border-radius:20px; padding:6px 14px; text-transform:uppercase;
+  }
+
+  /* ── Right panel ── */
+  .right {
+    flex:1;
+    display:flex; align-items:center; justify-content:center;
+    position:relative; z-index:2;
+    gap:16px;
+    padding:0 40px 0 20px;
+  }
+
+  /* ── Auction cards ── */
+  .acard {
+    background:#131210;
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px; overflow:hidden;
+    width:220px; flex-shrink:0;
+    box-shadow:0 16px 48px rgba(0,0,0,0.5);
+  }
+  .acard.hero {
+    width:250px;
+    border-color:rgba(255,98,0,0.35);
+    box-shadow:0 16px 48px rgba(0,0,0,0.6), 0 0 32px rgba(255,98,0,0.12);
+    transform:translateY(-10px);
+  }
+  .acard-img {
+    height:130px; background:#1a1816;
+    display:flex; align-items:center; justify-content:center;
+    font-size:58px; position:relative;
+  }
+  .acard.hero .acard-img { height:148px; background:#1e1b14; }
+
+  .live-pill {
+    position:absolute; top:10px; left:10px;
+    background:rgba(10,9,8,0.9); border:1px solid rgba(255,255,255,0.1);
+    border-radius:20px; padding:3px 9px;
+    font-size:10px; font-weight:700; color:#fff;
+    display:flex; align-items:center; gap:4px;
+  }
+  .live-dot {
+    width:6px; height:6px; border-radius:50%;
+    background:#ff6200; box-shadow:0 0 6px rgba(255,98,0,1);
+  }
+
+  .won-pill {
+    position:absolute; top:10px; left:10px;
+    background:rgba(0,232,122,0.12); border:1px solid rgba(0,232,122,0.3);
+    border-radius:20px; padding:3px 9px;
+    font-size:10px; font-weight:700; color:#00e87a;
+  }
+
+  .acard-body { padding:14px 16px; }
+  .acard-name { font-size:13px; font-weight:800; color:#fff; margin-bottom:8px; line-height:1.2; }
+  .acard.hero .acard-name { font-size:14px; }
+
+  .acard-row { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px; }
+  .acard-lbl { font-size:9px; color:#333; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px; }
+  .acard-price { font-family:'Courier New',monospace; font-size:22px; font-weight:700; color:#00e87a; }
+  .acard.hero .acard-price { font-size:26px; }
+  .acard-timer { font-family:'Courier New',monospace; font-size:18px; font-weight:700; color:#ff6200; text-align:right; }
+  .acard-cta {
+    background:#ff6200; color:#fff; border-radius:8px; padding:9px;
+    text-align:center; font-size:12px; font-weight:800;
+  }
+  .acard-won {
+    font-family:'Courier New',monospace; font-size:20px; font-weight:700; color:#00e87a;
+    margin-bottom:2px;
+  }
+  .acard-won-label { font-size:10px; color:#333; }
+
+  /* ── Vertical divider ── */
+  .divider {
+    width:1px; height:100%;
+    background:linear-gradient(to bottom, transparent, rgba(255,98,0,0.15), transparent);
+    position:absolute; left:580px; top:0;
+  }
+
+  /* ── Background SVG glows ── */
+  .bg-svg {
+    position:absolute; inset:0; z-index:1; pointer-events:none;
+  }
+
+  /* ── Bottom strip ── */
+  .bottom {
+    position:absolute; bottom:0; left:0; right:0; height:44px;
+    background:rgba(255,98,0,0.04);
+    border-top:1px solid rgba(255,98,0,0.08);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 64px; z-index:3;
+  }
+  .bottom-items { display:flex; gap:32px; align-items:center; }
+  .bottom-item { font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#222; }
+  .bottom-url { font-size:12px; color:#2a2a2a; font-weight:600; letter-spacing:0.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SVG background glows -->
+  <svg class="bg-svg" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="g1" cx="25%" cy="50%" r="40%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.1"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="g2" cx="75%" cy="40%" r="40%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.07"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <!-- subtle grid -->
+    </defs>
+    <rect width="1500" height="500" fill="url(#g1)"/>
+    <rect width="1500" height="500" fill="url(#g2)"/>
+    <!-- grid lines -->
+    <line x1="0" y1="100" x2="1500" y2="100" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+    <line x1="0" y1="200" x2="1500" y2="200" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+    <line x1="0" y1="300" x2="1500" y2="300" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+    <line x1="0" y1="400" x2="1500" y2="400" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+    <line x1="200" y1="0" x2="200" y2="500" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="500" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+    <line x1="600" y1="0" x2="600" y2="500" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+    <line x1="800" y1="0" x2="800" y2="500" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+    <line x1="1000" y1="0" x2="1000" y2="500" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+    <line x1="1200" y1="0" x2="1200" y2="500" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+    <line x1="1400" y1="0" x2="1400" y2="500" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+    <!-- particles -->
+    <circle cx="120" cy="80"  r="1.5" fill="#ff6200" opacity="0.5"/>
+    <circle cx="340" cy="380" r="2"   fill="#ff6200" opacity="0.35"/>
+    <circle cx="520" cy="140" r="1.5" fill="#ff6200" opacity="0.4"/>
+    <circle cx="900" cy="420" r="2"   fill="#ff6200" opacity="0.3"/>
+    <circle cx="1100" cy="60" r="1.5" fill="#ff6200" opacity="0.45"/>
+    <circle cx="1380" cy="300" r="2"  fill="#ff6200" opacity="0.3"/>
+  </svg>
+
+  <div class="divider"></div>
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="eyebrow"><div class="eyebrow-line"></div>pennyBid · Solana</div>
+    <div class="headline">Win<br/>for <em>pennies.</em></div>
+    <div class="sub">Penny auctions on Solana. Every bid is <strong>$0.01</strong>. Last bidder wins. Items sell for <strong>90–99% below retail.</strong></div>
+    <div class="pills">
+      <div class="pill">No KYC</div>
+      <div class="pill">$0.01 per bid</div>
+      <div class="pill">Withdrawable credits</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: cards -->
+  <div class="right">
+    <div class="acard">
+      <div class="acard-img">📱
+        <div class="won-pill">WON ✓</div>
+      </div>
+      <div class="acard-body">
+        <div class="acard-name">iPhone 16 Pro</div>
+        <div class="acard-won">$0.87</div>
+        <div class="acard-won-label">Retail $999 · won by xLancer</div>
+      </div>
+    </div>
+
+    <div class="acard hero">
+      <div class="acard-img">🎮
+        <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+      </div>
+      <div class="acard-body">
+        <div class="acard-name">PS5 Console Bundle</div>
+        <div class="acard-row">
+          <div>
+            <div class="acard-lbl">Price</div>
+            <div class="acard-price">$0.13</div>
+          </div>
+          <div>
+            <div class="acard-lbl" style="text-align:right">Timer</div>
+            <div class="acard-timer">8.4s</div>
+          </div>
+        </div>
+        <div class="acard-cta">Place Bid — 1 credit</div>
+      </div>
+    </div>
+
+    <div class="acard">
+      <div class="acard-img">⌚
+        <div class="won-pill">WON ✓</div>
+      </div>
+      <div class="acard-body">
+        <div class="acard-name">Apple Watch S10</div>
+        <div class="acard-won">$0.54</div>
+        <div class="acard-won-label">Retail $399 · won by cryptobid</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM STRIP -->
+  <div class="bottom">
+    <div class="bottom-items">
+      <div class="bottom-item">Last bidder wins</div>
+      <div class="bottom-item">·</div>
+      <div class="bottom-item">Provably fair</div>
+      <div class="bottom-item">·</div>
+      <div class="bottom-item">$penny buyback & burn</div>
+      <div class="bottom-item">·</div>
+      <div class="bottom-item">Built on Solana</div>
+    </div>
+    <div class="bottom-url">penny.bid</div>
+  </div>
+
+</div>
+</body>
+</html>

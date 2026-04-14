@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1500px; height:500px; overflow:hidden; background:#07060f; }
+
+  .wrap {
+    width:1500px; height:500px;
+    background:radial-gradient(ellipse at 50% 10%, #130f2a 0%, #07060f 60%);
+    position:relative; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  /* ── Perspective card grid ── */
+  .scene-wrap {
+    position:absolute;
+    top:-60px; left:0; right:0;
+    display:flex; justify-content:center;
+    z-index:1; opacity:0.35;
+  }
+  .scene {
+    transform: perspective(950px) rotateX(-32deg);
+    transform-origin: 50% 30%;
+    display:flex; flex-direction:column; gap:18px;
+  }
+
+  .row { display:flex; gap:18px; }
+  .row:nth-child(2) { transform:translateX(-110px); }
+
+  /* Card */
+  .card {
+    width:200px; height:238px; border-radius:20px;
+    flex-shrink:0; position:relative; overflow:hidden;
+    box-shadow:0 10px 36px rgba(0,0,0,0.65);
+    border:1px solid rgba(255,255,255,0.08);
+  }
+
+  .card-bg {
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:80px;
+  }
+
+  /* Vivid gradient palettes */
+  .c1  { background:linear-gradient(145deg,#0e1a7a,#1a0a9a,#0a1260); }
+  .c2  { background:linear-gradient(145deg,#0a5070,#0a9090,#005060); }
+  .c3  { background:linear-gradient(145deg,#6a0a90,#a00a70,#500050); }
+  .c4  { background:linear-gradient(145deg,#800010,#b02000,#600000); }
+  .c5  { background:linear-gradient(145deg,#105010,#108040,#006030); }
+  .c6  { background:linear-gradient(145deg,#604000,#906000,#503000); }
+  .c7  { background:linear-gradient(145deg,#080a40,#100a80,#060830); }
+  .c8  { background:linear-gradient(145deg,#500060,#8a0090,#3a0050); }
+  .c9  { background:linear-gradient(145deg,#003050,#006080,#002040); }
+  .c10 { background:linear-gradient(145deg,#5a1000,#901800,#3a0800); }
+
+  /* Item name label */
+  .card-label {
+    position:absolute; bottom:0; left:0; right:0;
+    background:linear-gradient(to top,rgba(0,0,0,0.92) 0%,rgba(0,0,0,0.55) 52%,transparent 100%);
+    padding:38px 14px 14px;
+  }
+  .card-name {
+    font-size:15px; font-weight:900; color:#fff;
+    text-transform:uppercase; letter-spacing:0.5px; line-height:1.15;
+  }
+
+  /* Top accent bar */
+  .bar { position:absolute; top:0; left:0; right:0; height:4px; border-radius:20px 20px 0 0; }
+  .bar-o { background:linear-gradient(to right,#ff6200,#ffaa00); }
+  .bar-b { background:linear-gradient(to right,#0088ff,#00ccff); }
+  .bar-g { background:linear-gradient(to right,#00e87a,#00c460); }
+  .bar-p { background:linear-gradient(to right,#aa00ff,#ff00aa); }
+  .bar-r { background:linear-gradient(to right,#ff2200,#ff6600); }
+  .bar-t { background:linear-gradient(to right,#00ccaa,#00aacc); }
+
+  /* ── Bottom vignette ── */
+  .vignette {
+    position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:
+      radial-gradient(ellipse at 50% 120%, rgba(7,6,15,1) 0%, rgba(7,6,15,0.8) 28%, transparent 52%),
+      linear-gradient(to top, rgba(7,6,15,1) 0%, rgba(7,6,15,0.9) 15%, rgba(7,6,15,0.5) 30%, rgba(7,6,15,0.1) 45%, transparent 60%),
+      linear-gradient(to right, rgba(7,6,15,0.7) 0%, transparent 10%, transparent 90%, rgba(7,6,15,0.7) 100%);
+  }
+
+  /* ── Logo & tagline (true center) ── */
+  .branding {
+    position:absolute;
+    top:0; left:0; right:0; bottom:36px;
+    z-index:5;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center;
+  }
+
+  .logo-text {
+    font-size:72px; font-weight:900; letter-spacing:-3px; color:#fff; line-height:1;
+    text-shadow:0 0 80px rgba(255,98,0,0.4), 0 4px 32px rgba(0,0,0,0.9);
+  }
+  .logo-text strong { color:#ff6200; }
+
+  .tagline {
+    font-size:19px; font-weight:600; color:rgba(255,255,255,0.55);
+    margin-top:6px; letter-spacing:0.2px; line-height:1.4;
+  }
+  .tagline em { font-style:normal; color:rgba(255,255,255,0.8); font-weight:700; }
+
+  /* ── Bottom strip ── */
+  .bot {
+    position:absolute; bottom:0; left:0; right:0; height:36px; z-index:6;
+    background:rgba(255,98,0,0.04); border-top:1px solid rgba(255,98,0,0.08);
+    display:flex; align-items:center; justify-content:center; gap:28px;
+  }
+  .bot-item { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#1d1d1d; }
+  .bot-sep  { width:3px; height:3px; border-radius:50%; background:#1d1d1d; }
+
+  /* SVG bg glow */
+  .bg-svg { position:absolute; inset:0; z-index:0; pointer-events:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <svg class="bg-svg" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="l1" cx="50%" cy="70%" r="50%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="l2" cx="50%" cy="0%" r="55%">
+        <stop offset="0%" stop-color="#5500cc" stop-opacity="0.08"/>
+        <stop offset="100%" stop-color="#5500cc" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1500" height="500" fill="url(#l1)"/>
+    <rect width="1500" height="500" fill="url(#l2)"/>
+    <!-- Corner marks -->
+    <g fill="#ff6200" opacity="0.35">
+      <rect x="0"    y="0"   width="36" height="2"/>
+      <rect x="0"    y="0"   width="2"  height="36"/>
+      <rect x="1464" y="0"   width="36" height="2"/>
+      <rect x="1498" y="0"   width="2"  height="36"/>
+      <rect x="0"    y="498" width="36" height="2"/>
+      <rect x="0"    y="464" width="2"  height="36"/>
+      <rect x="1464" y="498" width="36" height="2"/>
+      <rect x="1498" y="464" width="2"  height="36"/>
+    </g>
+  </svg>
+
+  <!-- CARD GRID -->
+  <div class="scene-wrap"><div class="scene">
+
+    <!-- Row 1 -->
+    <div class="row">
+      <div class="card c1"><div class="card-bg">🎮</div><div class="bar bar-b"></div><div class="card-label"><div class="card-name">PS5 Console<br/>Bundle</div></div></div>
+      <div class="card c9"><div class="card-bg">💻</div><div class="bar bar-b"></div><div class="card-label"><div class="card-name">MacBook<br/>Pro M4</div></div></div>
+      <div class="card c2"><div class="card-bg">📱</div><div class="bar bar-t"></div><div class="card-label"><div class="card-name">iPhone 17<br/>Pro Max</div></div></div>
+      <div class="card c7"><div class="card-bg">📱</div><div class="bar bar-b"></div><div class="card-label"><div class="card-name">Samsung<br/>Foldable</div></div></div>
+      <div class="card c6"><div class="card-bg">⌚</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Rolex<br/>Watch</div></div></div>
+      <div class="card c4"><div class="card-bg">🎧</div><div class="bar bar-r"></div><div class="card-label"><div class="card-name">RAM &amp;<br/>NAN Pack</div></div></div>
+      <div class="card c8"><div class="card-bg">💎</div><div class="bar bar-p"></div><div class="card-label"><div class="card-name">Diamond<br/>Necklace</div></div></div>
+    </div>
+
+    <!-- Row 2 (offset) -->
+    <div class="row">
+      <div class="card c4"><div class="card-bg">🎮</div><div class="bar bar-r"></div><div class="card-label"><div class="card-name">Steam Deck<br/>Bundle</div></div></div>
+      <div class="card c7"><div class="card-bg">🪙</div><div class="bar bar-p"></div><div class="card-label"><div class="card-name">Crypto<br/>Coins</div></div></div>
+      <div class="card c2"><div class="card-bg">🏠</div><div class="bar bar-t"></div><div class="card-label"><div class="card-name">Luxury Villa<br/>Voucher</div></div></div>
+      <div class="card c10"><div class="card-bg">🕶️</div><div class="bar bar-r"></div><div class="card-label"><div class="card-name">Designer<br/>Sunglasses</div></div></div>
+      <div class="card c1"><div class="card-bg">🖥️</div><div class="bar bar-b"></div><div class="card-label"><div class="card-name">Gaming<br/>Laptop</div></div></div>
+      <div class="card c8"><div class="card-bg">👜</div><div class="bar bar-p"></div><div class="card-label"><div class="card-name">Designer<br/>Phone</div></div></div>
+      <div class="card c5"><div class="card-bg">✈️</div><div class="bar bar-g"></div><div class="card-label"><div class="card-name">First Class<br/>Flight Pass</div></div></div>
+    </div>
+
+  </div></div>
+
+  <!-- Vignette -->
+  <div class="vignette"></div>
+
+  <!-- BRANDING -->
+  <div class="branding">
+    <div class="logo-text">penny<strong>Bid</strong></div>
+    <div class="tagline">Pay <em>pennies on the dollar</em> for anything.</div>
+  </div>
+
+  <!-- Bottom strip -->
+  <div class="bot">
+    <div class="bot-item">$0.01 per bid</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Last bidder wins</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">No KYC</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Built on Solana</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">penny.bid · @pennyBid_</div>
+  </div>
+
+</div>
+</body>
+</html>

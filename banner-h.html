@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1500px; height:500px; overflow:hidden; }
+
+  .wrap {
+    width:1500px; height:500px;
+    background:radial-gradient(ellipse at 50% 50%, #0e0c1a 0%, #06050c 70%);
+    position:relative; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  .bg-svg { position:absolute; inset:0; z-index:0; pointer-events:none; }
+
+  /* ── Card fan layout ── */
+  /* Cards are absolutely positioned in an arc, each rotated differently */
+
+  .cards-scene {
+    position:absolute;
+    top:0; left:0; right:0; bottom:0;
+    z-index:1;
+  }
+
+  .card {
+    position:absolute;
+    width:190px; height:240px;
+    border-radius:18px; overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,0.7);
+    border:1px solid rgba(255,255,255,0.07);
+  }
+
+  .card-bg {
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:72px;
+  }
+
+  /* Gradient schemes */
+  .m1 { background:linear-gradient(155deg,#0a0a2a,#150a4a,#0d0d3a); }
+  .m2 { background:linear-gradient(155deg,#0a2820,#0a4830,#003a20); }
+  .m3 { background:linear-gradient(155deg,#2a0808,#500a0a,#3a0605); }
+  .m4 { background:linear-gradient(155deg,#1a0a30,#380a60,#2a0848); }
+  .m5 { background:linear-gradient(155deg,#0a1a30,#0a2a50,#003060); }
+  .m6 { background:linear-gradient(155deg,#281800,#483000,#382000); }
+  .m7 { background:linear-gradient(155deg,#1a0820,#350a40,#480a58); }
+  .m8 { background:linear-gradient(155deg,#0a0f28,#101840,#080d30); }
+  .m9 { background:linear-gradient(155deg,#1a0010,#3a0030,#280018); }
+
+  .card-label {
+    position:absolute; bottom:0; left:0; right:0;
+    background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.65) 55%,transparent 100%);
+    padding:36px 14px 14px;
+  }
+  .card-name {
+    font-size:14px; font-weight:900; color:#fff;
+    text-transform:uppercase; letter-spacing:0.3px; line-height:1.15;
+  }
+  .card-price {
+    font-size:11px; font-weight:700; margin-top:5px;
+    font-family:'Courier New',monospace;
+  }
+  .price-live { color:#ff6200; }
+  .price-won  { color:#00e87a; }
+
+  .card-top-bar {
+    position:absolute; top:0; left:0; right:0; height:3px;
+  }
+  .bar-live { background:linear-gradient(to right,#ff6200,#ffaa00); }
+  .bar-won  { background:linear-gradient(to right,#00e87a,#00c460); }
+
+  /* Live badge */
+  .live-pip {
+    position:absolute; top:10px; left:10px;
+    background:rgba(0,0,0,0.8); border:1px solid rgba(255,98,0,0.4);
+    border-radius:20px; padding:3px 9px;
+    font-size:9px; font-weight:800; color:#ff6200;
+    display:flex; align-items:center; gap:4px;
+  }
+  .pip-dot { width:5px; height:5px; border-radius:50%; background:#ff6200; box-shadow:0 0 6px #ff6200; }
+
+  /* Card positions in a spreading arc */
+  /* Center card - featured, biggest, straight */
+  .c-center {
+    width:220px; height:270px;
+    left:640px; top:115px;
+    transform:translateX(-50%);
+    border-color:rgba(255,98,0,0.4);
+    box-shadow:0 24px 80px rgba(0,0,0,0.8), 0 0 50px rgba(255,98,0,0.15);
+    z-index:10;
+  }
+  .c-center .card-bg { font-size:88px; }
+  .c-center .card-name { font-size:16px; }
+
+  /* L1, R1 - immediately flanking, slight tilt */
+  .c-l1 { left:440px; top:128px; transform:rotate(-12deg) translateX(-50%); z-index:7; }
+  .c-r1 { left:840px; top:128px; transform:rotate(12deg) translateX(-50%); z-index:7; }
+
+  /* L2, R2 - further out, more tilt */
+  .c-l2 { left:268px; top:145px; transform:rotate(-26deg) translateX(-50%); z-index:5; opacity:0.85; }
+  .c-r2 { left:1012px; top:145px; transform:rotate(26deg) translateX(-50%); z-index:5; opacity:0.85; }
+
+  /* L3, R3 - outermost, strong tilt, faded */
+  .c-l3 { left:110px; top:160px; transform:rotate(-42deg) translateX(-50%); z-index:3; opacity:0.6; }
+  .c-r3 { left:1170px; top:160px; transform:rotate(42deg) translateX(-50%); z-index:3; opacity:0.6; }
+
+  /* L4, R4 - barely visible at edges */
+  .c-l4 { left:-30px; top:170px; transform:rotate(-56deg) translateX(-50%); z-index:1; opacity:0.35; }
+  .c-r4 { left:1320px; top:170px; transform:rotate(56deg) translateX(-50%); z-index:1; opacity:0.35; }
+
+  /* Vignette layers */
+  .vignette-sides {
+    position:absolute; inset:0; z-index:12; pointer-events:none;
+    background:
+      linear-gradient(to right, rgba(6,5,12,0.92) 0%, rgba(6,5,12,0.3) 12%, transparent 25%, transparent 75%, rgba(6,5,12,0.3) 88%, rgba(6,5,12,0.92) 100%);
+  }
+  .vignette-bottom {
+    position:absolute; bottom:0; left:0; right:0; height:200px; z-index:12; pointer-events:none;
+    background:linear-gradient(to top, rgba(6,5,12,1) 0%, rgba(6,5,12,0.6) 40%, transparent 100%);
+  }
+  .vignette-top {
+    position:absolute; top:0; left:0; right:0; height:80px; z-index:12; pointer-events:none;
+    background:linear-gradient(to bottom, rgba(6,5,12,0.7) 0%, transparent 100%);
+  }
+
+  /* Bottom text layout */
+  .bottom-content {
+    position:absolute; bottom:28px; left:0; right:0; z-index:15;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    padding:0 60px;
+  }
+
+  .bottom-left {
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .bottom-tag {
+    font-size:10px; font-weight:700; letter-spacing:3px;
+    text-transform:uppercase; color:#ff6200;
+  }
+  .bottom-logo {
+    font-size:42px; font-weight:900; letter-spacing:-2px; color:#fff;
+    line-height:1; text-shadow:0 0 40px rgba(255,98,0,0.3);
+  }
+  .bottom-logo strong { color:#ff6200; }
+
+  .bottom-center {
+    text-align:center;
+  }
+  .bottom-tagline {
+    font-size:13px; color:#2a2a2a; font-weight:600; letter-spacing:0.3px;
+  }
+
+  .bottom-right {
+    display:flex; gap:10px;
+  }
+  .stat-pill {
+    background:rgba(255,98,0,0.08); border:1px solid rgba(255,98,0,0.15);
+    border-radius:10px; padding:8px 14px; text-align:center;
+  }
+  .stat-v {
+    font-family:'Courier New',monospace; font-size:20px; font-weight:700;
+    color:#ff6200; line-height:1;
+  }
+  .stat-l { font-size:9px; color:#282828; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-top:3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <svg class="bg-svg" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="hg1" cx="43%" cy="50%" r="40%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="hg2" cx="20%" cy="50%" r="35%">
+        <stop offset="0%" stop-color="#6600ff" stop-opacity="0.05"/>
+        <stop offset="100%" stop-color="#6600ff" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="hg3" cx="80%" cy="50%" r="35%">
+        <stop offset="0%" stop-color="#6600ff" stop-opacity="0.05"/>
+        <stop offset="100%" stop-color="#6600ff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1500" height="500" fill="url(#hg1)"/>
+    <rect width="1500" height="500" fill="url(#hg2)"/>
+    <rect width="1500" height="500" fill="url(#hg3)"/>
+    <!-- Subtle arc hint lines -->
+    <ellipse cx="640" cy="500" rx="700" ry="420" fill="none" stroke="rgba(255,98,0,0.04)" stroke-width="1"/>
+    <ellipse cx="640" cy="500" rx="500" ry="300" fill="none" stroke="rgba(255,98,0,0.03)" stroke-width="1"/>
+    <!-- Particles -->
+    <g fill="#ff6200">
+      <circle cx="100"  cy="120" r="1.5" opacity="0.4"/>
+      <circle cx="200"  cy="380" r="2"   opacity="0.25"/>
+      <circle cx="1380" cy="130" r="1.5" opacity="0.4"/>
+      <circle cx="1280" cy="400" r="2"   opacity="0.25"/>
+      <circle cx="640"  cy="60"  r="2"   opacity="0.35"/>
+    </g>
+    <!-- Corner marks -->
+    <g fill="#ff6200" opacity="0.35">
+      <rect x="0" y="0" width="32" height="2"/>
+      <rect x="0" y="0" width="2" height="32"/>
+      <rect x="1468" y="0" width="32" height="2"/>
+      <rect x="1498" y="0" width="2" height="32"/>
+    </g>
+  </svg>
+
+  <!-- CARDS (fan/arc spread) -->
+  <div class="cards-scene">
+
+    <!-- L4 (barely visible) -->
+    <div class="card c-l4 m3">
+      <div class="card-bg">🏎️</div>
+      <div class="card-top-bar bar-live"></div>
+      <div class="card-label"><div class="card-name">Tesla Model<br/>3 Highland</div></div>
+    </div>
+    <div class="card c-r4 m9">
+      <div class="card-bg">✈️</div>
+      <div class="card-top-bar bar-won"></div>
+      <div class="card-label"><div class="card-name">First Class<br/>Flight Pass</div></div>
+    </div>
+
+    <!-- L3, R3 -->
+    <div class="card c-l3 m7">
+      <div class="card-bg">🏠</div>
+      <div class="card-top-bar bar-live"></div>
+      <div class="card-label">
+        <div class="card-name">Luxury Villa<br/>Voucher</div>
+        <div class="card-price price-live">$2.44 LIVE</div>
+      </div>
+    </div>
+    <div class="card c-r3 m2">
+      <div class="card-bg">⌚</div>
+      <div class="card-top-bar bar-won"></div>
+      <div class="card-label">
+        <div class="card-name">Rolex<br/>Submariner</div>
+        <div class="card-price price-won">WON $0.54</div>
+      </div>
+    </div>
+
+    <!-- L2, R2 -->
+    <div class="card c-l2 m4">
+      <div class="card-bg">💻</div>
+      <div class="card-top-bar bar-live"></div>
+      <div class="card-label">
+        <div class="card-name">MacBook Pro<br/>M4 Max</div>
+        <div class="card-price price-live">$0.07 LIVE</div>
+      </div>
+      <div class="live-pip"><div class="pip-dot"></div>LIVE</div>
+    </div>
+    <div class="card c-r2 m6">
+      <div class="card-bg">🎸</div>
+      <div class="card-top-bar bar-won"></div>
+      <div class="card-label">
+        <div class="card-name">Gibson<br/>Les Paul</div>
+        <div class="card-price price-won">WON $0.18</div>
+      </div>
+    </div>
+
+    <!-- L1, R1 -->
+    <div class="card c-l1 m5">
+      <div class="card-bg">📱</div>
+      <div class="card-top-bar bar-won"></div>
+      <div class="card-label">
+        <div class="card-name">iPhone 17<br/>Pro Max</div>
+        <div class="card-price price-won">WON $0.31</div>
+      </div>
+    </div>
+    <div class="card c-r1 m8">
+      <div class="card-bg">🖥️</div>
+      <div class="card-top-bar bar-live"></div>
+      <div class="card-label">
+        <div class="card-name">Gaming PC<br/>RTX 4090</div>
+        <div class="card-price price-live">$0.41 LIVE</div>
+      </div>
+      <div class="live-pip"><div class="pip-dot"></div>LIVE</div>
+    </div>
+
+    <!-- CENTER (featured) -->
+    <div class="card c-center m1">
+      <div class="card-bg">🎮</div>
+      <div class="card-top-bar bar-live"></div>
+      <div class="card-label">
+        <div class="card-name">PlayStation 5<br/>Slim Bundle</div>
+        <div class="card-price price-live">$0.13 · 8.4s left</div>
+      </div>
+      <div class="live-pip"><div class="pip-dot"></div>LIVE</div>
+    </div>
+
+  </div>
+
+  <!-- Vignettes -->
+  <div class="vignette-top"></div>
+  <div class="vignette-sides"></div>
+  <div class="vignette-bottom"></div>
+
+  <!-- Bottom content -->
+  <div class="bottom-content">
+    <div class="bottom-left">
+      <div class="bottom-tag">Penny Auctions · Solana</div>
+      <div class="bottom-logo">penny<strong>Bid</strong></div>
+    </div>
+    <div class="bottom-center">
+      <div class="bottom-tagline">penny.bid · @pennyBid_ · Last bidder wins</div>
+    </div>
+    <div class="bottom-right">
+      <div class="stat-pill"><div class="stat-v">$0.01</div><div class="stat-l">Per bid</div></div>
+      <div class="stat-pill"><div class="stat-v">99%</div><div class="stat-l">Off retail</div></div>
+      <div class="stat-pill"><div class="stat-v">15s</div><div class="stat-l">Timer</div></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

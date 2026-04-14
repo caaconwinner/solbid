@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px;
+    height: 1600px;
+    overflow: hidden;
+    background: #080807;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #fff;
+  }
+
+  .page {
+    width: 1200px;
+    height: 1600px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Background ── */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,98,0,0.11) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 30% at 10% 60%, rgba(255,98,0,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 25% at 90% 80%, rgba(255,98,0,0.05) 0%, transparent 60%);
+  }
+  .bg-lines {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(255,98,0,0.02) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,98,0,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 36px 64px;
+  }
+  .logo { font-size: 38px; font-weight: 900; letter-spacing: -1.5px; color: #fff; }
+  .logo strong { color: #ff6200; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .tb-pill {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: #ff6200; border: 1px solid rgba(255,98,0,0.3); border-radius: 20px; padding: 6px 16px;
+  }
+  .tb-url { font-size: 14px; color: #333; font-weight: 500; }
+
+  /* ── Big hero text ── */
+  .hero {
+    position: relative;
+    z-index: 2;
+    padding: 20px 64px 0;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase;
+    color: #ff6200; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+  }
+  .hero-eyebrow::before, .hero-eyebrow::after {
+    content: ''; width: 40px; height: 1px; background: rgba(255,98,0,0.4);
+  }
+  .hero-h1 {
+    font-size: 88px; font-weight: 900; letter-spacing: -5px; line-height: 0.92;
+    color: #fff;
+  }
+  .hero-h1 .orange { color: #ff6200; }
+  .hero-h1 .dim { color: #222; }
+
+  /* ── Live auction card mockup ── */
+  .card-wrap {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    padding: 52px 64px 0;
+    gap: 20px;
+  }
+
+  .mock-card {
+    width: 340px;
+    background: #131210;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,98,0,0.08);
+  }
+  .mock-card.featured {
+    width: 400px;
+    border-color: rgba(255,98,0,0.3);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 40px rgba(255,98,0,0.1);
+    transform: translateY(-12px);
+  }
+
+  .card-img {
+    height: 180px;
+    background: #1a1816;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+    position: relative;
+  }
+  .mock-card.featured .card-img { height: 200px; background: #1e1a14; }
+
+  .live-badge {
+    position: absolute; top: 12px; left: 12px;
+    background: #131210; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 4px 10px;
+    font-size: 11px; font-weight: 700; color: #fff;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #ff6200; box-shadow: 0 0 6px rgba(255,98,0,1);
+    animation: pd 1s ease-in-out infinite;
+  }
+  @keyframes pd { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+
+  .retail-badge {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px; padding: 4px 10px;
+    font-size: 11px; color: #555; text-decoration: line-through;
+  }
+
+  .card-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .card-name { font-size: 16px; font-weight: 800; color: #fff; }
+  .mock-card.featured .card-name { font-size: 18px; }
+
+  .card-row { display: flex; justify-content: space-between; align-items: flex-end; }
+  .card-plabel { font-size: 10px; color: #333; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .card-price { font-family: 'Courier New', monospace; font-size: 30px; font-weight: 700; color: #00e87a; }
+  .mock-card.featured .card-price { font-size: 36px; }
+  .card-timer { font-family: 'Courier New', monospace; font-size: 26px; font-weight: 700; color: #ff6200; text-align: right; }
+  .card-meta { font-size: 11px; color: #333; }
+  .card-cta {
+    background: #ff6200; color: #fff; border-radius: 10px; padding: 12px;
+    text-align: center; font-size: 14px; font-weight: 800; margin-top: 4px;
+  }
+
+  /* Won badge on side cards */
+  .won-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .won-badge {
+    background: rgba(0,232,122,0.15); border: 1px solid rgba(0,232,122,0.4);
+    border-radius: 10px; padding: 8px 18px;
+    font-size: 13px; font-weight: 800; color: #00e87a;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .won-price { font-family: 'Courier New', monospace; font-size: 22px; font-weight: 900; color: #00e87a; }
+  .won-retail { font-size: 10px; color: rgba(0,232,122,0.5); text-decoration: line-through; }
+
+  /* ── Three truths ── */
+  .truths {
+    position: relative; z-index: 2;
+    display: flex;
+    margin: 52px 64px 0;
+    gap: 0;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .truth {
+    flex: 1;
+    padding: 30px 32px;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #0f0e0c;
+  }
+  .truth:last-child { border-right: none; }
+  .truth-val {
+    font-family: 'Courier New', monospace;
+    font-size: 40px; font-weight: 700; color: #ff6200; line-height: 1; letter-spacing: -1px;
+  }
+  .truth-label { font-size: 12px; color: #333; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+  .truth-sub { font-size: 12px; color: #222; margin-top: 4px; line-height: 1.4; }
+
+  /* ── Two column section ── */
+  .two-col {
+    position: relative; z-index: 2;
+    display: flex;
+    gap: 20px;
+    padding: 40px 64px 0;
+  }
+
+  .col-card {
+    flex: 1;
+    background: #0f0e0c;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .col-card.orange-accent { border-color: rgba(255,98,0,0.2); }
+
+  .col-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #ff6200;
+  }
+  .col-title { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: -1px; line-height: 1.1; }
+  .col-title span { color: #ff6200; }
+  .col-body { font-size: 14px; color: #444; line-height: 1.7; }
+  .col-body strong { color: #666; font-weight: 600; }
+
+  .col-list { display: flex; flex-direction: column; gap: 12px; }
+  .col-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 13px; color: #444; line-height: 1.5;
+  }
+  .col-item-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #ff6200;
+    flex-shrink: 0; margin-top: 5px;
+    box-shadow: 0 0 6px rgba(255,98,0,0.6);
+  }
+  .col-item strong { color: #777; font-weight: 600; }
+
+  /* $penny token card */
+  .penny-big { font-size: 56px; font-weight: 900; letter-spacing: -3px; color: #ff6200; line-height: 1; }
+  .penny-mini-stats { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .pmini {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px;
+    background: #141210;
+    border: 1px solid rgba(255,98,0,0.1);
+    border-radius: 10px;
+  }
+  .pmini-label { font-size: 11px; color: #333; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  .pmini-val { font-size: 14px; font-weight: 800; color: #ff6200; }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: auto;
+    position: relative; z-index: 2;
+    border-top: 1px solid rgba(255,98,0,0.12);
+    padding: 32px 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .f-logo { font-size: 26px; font-weight: 900; letter-spacing: -1px; color: #fff; }
+  .f-logo strong { color: #ff6200; }
+  .f-mid { display: flex; gap: 24px; align-items: center; }
+  .f-link { font-size: 13px; color: #2a2a2a; font-weight: 500; }
+  .f-cta {
+    background: #ff6200; color: #fff; font-size: 14px; font-weight: 800;
+    padding: 12px 28px; border-radius: 10px; letter-spacing: 0.2px;
+    box-shadow: 0 0 24px rgba(255,98,0,0.25);
+  }
+  .disclaimer {
+    text-align: center;
+    font-size: 10px;
+    color: #1e1e1e;
+    padding: 0 64px 20px;
+    position: relative;
+    z-index: 2;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bg"></div>
+  <div class="bg-lines"></div>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo">penny<strong>Bid</strong></div>
+    <div class="topbar-right">
+      <div class="tb-pill">🔴 Live Now</div>
+      <div class="tb-url">penny.bid · @pennyBid_</div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Penny Auctions · Powered by Solana</div>
+    <div class="hero-h1">
+      Win big.<br/>
+      Pay <span class="orange">pennies.</span>
+    </div>
+  </div>
+
+  <!-- AUCTION CARDS -->
+  <div class="card-wrap">
+
+    <!-- Left: past win -->
+    <div class="mock-card">
+      <div class="card-img">
+        📱
+        <div class="won-overlay">
+          <div class="won-badge">
+            <div class="won-retail">$999 retail</div>
+            <div class="won-price">$0.87</div>
+            <div style="font-size:10px;color:rgba(0,232,122,0.6);">won by xLancer</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">iPhone 16 Pro</div>
+        <div class="card-meta" style="color:#222;">Ended · 87 bids placed</div>
+      </div>
+    </div>
+
+    <!-- Center: live -->
+    <div class="mock-card featured">
+      <div class="card-img">
+        🎮
+        <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+        <div class="retail-badge">$499</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">PS5 Console Bundle</div>
+        <div class="card-row">
+          <div>
+            <div class="card-plabel">Current price</div>
+            <div class="card-price">$0.13</div>
+          </div>
+          <div>
+            <div class="card-plabel" style="text-align:right">Time left</div>
+            <div class="card-timer">8.4s</div>
+          </div>
+        </div>
+        <div class="card-meta">47 bids · leader: shadow99</div>
+        <div class="card-cta">Place Bid — 1 credit</div>
+      </div>
+    </div>
+
+    <!-- Right: past win -->
+    <div class="mock-card">
+      <div class="card-img">
+        ⌚
+        <div class="won-overlay">
+          <div class="won-badge">
+            <div class="won-retail">$399 retail</div>
+            <div class="won-price">$0.54</div>
+            <div style="font-size:10px;color:rgba(0,232,122,0.6);">won by cryptobid</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">Apple Watch S10</div>
+        <div class="card-meta" style="color:#222;">Ended · 54 bids placed</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TRUTHS -->
+  <div class="truths">
+    <div class="truth">
+      <div class="truth-val">$0.01</div>
+      <div class="truth-label">Per bid</div>
+      <div class="truth-sub">Every bid costs one cent. Nothing more.</div>
+    </div>
+    <div class="truth">
+      <div class="truth-val">99%</div>
+      <div class="truth-label">Below retail</div>
+      <div class="truth-sub">Items routinely won for under $5.</div>
+    </div>
+    <div class="truth">
+      <div class="truth-val">15s</div>
+      <div class="truth-label">Snap timer</div>
+      <div class="truth-sub">Every bid resets the clock.</div>
+    </div>
+    <div class="truth">
+      <div class="truth-val">0</div>
+      <div class="truth-label">KYC needed</div>
+      <div class="truth-sub">Register in seconds. No ID.</div>
+    </div>
+  </div>
+
+  <!-- TWO COLUMNS -->
+  <div class="two-col">
+
+    <!-- How it works -->
+    <div class="col-card">
+      <div class="col-tag">How it works</div>
+      <div class="col-title">Simple rules.<br/>Real <span>rewards.</span></div>
+      <div class="col-list">
+        <div class="col-item">
+          <div class="col-item-dot"></div>
+          <div><strong>Deposit SOL</strong> → receive credits. 1 credit = 0.01 SOL. Always withdrawable if unspent.</div>
+        </div>
+        <div class="col-item">
+          <div class="col-item-dot"></div>
+          <div>Each bid costs <strong>1 credit</strong>, raises the auction price by $0.01, and resets the 15s timer.</div>
+        </div>
+        <div class="col-item">
+          <div class="col-item-dot"></div>
+          <div>When the timer hits zero, the <strong>last bidder wins</strong> the item at the final price.</div>
+        </div>
+        <div class="col-item">
+          <div class="col-item-dot"></div>
+          <div>Winners receive a <strong>SOL prize transfer</strong> equivalent to the item's retail value.</div>
+        </div>
+        <div class="col-item">
+          <div class="col-item-dot"></div>
+          <div>Every auction includes a <strong>provably fair cashback raffle</strong> — committed on-chain before it starts.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- $penny -->
+    <div class="col-card orange-accent">
+      <div class="col-tag">$penny Token</div>
+      <div class="penny-big">$penny</div>
+      <div class="col-body">
+        The native token of pennyBid. <strong>50% of all platform revenue</strong> buys and burns $penny from the open market. Every bid placed makes the supply more scarce.
+      </div>
+      <div class="penny-mini-stats">
+        <div class="pmini">
+          <div class="pmini-label">Revenue split</div>
+          <div class="pmini-val">50% buyback & burn 🔥</div>
+        </div>
+        <div class="pmini">
+          <div class="pmini-label">Design</div>
+          <div class="pmini-val">Deflationary</div>
+        </div>
+        <div class="pmini">
+          <div class="pmini-label">Platform</div>
+          <div class="pmini-val">pump.fun · Solana</div>
+        </div>
+        <div class="pmini">
+          <div class="pmini-label">Mint address</div>
+          <div class="pmini-val">TBA</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="f-logo">penny<strong>Bid</strong></div>
+    <div class="f-mid">
+      <div class="f-link">penny.bid</div>
+      <div class="f-link">@pennyBid_ on X</div>
+      <div class="f-link">pump.fun · $penny</div>
+    </div>
+    <div class="f-cta">Start bidding →</div>
+  </div>
+
+  <div class="disclaimer">
+    Penny auctions involve risk. Bid credits spent in auctions are non-refundable. Participate responsibly. $penny is a speculative token — not financial advice.
+  </div>
+
+</div>
+</body>
+</html>

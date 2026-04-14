@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1500px; height:500px; overflow:hidden; }
+
+  .wrap {
+    width:1500px; height:500px;
+    background:#050509;
+    position:relative; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  .bg-svg { position:absolute; inset:0; z-index:0; pointer-events:none; }
+
+  /* ── Top bar ── */
+  .topbar {
+    position:absolute; top:0; left:0; right:0; height:52px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 56px; z-index:4;
+    border-bottom:1px solid rgba(255,98,0,0.07);
+  }
+  .logo { font-size:20px; font-weight:900; letter-spacing:-0.8px; color:#fff; }
+  .logo strong { color:#ff6200; }
+
+  .top-tag {
+    font-size:10px; font-weight:700; letter-spacing:4px;
+    text-transform:uppercase; color:#ff6200;
+    display:flex; align-items:center; gap:10px;
+  }
+  .top-tag::before, .top-tag::after {
+    content:''; display:block; width:28px; height:1px; background:rgba(255,98,0,0.35);
+  }
+
+  .top-url { font-size:12px; color:#252525; font-weight:600; }
+
+  /* ── Middle section ── */
+  .mid {
+    position:absolute; top:52px; bottom:48px; left:0; right:0;
+    display:flex; align-items:stretch;
+    z-index:2;
+  }
+
+  /* Left headline block */
+  .mid-left {
+    width:300px; flex-shrink:0;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:0 0 0 56px;
+    border-right:1px solid rgba(255,98,0,0.08);
+  }
+  .mid-hl { font-size:52px; font-weight:900; letter-spacing:-2.5px; line-height:0.88; color:#fff; }
+  .mid-hl em { font-style:normal; color:#ff6200; }
+  .mid-sub { font-size:12px; color:#333; line-height:1.6; margin-top:14px; font-weight:500; }
+  .mid-sub strong { color:#4a4a4a; }
+
+  /* Cards strip */
+  .cards-strip {
+    flex:1; display:flex; align-items:center; gap:14px;
+    padding:20px 24px;
+    overflow:hidden;
+  }
+
+  /* ── Auction card ── */
+  .ac {
+    flex-shrink:0; width:210px;
+    background:#0d0c14; border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px; overflow:hidden;
+    box-shadow:0 16px 48px rgba(0,0,0,0.5);
+    display:flex; flex-direction:column;
+    height:100%;
+  }
+  .ac.featured {
+    width:230px;
+    border-color:rgba(255,98,0,0.3);
+    box-shadow:0 16px 48px rgba(0,0,0,0.6),0 0 40px rgba(255,98,0,0.1);
+    transform:scale(1.03);
+  }
+  .ac.won { border-color:rgba(0,232,122,0.2); }
+
+  .ac-img {
+    position:relative;
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:52px;
+  }
+  .ac-img-inner {
+    width:100%; height:120px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ac.featured .ac-img-inner { height:134px; }
+
+  /* Colored img backgrounds */
+  .bg-blue    { background:linear-gradient(135deg,#0d1220,#111828); }
+  .bg-purple  { background:linear-gradient(135deg,#130d20,#1a1130); }
+  .bg-teal    { background:linear-gradient(135deg,#0a1a1a,#0e2020); }
+  .bg-orange  { background:linear-gradient(135deg,#1a0d08,#20120a); }
+  .bg-dark    { background:linear-gradient(135deg,#0d0d14,#12111e); }
+
+  .ac-chip {
+    position:absolute; top:8px; left:8px;
+    border-radius:20px; padding:3px 9px;
+    font-size:9px; font-weight:800; letter-spacing:0.5px;
+    display:flex; align-items:center; gap:4px;
+  }
+  .chip-live {
+    background:rgba(5,5,9,0.88); border:1px solid rgba(255,98,0,0.4);
+    color:#ff6200;
+  }
+  .chip-won {
+    background:rgba(0,232,122,0.12); border:1px solid rgba(0,232,122,0.3);
+    color:#00e87a;
+  }
+  .chip-dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+  .ac-retail {
+    position:absolute; top:8px; right:8px;
+    background:rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.06);
+    border-radius:6px; padding:3px 7px;
+    font-size:9px; color:#333; font-weight:700;
+  }
+
+  .ac-body { padding:11px 13px; display:flex; flex-direction:column; gap:8px; flex:1; }
+  .ac-name { font-size:12px; font-weight:800; color:#ddd; line-height:1.2; }
+  .ac.featured .ac-name { font-size:13px; color:#fff; }
+
+  .ac-prices { display:flex; justify-content:space-between; align-items:flex-end; }
+  .ac-lbl { font-size:8px; color:#252525; text-transform:uppercase; letter-spacing:0.8px; font-weight:700; margin-bottom:2px; }
+  .ac-price { font-family:'Courier New',monospace; font-size:22px; font-weight:700; color:#00e87a; line-height:1; letter-spacing:-0.5px; }
+  .ac.featured .ac-price { font-size:26px; }
+  .ac-timer { font-family:'Courier New',monospace; font-size:16px; font-weight:700; color:#ff6200; text-align:right; line-height:1; }
+
+  .ac-winner { font-size:11px; color:#2a2a2a; }
+  .ac-winner strong { color:#00e87a; font-weight:700; }
+
+  .ac-btn {
+    background:rgba(255,98,0,0.12); border:1px solid rgba(255,98,0,0.2);
+    color:#ff6200; border-radius:8px; padding:8px;
+    text-align:center; font-size:11px; font-weight:800; margin-top:auto;
+  }
+  .ac.featured .ac-btn {
+    background:linear-gradient(135deg,#ff6200,#ff7a00);
+    border:none; color:#fff;
+    box-shadow:0 4px 16px rgba(255,98,0,0.3);
+    font-size:12px;
+  }
+
+  /* Progress bar */
+  .ac-prog { height:2px; background:rgba(255,255,255,0.05); border-radius:1px; }
+  .ac-prog-fill { height:100%; border-radius:1px; background:linear-gradient(to right,#ff6200,#ffaa00); }
+
+  /* ── Bottom bar ── */
+  .bot {
+    position:absolute; bottom:0; left:0; right:0; height:48px;
+    background:rgba(255,98,0,0.03); border-top:1px solid rgba(255,98,0,0.08);
+    display:flex; align-items:center;
+    padding:0 56px; gap:0; z-index:4; overflow:hidden;
+  }
+
+  /* Scrolling ticker */
+  .ticker-track {
+    display:flex; gap:40px; align-items:center;
+    animation:ticker 18s linear infinite;
+    white-space:nowrap;
+  }
+  @keyframes ticker {
+    from { transform:translateX(0); }
+    to   { transform:translateX(-50%); }
+  }
+  .tick-item {
+    display:flex; align-items:center; gap:8px;
+    font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#1e1e1e;
+  }
+  .tick-sep { width:4px; height:4px; border-radius:50%; background:#1a1a1a; flex-shrink:0; }
+  .tick-hl { color:#282828; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <svg class="bg-svg" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="p1" cx="20%" cy="50%" r="40%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.08"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="p2" cx="55%" cy="50%" r="45%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="p3" cx="85%" cy="50%" r="35%">
+        <stop offset="0%" stop-color="#3300ff" stop-opacity="0.04"/>
+        <stop offset="100%" stop-color="#3300ff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1500" height="500" fill="url(#p1)"/>
+    <rect width="1500" height="500" fill="url(#p2)"/>
+    <rect width="1500" height="500" fill="url(#p3)"/>
+
+    <!-- Fine grid -->
+    <g stroke="rgba(255,98,0,0.022)" stroke-width="1">
+      <line x1="0" y1="100" x2="1500" y2="100"/>
+      <line x1="0" y1="200" x2="1500" y2="200"/>
+      <line x1="0" y1="300" x2="1500" y2="300"/>
+      <line x1="0" y1="400" x2="1500" y2="400"/>
+      <line x1="150" y1="0" x2="150" y2="500"/>
+      <line x1="300" y1="0" x2="300" y2="500"/>
+      <line x1="450" y1="0" x2="450" y2="500"/>
+      <line x1="600" y1="0" x2="600" y2="500"/>
+      <line x1="750" y1="0" x2="750" y2="500"/>
+      <line x1="900" y1="0" x2="900" y2="500"/>
+      <line x1="1050" y1="0" x2="1050" y2="500"/>
+      <line x1="1200" y1="0" x2="1200" y2="500"/>
+      <line x1="1350" y1="0" x2="1350" y2="500"/>
+    </g>
+
+    <!-- Corner marks -->
+    <g fill="#ff6200" opacity="0.4">
+      <rect x="0" y="0" width="36" height="2"/>
+      <rect x="0" y="0" width="2" height="36"/>
+      <rect x="1464" y="0" width="36" height="2"/>
+      <rect x="1498" y="0" width="2" height="36"/>
+      <rect x="0" y="498" width="36" height="2"/>
+      <rect x="0" y="464" width="2" height="36"/>
+      <rect x="1464" y="498" width="36" height="2"/>
+      <rect x="1498" y="464" width="2" height="36"/>
+    </g>
+
+    <!-- Particles -->
+    <g fill="#ff6200">
+      <circle cx="70"   cy="90"  r="1.5" opacity="0.5"/>
+      <circle cx="180"  cy="390" r="2"   opacity="0.25"/>
+      <circle cx="1380" cy="90"  r="1.5" opacity="0.4"/>
+      <circle cx="1440" cy="380" r="2"   opacity="0.3"/>
+      <circle cx="750"  cy="28"  r="2"   opacity="0.4"/>
+    </g>
+
+    <!-- Diagonal -->
+    <line x1="1350" y1="52" x2="1500" y2="202" stroke="rgba(255,98,0,0.035)" stroke-width="1"/>
+    <line x1="1400" y1="52" x2="1500" y2="152" stroke="rgba(255,98,0,0.025)" stroke-width="1"/>
+  </svg>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo">penny<strong>Bid</strong></div>
+    <div class="top-tag">Live Auctions · Solana</div>
+    <div class="top-url">penny.bid · @pennyBid_</div>
+  </div>
+
+  <!-- MIDDLE -->
+  <div class="mid">
+    <!-- Left headline -->
+    <div class="mid-left">
+      <div class="mid-hl">Win<br/>items<br/>for <em>cents.</em></div>
+      <div class="mid-sub">Penny auctions on Solana.<br/><strong>$0.01 per bid.</strong> Last bidder wins.</div>
+    </div>
+
+    <!-- Cards -->
+    <div class="cards-strip">
+
+      <!-- Card 1: Won -->
+      <div class="ac won">
+        <div class="ac-img">
+          <div class="ac-img-inner bg-blue">📱</div>
+          <div class="ac-chip chip-won"><span class="chip-dot"></span>WON</div>
+          <div class="ac-retail">$999</div>
+        </div>
+        <div class="ac-body">
+          <div class="ac-name">iPhone 15 Pro Max</div>
+          <div>
+            <div class="ac-lbl">Final price</div>
+            <div class="ac-price" style="color:#00e87a">$0.47</div>
+          </div>
+          <div class="ac-winner">by <strong>sol_phantom</strong></div>
+        </div>
+      </div>
+
+      <!-- Card 2: Live featured -->
+      <div class="ac featured">
+        <div class="ac-img">
+          <div class="ac-img-inner bg-purple">🎮</div>
+          <div class="ac-chip chip-live"><span class="chip-dot"></span>LIVE</div>
+          <div class="ac-retail">$549</div>
+        </div>
+        <div class="ac-body">
+          <div class="ac-name">PlayStation 5 Slim<br/>Digital Edition</div>
+          <div class="ac-prices">
+            <div>
+              <div class="ac-lbl">Price</div>
+              <div class="ac-price">$0.13</div>
+            </div>
+            <div>
+              <div class="ac-lbl" style="text-align:right">Timer</div>
+              <div class="ac-timer">7.4s</div>
+            </div>
+          </div>
+          <div class="ac-prog"><div class="ac-prog-fill" style="width:50%"></div></div>
+          <div class="ac-btn">⚡ Bid — $0.01</div>
+        </div>
+      </div>
+
+      <!-- Card 3: Live -->
+      <div class="ac">
+        <div class="ac-img">
+          <div class="ac-img-inner bg-teal">⌚</div>
+          <div class="ac-chip chip-live"><span class="chip-dot"></span>LIVE</div>
+          <div class="ac-retail">$399</div>
+        </div>
+        <div class="ac-body">
+          <div class="ac-name">Apple Watch Ultra 2</div>
+          <div class="ac-prices">
+            <div>
+              <div class="ac-lbl">Price</div>
+              <div class="ac-price" style="font-size:20px">$0.06</div>
+            </div>
+            <div>
+              <div class="ac-lbl" style="text-align:right">Timer</div>
+              <div class="ac-timer">12.1s</div>
+            </div>
+          </div>
+          <div class="ac-prog"><div class="ac-prog-fill" style="width:20%;background:linear-gradient(to right,#888,#aaa)"></div></div>
+          <div class="ac-btn">⚡ Bid — $0.01</div>
+        </div>
+      </div>
+
+      <!-- Card 4: Live -->
+      <div class="ac">
+        <div class="ac-img">
+          <div class="ac-img-inner bg-orange">🎧</div>
+          <div class="ac-chip chip-live"><span class="chip-dot"></span>LIVE</div>
+          <div class="ac-retail">$249</div>
+        </div>
+        <div class="ac-body">
+          <div class="ac-name">AirPods Pro 2nd Gen</div>
+          <div class="ac-prices">
+            <div>
+              <div class="ac-lbl">Price</div>
+              <div class="ac-price" style="font-size:20px">$0.04</div>
+            </div>
+            <div>
+              <div class="ac-lbl" style="text-align:right">Timer</div>
+              <div class="ac-timer">5.0s</div>
+            </div>
+          </div>
+          <div class="ac-prog"><div class="ac-prog-fill" style="width:35%"></div></div>
+          <div class="ac-btn">⚡ Bid — $0.01</div>
+        </div>
+      </div>
+
+      <!-- Card 5: Won -->
+      <div class="ac won" style="width:190px;flex-shrink:0;">
+        <div class="ac-img">
+          <div class="ac-img-inner bg-dark">💻</div>
+          <div class="ac-chip chip-won"><span class="chip-dot"></span>WON</div>
+          <div class="ac-retail">$1,599</div>
+        </div>
+        <div class="ac-body">
+          <div class="ac-name">MacBook Air M3</div>
+          <div>
+            <div class="ac-lbl">Final price</div>
+            <div class="ac-price" style="color:#00e87a;font-size:20px">$0.89</div>
+          </div>
+          <div class="ac-winner">by <strong>0xLance</strong></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOTTOM TICKER -->
+  <div class="bot">
+    <div class="ticker-track">
+      <!-- First copy -->
+      <div class="tick-item">$0.01 per bid <span class="tick-sep"></span></div>
+      <div class="tick-item">Last bidder wins <span class="tick-sep"></span></div>
+      <div class="tick-item">No KYC required <span class="tick-sep"></span></div>
+      <div class="tick-item">Built on Solana <span class="tick-sep"></span></div>
+      <div class="tick-item tick-hl">Items 90–99% below retail <span class="tick-sep"></span></div>
+      <div class="tick-item">Wallet auto-generated <span class="tick-sep"></span></div>
+      <div class="tick-item">Credits always withdrawable <span class="tick-sep"></span></div>
+      <div class="tick-item">$penny buyback & burn <span class="tick-sep"></span></div>
+      <div class="tick-item">15-second timer resets per bid <span class="tick-sep"></span></div>
+      <!-- Second copy for seamless loop -->
+      <div class="tick-item">$0.01 per bid <span class="tick-sep"></span></div>
+      <div class="tick-item">Last bidder wins <span class="tick-sep"></span></div>
+      <div class="tick-item">No KYC required <span class="tick-sep"></span></div>
+      <div class="tick-item">Built on Solana <span class="tick-sep"></span></div>
+      <div class="tick-item tick-hl">Items 90–99% below retail <span class="tick-sep"></span></div>
+      <div class="tick-item">Wallet auto-generated <span class="tick-sep"></span></div>
+      <div class="tick-item">Credits always withdrawable <span class="tick-sep"></span></div>
+      <div class="tick-item">$penny buyback & burn <span class="tick-sep"></span></div>
+      <div class="tick-item">15-second timer resets per bid <span class="tick-sep"></span></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

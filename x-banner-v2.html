@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1500px; height: 500px; overflow: hidden; background: #0a0a0a; }
+
+  .banner {
+    width: 1500px;
+    height: 500px;
+    background: #0a0a0a;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* ── Grid stage ── */
+  .grid-stage {
+    position: absolute;
+    top: -30px;
+    left: -60px;
+    right: -60px;
+    height: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transform: perspective(900px) rotateX(12deg);
+    transform-origin: top center;
+  }
+
+  .card-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  /* ── Individual cards ── */
+  .card {
+    flex-shrink: 0;
+    width: 210px;
+    height: 160px;
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+  }
+
+  .card-bg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    filter: brightness(0.55);
+  }
+
+  /* Card background tints — all dark but with slight hue variety */
+  .c1  { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+  .c2  { background: linear-gradient(135deg, #1a1209 0%, #2a1a08 100%); }
+  .c3  { background: linear-gradient(135deg, #0d1a0d 0%, #0a1f10 100%); }
+  .c4  { background: linear-gradient(135deg, #1a0d1a 0%, #200d20 100%); }
+  .c5  { background: linear-gradient(135deg, #0d0d1a 0%, #0a0a22 100%); }
+  .c6  { background: linear-gradient(135deg, #1a0d0d 0%, #220a0a 100%); }
+  .c7  { background: linear-gradient(135deg, #121a12 0%, #0a1a0d 100%); }
+  .c8  { background: linear-gradient(135deg, #1a1600 0%, #221c00 100%); }
+
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 60%, transparent 100%);
+  }
+
+  .card-content {
+    position: relative;
+    z-index: 2;
+    padding: 10px 12px;
+    width: 100%;
+  }
+
+  .card-name {
+    font-size: 13px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    line-height: 1.2;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  }
+
+  .card-price {
+    margin-top: 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #ff6200;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* ── Bottom fade + logo ── */
+  .bottom-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 260px;
+    background: linear-gradient(to bottom,
+      transparent 0%,
+      rgba(10,10,10,0.5) 25%,
+      rgba(10,10,10,0.92) 50%,
+      #0a0a0a 70%
+    );
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 36px;
+    gap: 12px;
+  }
+
+  .logo {
+    font-size: 88px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -3px;
+    line-height: 1;
+    text-shadow: 0 0 60px rgba(255,98,0,0.3);
+  }
+  .logo strong { color: #ff6200; }
+
+  .tagline {
+    font-size: 16px;
+    color: #555;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  .tagline span { color: #ff6200; font-weight: 700; }
+
+  /* ── Glow behind logo ── */
+  .logo-glow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 200px;
+    background: radial-gradient(ellipse at center bottom, rgba(255,98,0,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ── Left/right edge fade ── */
+  .edge-fade-left {
+    position: absolute;
+    top: 0; left: 0;
+    width: 120px; height: 100%;
+    background: linear-gradient(to right, #0a0a0a 0%, transparent 100%);
+    z-index: 3;
+  }
+  .edge-fade-right {
+    position: absolute;
+    top: 0; right: 0;
+    width: 120px; height: 100%;
+    background: linear-gradient(to left, #0a0a0a 0%, transparent 100%);
+    z-index: 3;
+  }
+
+  /* url */
+  .url {
+    position: absolute;
+    bottom: 20px;
+    right: 36px;
+    font-size: 12px;
+    color: #2a2a2a;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+
+  <!-- Product grid -->
+  <div class="grid-stage">
+
+    <!-- Row 1 -->
+    <div class="card-row">
+      <div class="card c1">
+        <div class="card-bg">🎮</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">PS5 Console<br>Bundle</div>
+          <div class="card-price">won $1.43</div>
+        </div>
+      </div>
+      <div class="card c2">
+        <div class="card-bg">💻</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">MacBook<br>Pro</div>
+          <div class="card-price">won $2.81</div>
+        </div>
+      </div>
+      <div class="card c3">
+        <div class="card-bg">📱</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">iPhone 16<br>Pro</div>
+          <div class="card-price">won $0.87</div>
+        </div>
+      </div>
+      <div class="card c5">
+        <div class="card-bg">⌚</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">Apple<br>Watch S10</div>
+          <div class="card-price">won $0.54</div>
+        </div>
+      </div>
+      <div class="card c6">
+        <div class="card-bg">🥇</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">Rolex<br>Watch</div>
+          <div class="card-price">won $3.12</div>
+        </div>
+      </div>
+      <div class="card c4">
+        <div class="card-bg">🎧</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">AirPods<br>Pro</div>
+          <div class="card-price">won $0.31</div>
+        </div>
+      </div>
+      <div class="card c7">
+        <div class="card-bg">🖥️</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">Gaming<br>Monitor</div>
+          <div class="card-price">won $1.09</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="card-row">
+      <div class="card c4">
+        <div class="card-bg">🕹️</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">Steam<br>Deck</div>
+          <div class="card-price">won $0.78</div>
+        </div>
+      </div>
+      <div class="card c8">
+        <div class="card-bg">🪙</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">SOL<br>Coins</div>
+          <div class="card-price">won $0.22</div>
+        </div>
+      </div>
+      <div class="card c1">
+        <div class="card-bg">📷</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">Sony<br>Camera</div>
+          <div class="card-price">won $1.67</div>
+        </div>
+      </div>
+      <div class="card c3">
+        <div class="card-bg">🕶️</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">Designer<br>Sunglasses</div>
+          <div class="card-price">won $0.19</div>
+        </div>
+      </div>
+      <div class="card c6">
+        <div class="card-bg">💺</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">Gaming<br>Chair</div>
+          <div class="card-price">won $0.93</div>
+        </div>
+      </div>
+      <div class="card c2">
+        <div class="card-bg">📟</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">iPad<br>Pro</div>
+          <div class="card-price">won $1.21</div>
+        </div>
+      </div>
+      <div class="card c5">
+        <div class="card-bg">🎒</div>
+        <div class="card-overlay"></div>
+        <div class="card-content">
+          <div class="card-name">Designer<br>Bag</div>
+          <div class="card-price">won $0.44</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Edge fades -->
+  <div class="edge-fade-left"></div>
+  <div class="edge-fade-right"></div>
+
+  <!-- Bottom -->
+  <div class="bottom-fade">
+    <div class="logo-glow"></div>
+    <div class="logo">penny<strong>Bid</strong></div>
+    <div class="tagline">Win real items for <span>pennies on the dollar</span> · penny.bid</div>
+  </div>
+
+  <div class="url">@pennyBid_</div>
+
+</div>
+</body>
+</html>

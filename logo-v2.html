@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #050505;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    width: 1040px;
+  }
+
+  .box {
+    width: 500px;
+    height: 500px;
+    border-radius: 40px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #141210;
+    flex-shrink: 0;
+  }
+
+  /* ── LOGO 1 (penny only) ──────────────────────
+     Dot prefix + big "penny" + subtitle line
+  ──────────────────────────────────────────────── */
+  .l1-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0 56px;
+    width: 100%;
+  }
+  .l1-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .l1-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ff6200;
+    box-shadow: 0 0 20px rgba(255,98,0,0.7);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .l1-word {
+    font-size: 112px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -5px;
+    line-height: 0.9;
+  }
+  .l1-line {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, #ff6200 0%, rgba(255,98,0,0.1) 100%);
+    margin-top: 22px;
+    border-radius: 2px;
+  }
+  .l1-sub {
+    margin-top: 16px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3.5px;
+    text-transform: uppercase;
+    color: #3a3530;
+  }
+
+
+  /* ── LOGO 2 (penny only) ──────────────────────
+     Oversized rotated "p" behind "enny"
+  ──────────────────────────────────────────────── */
+  .l2-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .l2-bg-p {
+    position: absolute;
+    font-size: 420px;
+    font-weight: 900;
+    color: rgba(255,98,0,0.05);
+    letter-spacing: -20px;
+    line-height: 1;
+    top: -80px;
+    left: -30px;
+    user-select: none;
+  }
+  .l2-penny {
+    position: relative;
+    font-size: 104px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -5px;
+    line-height: 1;
+  }
+  .l2-penny span { color: #ff6200; }
+  .l2-bar {
+    width: 60px;
+    height: 3px;
+    background: #ff6200;
+    border-radius: 2px;
+    margin: 18px 0;
+    box-shadow: 0 0 10px rgba(255,98,0,0.5);
+  }
+  .l2-sub {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #333;
+  }
+
+
+  /* ── LOGO 3 (penny only) ──────────────────────
+     Stacked, right-aligned, orange slash accent
+  ──────────────────────────────────────────────── */
+  .l3-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 0 48px;
+    width: 100%;
+  }
+  .l3-slash {
+    font-size: 160px;
+    font-weight: 900;
+    color: #ff6200;
+    line-height: 0.8;
+    opacity: 0.9;
+    letter-spacing: -10px;
+    text-shadow: 0 0 40px rgba(255,98,0,0.4);
+  }
+  .l3-word {
+    font-size: 100px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -4px;
+    line-height: 0.9;
+    margin-top: -10px;
+  }
+  .l3-line {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to left, #ff6200 0%, rgba(255,98,0,0.05) 100%);
+    margin-top: 24px;
+  }
+  .l3-sub {
+    margin-top: 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #2e2a26;
+    text-align: right;
+  }
+
+
+  /* ── LOGO 4 (pennyBid) ────────────────────────
+     Closest to reference: stacked, dot + line
+  ──────────────────────────────────────────────── */
+  .l4-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0 56px;
+    width: 100%;
+  }
+  .l4-penny {
+    font-size: 104px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -5px;
+    line-height: 0.88;
+  }
+  .l4-bid {
+    font-size: 104px;
+    font-weight: 900;
+    color: #ff6200;
+    letter-spacing: -5px;
+    line-height: 0.88;
+    text-shadow: 0 0 60px rgba(255,98,0,0.2);
+  }
+  .l4-accent {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    width: 100%;
+  }
+  .l4-adot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff6200;
+    flex-shrink: 0;
+    box-shadow: 0 0 12px rgba(255,98,0,0.8);
+  }
+  .l4-aline {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(to right, #ff6200, rgba(255,98,0,0.08));
+    border-radius: 1px;
+  }
+  .l4-sub {
+    margin-top: 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3.5px;
+    text-transform: uppercase;
+    color: #332f29;
+  }
+
+
+  /* ── LOGO 5 (pennyBid) ────────────────────────
+     Inline, "penny" white / "Bid" in orange box
+  ──────────────────────────────────────────────── */
+  .l5-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .l5-top {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .l5-penny {
+    font-size: 82px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -4px;
+    line-height: 1;
+  }
+  .l5-bid-box {
+    background: #ff6200;
+    padding: 4px 16px 6px;
+    border-radius: 10px;
+    margin-left: 10px;
+    box-shadow: 0 0 30px rgba(255,98,0,0.35);
+    align-self: flex-end;
+    margin-bottom: 6px;
+  }
+  .l5-bid {
+    font-size: 62px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -3px;
+    line-height: 1;
+  }
+  .l5-line {
+    width: 340px;
+    height: 1px;
+    background: linear-gradient(to right, rgba(255,98,0,0.05), rgba(255,98,0,0.4), rgba(255,98,0,0.05));
+    margin-top: 22px;
+  }
+  .l5-sub {
+    margin-top: 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #2e2a24;
+    text-align: center;
+  }
+  .l5-dots {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .l5-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #ff6200;
+    opacity: 0.4;
+  }
+  .l5-dot.active { opacity: 1; box-shadow: 0 0 8px rgba(255,98,0,0.8); }
+
+</style>
+</head>
+<body>
+
+  <!-- LOGO 1 — penny only, dot prefix -->
+  <div class="box" style="background:linear-gradient(145deg,#141210,#0f0e0b);">
+    <div class="l1-wrap">
+      <div class="l1-row">
+        <div class="l1-dot"></div>
+        <div class="l1-word">penny</div>
+      </div>
+      <div class="l1-line"></div>
+      <div class="l1-sub">Penny Auctions · Solana</div>
+    </div>
+  </div>
+
+  <!-- LOGO 2 — penny only, ghost P bg, orange first letter -->
+  <div class="box" style="background:linear-gradient(145deg,#131211,#0d0c0a);">
+    <div class="l2-wrap">
+      <div class="l2-bg-p">p</div>
+      <div class="l2-penny"><span>p</span>enny</div>
+      <div class="l2-bar"></div>
+      <div class="l2-sub">Penny Auctions · Solana</div>
+    </div>
+  </div>
+
+  <!-- LOGO 3 — penny only, right-aligned with slash -->
+  <div class="box" style="background:linear-gradient(145deg,#111010,#0e0d0b);">
+    <div class="l3-wrap">
+      <div class="l3-slash">/</div>
+      <div class="l3-word">penny</div>
+      <div class="l3-line"></div>
+      <div class="l3-sub">Penny Auctions · Solana</div>
+    </div>
+  </div>
+
+  <!-- LOGO 4 — pennyBid stacked, closest to reference -->
+  <div class="box" style="background:linear-gradient(145deg,#141210,#100f0c);">
+    <div class="l4-wrap">
+      <div class="l4-penny">penny</div>
+      <div class="l4-bid">Bid</div>
+      <div class="l4-accent">
+        <div class="l4-adot"></div>
+        <div class="l4-aline"></div>
+      </div>
+      <div class="l4-sub">Penny Auctions · Solana</div>
+    </div>
+  </div>
+
+  <!-- LOGO 5 — pennyBid inline, Bid in orange box -->
+  <div class="box" style="background:linear-gradient(145deg,#131211,#0f0e0c);">
+    <div class="l5-wrap">
+      <div class="l5-top">
+        <div class="l5-penny">penny</div>
+        <div class="l5-bid-box">
+          <div class="l5-bid">Bid</div>
+        </div>
+      </div>
+      <div class="l5-line"></div>
+      <div class="l5-sub">Penny Auctions · Solana</div>
+      <div class="l5-dots">
+        <div class="l5-dot"></div>
+        <div class="l5-dot active"></div>
+        <div class="l5-dot"></div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

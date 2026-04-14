@@ -15,8 +15,8 @@
   --text-muted: #aaaaaa;
   --text-dim:   #444444;
   /* ── Brand ── */
-  --orange:     #ff6200;
-  --orange-dim: rgba(255, 98, 0, 0.12);
+  --orange:     #27679d;
+  --orange-dim: rgba(39, 103, 157, 0.12);
   --green:      #00e87a;
   --green-dim:  rgba(0, 232, 122, 0.1);
   --red:        #ff3b3b;
@@ -49,7 +49,7 @@
   --text:       #111111;
   --text-muted: #777777;
   --text-dim:   #c0c0c0;
-  --orange-dim: rgba(255, 98, 0, 0.08);
+  --orange-dim: rgba(39, 103, 157, 0.08);
   --green:      #00b856;
   --green-dim:  rgba(0, 184, 86, 0.1);
   --red:        #e53030;

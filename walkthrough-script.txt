@@ -1,0 +1,132 @@
+========================================
+  pennyBid — Video Walkthrough Script
+========================================
+
+
+----------------------------------------
+[0:00–0:05] OPENING SHOT
+----------------------------------------
+
+VOICEOVER:
+"What if you could win an iPhone, a PS5, or even a luxury watch — for less than a dollar?"
+
+ON SCREEN:
+- pennyBid landing page full screen
+- Slow scroll down to show auction cards and recent wins section
+
+
+----------------------------------------
+[0:05–0:10] INTRO
+----------------------------------------
+
+VOICEOVER:
+"That's exactly what pennyBid makes possible. Here's how it works."
+
+ON SCREEN:
+- Zoom into the hero headline on the landing page
+- Cut to the live auctions page showing active auctions
+
+
+----------------------------------------
+[0:10–0:22] CORE MECHANIC
+----------------------------------------
+
+VOICEOVER:
+"Every auction starts at zero. Each bid costs just one cent — literally one penny.
+When you place a bid, the price goes up by one cent, and a 15-second countdown resets."
+
+ON SCREEN:
+- Click into a live auction
+- Show the current price (low, like $0.04)
+- Show the countdown timer ticking down
+- Click Place Bid — show price tick up by $0.01
+- Show timer reset to 15 seconds
+
+
+----------------------------------------
+[0:22–0:30] LAST BIDDER WINS
+----------------------------------------
+
+VOICEOVER:
+"The auction keeps going as long as people keep bidding.
+The very last person to bid when that timer hits zero — wins the item. That's it."
+
+ON SCREEN:
+- Stay on the auction page
+- Show timer counting down — 10s, 5s, 4s, 3s, 2s, 1s
+- Auction ending
+- Winner announcement appearing on screen
+
+
+----------------------------------------
+[0:30–0:40] GETTING STARTED
+----------------------------------------
+
+VOICEOVER:
+"Getting started is simple. No KYC, no ID verification.
+You deposit SOL, get bid credits, and you're in.
+And if you don't win? Any unused credits can always be withdrawn.
+You never lose your money."
+
+ON SCREEN:
+- Show the register page — just username and password, nothing else
+- Show the account/dashboard page with SOL deposit address
+- Show the credits balance updating
+- Show the withdraw button
+
+
+----------------------------------------
+[0:40–0:47] SOLANA + $PENNY TOKEN
+----------------------------------------
+
+VOICEOVER:
+"pennyBid is built on Solana, so everything is fast and cheap.
+And 50% of all platform revenue goes toward buying and burning the dollar-penny token —
+making it more scarce with every single bid placed."
+
+ON SCREEN:
+- Show the $penny page on penny.bid
+- Highlight the 50% buyback and burn section
+- Slow scroll so it reads on screen
+
+
+----------------------------------------
+[0:47–0:53] CLOSING
+----------------------------------------
+
+VOICEOVER:
+"Items selling for 99% below retail. One penny at a time. Ready to play?"
+"pennyBid. Pay pennies on the dollar — for anything."
+
+ON SCREEN:
+- Show a recently won auction — item name, final price ($0.47), retail value ($999)
+- Slow zoom out to the full auctions page
+- End on the pennyBid logo / landing page hero
+
+
+========================================
+  PRODUCTION NOTES
+========================================
+
+VOICEOVER:
+- Paste each VOICEOVER block into ElevenLabs separately or as one full script
+- Recommended voices: Rachel, Bella, or Charlotte
+- Style: Narration or Conversational
+- Stability: 60%  |  Similarity: 75%
+
+RECORDING (OBS):
+- Resolution: 1920x1080 at 60fps
+- Format: MP4
+- Use Window Capture on Chrome (full screen with F11)
+- Hide taskbar before recording
+- Record 2-3 full takes and pick the best one
+
+EDITING (CapCut):
+- Import OBS video
+- Import ElevenLabs MP3
+- Mute original video audio
+- Sync voiceover to screen actions
+- Add auto-captions (one click in CapCut)
+- Export at 1080p
+
+========================================

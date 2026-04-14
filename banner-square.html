@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1080px; overflow:hidden; }
+
+  .wrap {
+    width:1080px; height:1080px;
+    background:#080807;
+    position:relative; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex; flex-direction:column;
+  }
+
+  /* SVG BG */
+  .bg-svg { position:absolute; inset:0; z-index:0; pointer-events:none; }
+
+  /* ── Header ── */
+  .hdr {
+    position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:44px 56px 0;
+  }
+  .hdr-logo { font-size:32px; font-weight:900; letter-spacing:-1.5px; color:#fff; }
+  .hdr-logo strong { color:#ff6200; }
+  .hdr-pill {
+    font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+    color:#ff6200; border:1px solid rgba(255,98,0,0.3); border-radius:20px; padding:7px 18px;
+  }
+
+  /* ── Hero text ── */
+  .hero {
+    position:relative; z-index:2;
+    padding:52px 56px 0;
+  }
+  .hero-tag {
+    font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+    color:#ff6200; margin-bottom:18px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .hero-tag-line { width:24px; height:2px; background:#ff6200; border-radius:1px; }
+  .hero-h {
+    font-size:86px; font-weight:900; letter-spacing:-4.5px; line-height:0.88; color:#fff;
+  }
+  .hero-h span { color:#ff6200; }
+  .hero-sub {
+    font-size:17px; color:#444; line-height:1.6; margin-top:20px;
+    max-width:560px; font-weight:500;
+  }
+  .hero-sub strong { color:#666; font-weight:700; }
+
+  /* ── Stats row ── */
+  .stats {
+    position:relative; z-index:2;
+    display:flex; margin:44px 56px 0;
+    border:1px solid rgba(255,255,255,0.05); border-radius:14px; overflow:hidden;
+  }
+  .st {
+    flex:1; padding:24px 28px;
+    border-right:1px solid rgba(255,255,255,0.05);
+    background:#0d0c0a;
+  }
+  .st:last-child { border-right:none; }
+  .st-v {
+    font-family:'Courier New',monospace;
+    font-size:38px; font-weight:700; color:#ff6200; line-height:1; letter-spacing:-1px;
+  }
+  .st-l { font-size:10px; color:#2a2a2a; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-top:5px; }
+
+  /* ── Two feature cards ── */
+  .cards {
+    position:relative; z-index:2;
+    display:flex; gap:14px;
+    margin:16px 56px 0;
+    flex:1;
+  }
+  .fcard {
+    flex:1; background:#0d0c0a;
+    border:1px solid rgba(255,255,255,0.05); border-radius:16px;
+    padding:28px 28px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .fcard.accent { border-color:rgba(255,98,0,0.2); background:#0f0d0a; }
+
+  .fcard-icon { font-size:36px; line-height:1; }
+  .fcard-title { font-size:20px; font-weight:900; color:#fff; letter-spacing:-0.5px; line-height:1.2; }
+  .fcard-title span { color:#ff6200; }
+  .fcard-body { font-size:13px; color:#3a3a3a; line-height:1.65; }
+  .fcard-body strong { color:#555; font-weight:600; }
+
+  .fcard-stat {
+    margin-top:auto;
+    padding-top:16px;
+    border-top:1px solid rgba(255,255,255,0.05);
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .fcard-stat-v {
+    font-family:'Courier New',monospace;
+    font-size:32px; font-weight:700; color:#ff6200; letter-spacing:-1px;
+  }
+  .fcard-stat-l { font-size:11px; color:#2a2a2a; text-transform:uppercase; letter-spacing:1px; font-weight:700; }
+
+  /* ── Footer ── */
+  .foot {
+    position:relative; z-index:2;
+    padding:24px 56px 40px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-top:1px solid rgba(255,98,0,0.08);
+    margin-top:16px;
+  }
+  .foot-left { display:flex; flex-direction:column; gap:4px; }
+  .foot-logo { font-size:22px; font-weight:900; letter-spacing:-1px; color:#fff; }
+  .foot-logo strong { color:#ff6200; }
+  .foot-sub { font-size:11px; color:#1e1e1e; letter-spacing:0.3px; }
+
+  .foot-pills { display:flex; gap:8px; }
+  .fpill {
+    font-size:10px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;
+    color:#222; border:1px solid rgba(255,255,255,0.05); border-radius:14px; padding:5px 12px;
+  }
+
+  .foot-url { font-size:13px; color:#222; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <svg class="bg-svg" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="q1" cx="50%" cy="20%" r="50%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.1"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="q2" cx="10%" cy="70%" r="40%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="q3" cx="90%" cy="80%" r="35%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.05"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1080" height="1080" fill="url(#q1)"/>
+    <rect width="1080" height="1080" fill="url(#q2)"/>
+    <rect width="1080" height="1080" fill="url(#q3)"/>
+
+    <!-- Grid -->
+    <g stroke="rgba(255,98,0,0.025)" stroke-width="1">
+      <line x1="0" y1="135" x2="1080" y2="135"/>
+      <line x1="0" y1="270" x2="1080" y2="270"/>
+      <line x1="0" y1="405" x2="1080" y2="405"/>
+      <line x1="0" y1="540" x2="1080" y2="540"/>
+      <line x1="0" y1="675" x2="1080" y2="675"/>
+      <line x1="0" y1="810" x2="1080" y2="810"/>
+      <line x1="0" y1="945" x2="1080" y2="945"/>
+      <line x1="135" y1="0" x2="135" y2="1080"/>
+      <line x1="270" y1="0" x2="270" y2="1080"/>
+      <line x1="405" y1="0" x2="405" y2="1080"/>
+      <line x1="540" y1="0" x2="540" y2="1080"/>
+      <line x1="675" y1="0" x2="675" y2="1080"/>
+      <line x1="810" y1="0" x2="810" y2="1080"/>
+      <line x1="945" y1="0" x2="945" y2="1080"/>
+    </g>
+
+    <!-- Corner marks -->
+    <g fill="#ff6200" opacity="0.4">
+      <rect x="0" y="0" width="32" height="2"/>
+      <rect x="0" y="0" width="2" height="32"/>
+      <rect x="1048" y="0" width="32" height="2"/>
+      <rect x="1078" y="0" width="2" height="32"/>
+      <rect x="0" y="1078" width="32" height="2"/>
+      <rect x="0" y="1048" width="2" height="32"/>
+      <rect x="1048" y="1078" width="32" height="2"/>
+      <rect x="1078" y="1048" width="2" height="32"/>
+    </g>
+
+    <!-- Dots -->
+    <g fill="#ff6200">
+      <circle cx="80"  cy="120" r="2"   opacity="0.4"/>
+      <circle cx="300" cy="600" r="1.5" opacity="0.3"/>
+      <circle cx="960" cy="200" r="2"   opacity="0.35"/>
+      <circle cx="720" cy="920" r="1.5" opacity="0.3"/>
+      <circle cx="200" cy="880" r="2"   opacity="0.25"/>
+      <circle cx="1000" cy="700" r="1.5" opacity="0.3"/>
+    </g>
+
+    <!-- Solana-style lines bottom right -->
+    <g opacity="0.08">
+      <line x1="820" y1="1060" x2="1060" y2="1060" stroke="#ff6200" stroke-width="3" stroke-linecap="round"/>
+      <line x1="840" y1="1040" x2="1060" y2="1040" stroke="#ff6200" stroke-width="2" stroke-linecap="round"/>
+      <line x1="860" y1="1022" x2="1060" y2="1022" stroke="#ff6200" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </svg>
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-logo">penny<strong>Bid</strong></div>
+    <div class="hdr-pill">🪙 $penny token</div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag"><div class="hero-tag-line"></div>Penny Auctions · Solana</div>
+    <div class="hero-h">
+      Win big.<br/><span>Pay cents.</span>
+    </div>
+    <div class="hero-sub">
+      Every bid costs <strong>$0.01</strong>. Each bid resets a <strong>15-second timer</strong>.
+      Last bidder wins the item. Items sell for <strong>90–99% below retail.</strong>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="st">
+      <div class="st-v">$0.01</div>
+      <div class="st-l">Per bid</div>
+    </div>
+    <div class="st">
+      <div class="st-v">15s</div>
+      <div class="st-l">Snap timer</div>
+    </div>
+    <div class="st">
+      <div class="st-v">99%</div>
+      <div class="st-l">Below retail</div>
+    </div>
+    <div class="st">
+      <div class="st-v">50%</div>
+      <div class="st-l">$penny burn</div>
+    </div>
+  </div>
+
+  <!-- FEATURE CARDS -->
+  <div class="cards">
+    <div class="fcard">
+      <div class="fcard-icon">🔗</div>
+      <div class="fcard-title">Built on<br/>Solana</div>
+      <div class="fcard-body">
+        Instant wallet generation. No KYC, no extensions.
+        <strong>Deposit SOL → get credits → bid.</strong>
+        Unspent credits always withdrawable.
+      </div>
+      <div class="fcard-stat">
+        <div class="fcard-stat-v">0</div>
+        <div class="fcard-stat-l">Setup required</div>
+      </div>
+    </div>
+
+    <div class="fcard accent">
+      <div class="fcard-icon">🔥</div>
+      <div class="fcard-title">$penny<br/><span>Buyback & Burn</span></div>
+      <div class="fcard-body">
+        <strong>50% of all revenue</strong> buys and burns $penny from the open market.
+        Every bid on the platform makes the token more scarce. Deflationary by design.
+      </div>
+      <div class="fcard-stat">
+        <div class="fcard-stat-v">50%</div>
+        <div class="fcard-stat-l">Revenue → burn</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="foot">
+    <div class="foot-left">
+      <div class="foot-logo">penny<strong>Bid</strong></div>
+      <div class="foot-sub">penny.bid · @pennyBid_ on X</div>
+    </div>
+    <div class="foot-pills">
+      <div class="fpill">No KYC</div>
+      <div class="fpill">Provably fair</div>
+      <div class="fpill">Solana</div>
+    </div>
+    <div class="foot-url">penny.bid</div>
+  </div>
+
+</div>
+</body>
+</html>

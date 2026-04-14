@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 1600px;
+    overflow: hidden;
+    background: #0d0c0a;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #fff;
+  }
+
+  .page {
+    width: 1200px;
+    height: 1600px;
+    background: #0d0c0a;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Background ── */
+  .bg-glow-top {
+    position: absolute;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 1000px; height: 600px;
+    background: radial-gradient(ellipse, rgba(255,98,0,0.1) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .bg-glow-mid {
+    position: absolute;
+    top: 680px; left: -100px;
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(255,98,0,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .bg-glow-bottom {
+    position: absolute;
+    bottom: -100px; right: -100px;
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(255,98,0,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,98,0,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,98,0,0.025) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+  }
+
+  /* ── Header ── */
+  .header {
+    padding: 56px 72px 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
+    border-bottom: 1px solid rgba(255,98,0,0.12);
+  }
+  .logo {
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: #fff;
+    line-height: 1;
+  }
+  .logo strong { color: #ff6200; }
+  .header-right {
+    text-align: right;
+  }
+  .header-tag {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #ff6200;
+    margin-bottom: 6px;
+  }
+  .header-url {
+    font-size: 18px;
+    color: #444;
+    font-weight: 500;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 64px 72px 56px;
+    position: relative;
+    z-index: 2;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .hero-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #ff6200;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,98,0,0.2);
+  }
+  .hero-headline {
+    font-size: 64px;
+    font-weight: 900;
+    letter-spacing: -3px;
+    line-height: 1.0;
+    color: #fff;
+    margin-bottom: 24px;
+    max-width: 800px;
+  }
+  .hero-headline span { color: #ff6200; }
+  .hero-sub {
+    font-size: 20px;
+    color: #666;
+    line-height: 1.6;
+    max-width: 700px;
+    font-weight: 400;
+  }
+  .hero-sub strong { color: #999; font-weight: 600; }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: flex;
+    position: relative;
+    z-index: 2;
+  }
+  .stat {
+    flex: 1;
+    padding: 36px 44px;
+    border-right: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-val {
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: #ff6200;
+    line-height: 1;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 8px;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: #444;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ── Section ── */
+  .section {
+    padding: 60px 72px;
+    position: relative;
+    z-index: 2;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #ff6200;
+    margin-bottom: 36px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,98,0,0.15);
+  }
+
+  /* How it works steps */
+  .steps {
+    display: flex;
+    gap: 0;
+  }
+  .step {
+    flex: 1;
+    padding-right: 40px;
+    position: relative;
+  }
+  .step:last-child { padding-right: 0; }
+  .step::after {
+    content: '→';
+    position: absolute;
+    right: 6px;
+    top: 16px;
+    color: rgba(255,98,0,0.25);
+    font-size: 24px;
+  }
+  .step:last-child::after { display: none; }
+  .step-num {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #ff6200;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    box-shadow: 0 0 20px rgba(255,98,0,0.3);
+  }
+  .step-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 10px;
+    letter-spacing: -0.3px;
+  }
+  .step-body {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.65;
+  }
+  .step-body strong { color: #888; font-weight: 600; }
+
+  /* Feature cards */
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .feat-card {
+    background: #131210;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .feat-card:hover {}
+  .feat-icon { font-size: 32px; line-height: 1; }
+  .feat-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.3px;
+  }
+  .feat-body {
+    font-size: 13px;
+    color: #4a4a4a;
+    line-height: 1.6;
+  }
+  .feat-body strong { color: #666; font-weight: 600; }
+
+  /* $penny section */
+  .penny-section {
+    background: #111009;
+    border-top: 1px solid rgba(255,98,0,0.1);
+    border-bottom: 1px solid rgba(255,98,0,0.1);
+  }
+  .penny-inner {
+    display: flex;
+    gap: 64px;
+    align-items: flex-start;
+  }
+  .penny-left { flex: 1; }
+  .penny-right {
+    width: 320px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .penny-name {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: -3px;
+    color: #ff6200;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .penny-ticker {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .penny-desc {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.7;
+  }
+  .penny-desc strong { color: #888; font-weight: 600; }
+
+  .penny-stat {
+    background: #181510;
+    border: 1px solid rgba(255,98,0,0.12);
+    border-radius: 12px;
+    padding: 20px 24px;
+  }
+  .penny-stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  .penny-stat-val {
+    font-size: 22px;
+    font-weight: 800;
+    color: #ff6200;
+    letter-spacing: -0.5px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: auto;
+    padding: 40px 72px;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255,98,0,0.12);
+  }
+  .footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .footer-logo {
+    font-size: 28px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -1px;
+  }
+  .footer-logo strong { color: #ff6200; }
+  .footer-sub {
+    font-size: 12px;
+    color: #2a2a2a;
+    letter-spacing: 0.3px;
+  }
+
+  .footer-pills {
+    display: flex;
+    gap: 10px;
+  }
+  .pill {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #333;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    padding: 6px 14px;
+    text-transform: uppercase;
+  }
+
+  .footer-cta {
+    text-align: right;
+  }
+  .cta-btn {
+    display: inline-block;
+    background: #ff6200;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    padding: 14px 32px;
+    border-radius: 10px;
+    letter-spacing: 0.3px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 30px rgba(255,98,0,0.25);
+  }
+  .cta-sub {
+    font-size: 12px;
+    color: #2a2a2a;
+  }
+
+  /* orange accent dot */
+  .odot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff6200;
+    box-shadow: 0 0 8px rgba(255,98,0,0.8);
+    margin-right: 2px;
+    vertical-align: middle;
+  }
+
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="bg-glow-top"></div>
+  <div class="bg-glow-mid"></div>
+  <div class="bg-glow-bottom"></div>
+  <div class="bg-grid"></div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">penny<strong>Bid</strong></div>
+    <div class="header-right">
+      <div class="header-tag">Platform Overview</div>
+      <div class="header-url">penny.bid · @pennyBid_</div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-label">What is pennyBid?</div>
+    <div class="hero-headline">Win real items for<br /><span>pennies on the dollar.</span></div>
+    <div class="hero-sub">
+      pennyBid is a <strong>Solana-powered penny auction platform</strong> where every bid costs just $0.01.
+      Each bid raises the item price by one cent and resets a 15-second timer.
+      The <strong>last person to bid when the timer hits zero wins</strong> the item at the final price —
+      often 90–99% below retail.
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-val">$0.01</div>
+      <div class="stat-label">Cost per bid</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">15s</div>
+      <div class="stat-label">Snap timer</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">99%</div>
+      <div class="stat-label">Below retail</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">0</div>
+      <div class="stat-label">KYC required</div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="section">
+    <div class="section-label">How it works</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">Deposit SOL,<br/>get credits</div>
+        <div class="step-body">1 credit = <strong>0.01 SOL</strong>. Your wallet is auto-generated — no setup, no KYC. Unspent credits are always withdrawable.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Bid on live<br/>auctions</div>
+        <div class="step-body">Each bid costs <strong>1 credit</strong>, raises the price by $0.01, and resets the <strong>15-second</strong> snap timer.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Last bidder<br/>wins</div>
+        <div class="step-body">When the timer hits zero, the final bidder <strong>wins the item</strong> at the current auction price — often under $5.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">Claim your<br/>prize</div>
+        <div class="step-body">Winners receive their prize as a <strong>SOL transfer</strong> (equivalent retail value) directly to their wallet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="section" style="padding-top:52px;">
+    <div class="section-label">Why pennyBid</div>
+    <div class="features">
+      <div class="feat-card">
+        <div class="feat-icon">🔗</div>
+        <div class="feat-title">Built on Solana</div>
+        <div class="feat-body">Fast, low-fee transactions. Your deposit wallet is generated instantly — <strong>no wallet extension needed</strong>. No MetaMask, no Phantom setup.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎲</div>
+        <div class="feat-title">Provably fair cashback raffle</div>
+        <div class="feat-body">Every auction includes a cashback raffle. The commitment is set <strong>before the auction starts</strong> — verify the result yourself on-chain.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💸</div>
+        <div class="feat-title">Credits always withdrawable</div>
+        <div class="feat-body">Unspent credits can be withdrawn as SOL <strong>at any time</strong>. Only bids you actually place are spent — nothing locked away.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🏆</div>
+        <div class="feat-title">Real items, real value</div>
+        <div class="feat-body">PS5s, iPhones, AirPods, SOL coins. Items with <strong>real retail value</strong> that winners receive via on-chain SOL transfer.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- $PENNY TOKEN -->
+  <div class="section penny-section">
+    <div class="section-label">$penny Token</div>
+    <div class="penny-inner">
+      <div class="penny-left">
+        <div class="penny-name">$penny</div>
+        <div class="penny-ticker">Token · pump.fun · Solana</div>
+        <div class="penny-desc">
+          $penny is the native token of the pennyBid ecosystem.<br/><br/>
+          <strong>50% of all platform revenue</strong> is used to buy and burn $penny from the open market —
+          every bid placed on the platform makes the token more scarce.<br/><br/>
+          The more auctions run, the more $penny gets burned. <strong>Deflationary by design.</strong><br/><br/>
+          Mint address: <strong style="color:#ff6200;">TBA</strong>
+        </div>
+      </div>
+      <div class="penny-right">
+        <div class="penny-stat">
+          <div class="penny-stat-label">Revenue allocation</div>
+          <div class="penny-stat-val">50% buyback & burn</div>
+        </div>
+        <div class="penny-stat">
+          <div class="penny-stat-label">Mechanism</div>
+          <div class="penny-stat-val">Deflationary</div>
+        </div>
+        <div class="penny-stat">
+          <div class="penny-stat-label">Chain</div>
+          <div class="penny-stat-val">Solana · pump.fun</div>
+        </div>
+        <div class="penny-stat">
+          <div class="penny-stat-label">Every bid</div>
+          <div class="penny-stat-val">Burns $penny 🔥</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">
+      <div class="footer-logo">penny<strong>Bid</strong></div>
+      <div class="footer-sub">Penny auctions on Solana · penny.bid</div>
+    </div>
+    <div class="footer-pills">
+      <div class="pill">No KYC</div>
+      <div class="pill">Non-custodial credits</div>
+      <div class="pill">Solana</div>
+    </div>
+    <div class="footer-cta">
+      <div class="cta-btn">penny.bid</div>
+      <div class="cta-sub">@pennyBid_ on X</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

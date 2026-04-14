@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1500px; height:500px; overflow:hidden; }
+
+  .wrap {
+    width:1500px; height:500px;
+    background:#080807;
+    position:relative; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex; flex-direction:column;
+    justify-content:center;
+  }
+
+  /* Full SVG background */
+  .bg-svg { position:absolute; inset:0; z-index:0; }
+
+  /* Content */
+  .content {
+    position:relative; z-index:2;
+    display:flex; align-items:center;
+    height:100%;
+  }
+
+  /* Logo watermark top left */
+  .topleft {
+    position:absolute; top:32px; left:56px; z-index:3;
+    font-size:22px; font-weight:900; letter-spacing:-1px; color:#fff;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+  .topleft strong { color:#ff6200; }
+
+  /* Top right */
+  .topright {
+    position:absolute; top:32px; right:56px; z-index:3;
+    font-size:12px; color:#222; font-weight:600; letter-spacing:0.5px;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  /* Giant centred text */
+  .center-text {
+    flex:1;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center;
+    gap:0;
+    padding:0 60px;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  .big-tag {
+    font-size:11px; font-weight:700; letter-spacing:4px;
+    text-transform:uppercase; color:#ff6200; margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .big-tag::before, .big-tag::after {
+    content:''; display:block; width:36px; height:1px; background:rgba(255,98,0,0.4);
+  }
+
+  .big-word {
+    font-size:130px; font-weight:900; letter-spacing:-7px; line-height:0.85;
+    color:#fff; display:block;
+  }
+  .big-word.orange { color:#ff6200; text-shadow:0 0 80px rgba(255,98,0,0.3); }
+
+  .big-sub {
+    font-size:17px; color:#3a3a3a; font-weight:500; margin-top:22px;
+    letter-spacing:0.2px;
+  }
+  .big-sub strong { color:#555; font-weight:700; }
+
+  /* Right stats column */
+  .stats-col {
+    width:240px; flex-shrink:0;
+    display:flex; flex-direction:column;
+    gap:0;
+    border-left:1px solid rgba(255,98,0,0.1);
+    height:100%;
+  }
+  .stat-block {
+    flex:1;
+    display:flex; flex-direction:column;
+    justify-content:center;
+    padding:0 32px;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+  }
+  .stat-block:last-child { border-bottom:none; }
+  .stat-v {
+    font-family:'Courier New',monospace;
+    font-size:42px; font-weight:700; color:#ff6200; line-height:1; letter-spacing:-1px;
+  }
+  .stat-l {
+    font-size:11px; color:#2a2a2a; text-transform:uppercase;
+    letter-spacing:1.5px; font-weight:700; margin-top:4px;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  /* Left stats column */
+  .left-col {
+    width:200px; flex-shrink:0;
+    display:flex; flex-direction:column;
+    gap:0;
+    border-right:1px solid rgba(255,98,0,0.1);
+    height:100%;
+  }
+
+  /* Bottom bar */
+  .botbar {
+    position:absolute; bottom:0; left:0; right:0; height:40px; z-index:3;
+    border-top:1px solid rgba(255,98,0,0.08);
+    display:flex; align-items:center; justify-content:center;
+    gap:40px;
+    background:rgba(255,98,0,0.025);
+    font-family:'Inter',system-ui,sans-serif;
+  }
+  .bot-item {
+    font-size:10px; font-weight:700; letter-spacing:2px;
+    text-transform:uppercase; color:#1e1e1e;
+  }
+  .bot-sep { width:3px; height:3px; border-radius:50%; background:#2a2a2a; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Full SVG background with crisp vector elements -->
+  <svg class="bg-svg" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="cg" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.12"/>
+        <stop offset="60%" stop-color="#ff6200" stop-opacity="0.03"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="lg" cx="15%" cy="50%" r="30%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="rg" cx="85%" cy="50%" r="30%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.05"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Base glow -->
+    <rect width="1500" height="500" fill="url(#cg)"/>
+    <rect width="1500" height="500" fill="url(#lg)"/>
+    <rect width="1500" height="500" fill="url(#rg)"/>
+
+    <!-- Fine grid -->
+    <g stroke="rgba(255,98,0,0.03)" stroke-width="1">
+      <line x1="0" y1="62.5" x2="1500" y2="62.5"/>
+      <line x1="0" y1="125" x2="1500" y2="125"/>
+      <line x1="0" y1="187.5" x2="1500" y2="187.5"/>
+      <line x1="0" y1="250" x2="1500" y2="250"/>
+      <line x1="0" y1="312.5" x2="1500" y2="312.5"/>
+      <line x1="0" y1="375" x2="1500" y2="375"/>
+      <line x1="0" y1="437.5" x2="1500" y2="437.5"/>
+      <line x1="150" y1="0" x2="150" y2="500"/>
+      <line x1="300" y1="0" x2="300" y2="500"/>
+      <line x1="450" y1="0" x2="450" y2="500"/>
+      <line x1="600" y1="0" x2="600" y2="500"/>
+      <line x1="750" y1="0" x2="750" y2="500"/>
+      <line x1="900" y1="0" x2="900" y2="500"/>
+      <line x1="1050" y1="0" x2="1050" y2="500"/>
+      <line x1="1200" y1="0" x2="1200" y2="500"/>
+      <line x1="1350" y1="0" x2="1350" y2="500"/>
+    </g>
+
+    <!-- Diagonal accent lines -->
+    <line x1="1260" y1="0" x2="1500" y2="240" stroke="rgba(255,98,0,0.04)" stroke-width="1"/>
+    <line x1="1320" y1="0" x2="1500" y2="180" stroke="rgba(255,98,0,0.03)" stroke-width="1"/>
+    <line x1="0" y1="260" x2="240" y2="500" stroke="rgba(255,98,0,0.04)" stroke-width="1"/>
+
+    <!-- Orange accent corner marks -->
+    <g fill="#ff6200" opacity="0.5">
+      <rect x="0" y="0" width="40" height="2"/>
+      <rect x="0" y="0" width="2" height="40"/>
+      <rect x="1460" y="0" width="40" height="2"/>
+      <rect x="1498" y="0" width="2" height="40"/>
+      <rect x="0" y="498" width="40" height="2"/>
+      <rect x="0" y="460" width="2" height="40"/>
+      <rect x="1460" y="498" width="40" height="2"/>
+      <rect x="1498" y="460" width="2" height="40"/>
+    </g>
+
+    <!-- Floating dots -->
+    <g fill="#ff6200">
+      <circle cx="80"  cy="70"  r="1.5" opacity="0.5"/>
+      <circle cx="210" cy="380" r="2"   opacity="0.3"/>
+      <circle cx="490" cy="110" r="1.5" opacity="0.4"/>
+      <circle cx="1050" cy="420" r="2"  opacity="0.3"/>
+      <circle cx="1280" cy="55" r="1.5" opacity="0.45"/>
+      <circle cx="1420" cy="350" r="2"  opacity="0.3"/>
+      <circle cx="680" cy="460" r="1.5" opacity="0.35"/>
+    </g>
+  </svg>
+
+  <!-- Logo -->
+  <div class="topleft">penny<strong>Bid</strong></div>
+  <div class="topright">penny.bid · @pennyBid_</div>
+
+  <div class="content">
+    <!-- Left col -->
+    <div class="left-col">
+      <div class="stat-block">
+        <div class="stat-v">$0.01</div>
+        <div class="stat-l">Per bid</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-v">15s</div>
+        <div class="stat-l">Timer reset</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-v">0</div>
+        <div class="stat-l">KYC needed</div>
+      </div>
+    </div>
+
+    <!-- Center -->
+    <div class="center-text">
+      <div class="big-tag">Penny Auctions · Solana</div>
+      <span class="big-word">penny</span>
+      <span class="big-word orange">Bid</span>
+      <div class="big-sub">Last bidder wins · Items sell for <strong>90–99% below retail</strong></div>
+    </div>
+
+    <!-- Right col -->
+    <div class="stats-col">
+      <div class="stat-block">
+        <div class="stat-v">99%</div>
+        <div class="stat-l">Below retail</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-v">SOL</div>
+        <div class="stat-l">Powered by</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-v">50%</div>
+        <div class="stat-l">$penny burn</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="botbar">
+    <div class="bot-item">No KYC</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Wallet auto-generated</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Credits always withdrawable</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Provably fair</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">$penny buyback & burn</div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 500px; height: 500px; overflow: hidden; background: #0f0f0f; }
+
+  .canvas {
+    width: 500px;
+    height: 500px;
+    background: #0f0f0f;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+  }
+
+  /* Background glow */
+  .bg-glow {
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center,
+      rgba(255,98,0,0.12) 0%,
+      rgba(255,98,0,0.04) 40%,
+      transparent 70%
+    );
+  }
+
+  /* Outer ring */
+  .ring-outer {
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,98,0,0.15);
+  }
+
+  /* Inner ring */
+  .ring-inner {
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,98,0,0.08);
+  }
+
+  /* Main circle bg */
+  .circle {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #1a1a1a 0%, #111111 100%);
+    border: 2px solid rgba(255,98,0,0.3);
+    box-shadow:
+      0 0 0 1px rgba(255,98,0,0.08),
+      0 0 60px rgba(255,98,0,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Coin gavel icon */
+  .icon-wrap {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    margin-bottom: 14px;
+  }
+
+  /* The P letter styled as a coin */
+  .coin {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #ff7a20 0%, #ff6200 40%, #cc4e00 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 4px 0 #8a2e00,
+      0 6px 20px rgba(255,98,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -2px 0 rgba(0,0,0,0.2);
+    position: relative;
+  }
+
+  .coin::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .coin-letter {
+    font-size: 46px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -2px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    line-height: 1;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* Text below coin */
+  .wordmark {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .word-penny {
+    font-size: 32px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .word-bid {
+    font-size: 32px;
+    font-weight: 900;
+    color: #ff6200;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  /* Orange arc at bottom of circle */
+  .arc {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: linear-gradient(to right, transparent, #ff6200, transparent);
+    border-radius: 2px;
+    opacity: 0.6;
+  }
+
+  /* Small Solana dots orbiting */
+  .orbit-dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff6200;
+    opacity: 0.7;
+    box-shadow: 0 0 8px rgba(255,98,0,0.8);
+  }
+
+  /* Corner dots on outer ring */
+  .dot-top    { top: 28px;  left: 50%; transform: translateX(-50%); }
+  .dot-right  { right: 28px; top: 50%; transform: translateY(-50%); }
+  .dot-bottom { bottom: 28px; left: 50%; transform: translateX(-50%); }
+  .dot-left   { left: 28px; top: 50%; transform: translateY(-50%); }
+
+  /* Tick marks on outer ring */
+  .tick {
+    position: absolute;
+    width: 1px;
+    height: 8px;
+    background: rgba(255,98,0,0.3);
+    left: 50%;
+  }
+</style>
+</head>
+<body>
+<div class="canvas">
+
+  <div class="bg-glow"></div>
+  <div class="ring-outer"></div>
+  <div class="ring-inner"></div>
+
+  <!-- Orbit dots -->
+  <div class="orbit-dot dot-top"></div>
+  <div class="orbit-dot dot-right" style="width:5px;height:5px;opacity:0.4;"></div>
+  <div class="orbit-dot dot-bottom" style="width:6px;height:6px;opacity:0.5;"></div>
+  <div class="orbit-dot dot-left" style="width:5px;height:5px;opacity:0.4;"></div>
+
+  <!-- Main circle -->
+  <div class="circle">
+    <!-- Coin icon -->
+    <div class="icon-wrap">
+      <div class="coin">
+        <span class="coin-letter">P</span>
+      </div>
+    </div>
+
+    <!-- Wordmark -->
+    <div style="display:flex;gap:0;align-items:baseline;">
+      <span class="word-penny">penny</span><span class="word-bid">Bid</span>
+    </div>
+
+    <div class="arc"></div>
+  </div>
+
+</div>
+</body>
+</html>

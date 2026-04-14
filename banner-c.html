@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1500px; height:500px; overflow:hidden; }
+
+  .wrap {
+    width:1500px; height:500px;
+    background:#06060a;
+    position:relative; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex; align-items:stretch;
+  }
+
+  .bg-svg { position:absolute; inset:0; z-index:0; pointer-events:none; }
+
+  /* ── Left panel ── */
+  .left {
+    width:460px; flex-shrink:0;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:0 56px; position:relative; z-index:2;
+  }
+  .tag {
+    font-size:10px; font-weight:700; letter-spacing:4px;
+    text-transform:uppercase; color:#ff6200; margin-bottom:20px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .tag-line { width:20px; height:1px; background:rgba(255,98,0,0.5); }
+
+  .hl { font-size:66px; font-weight:900; letter-spacing:-3px; line-height:0.88; color:#fff; }
+  .hl em { color:#ff6200; font-style:normal; display:block; }
+
+  .desc {
+    font-size:14px; color:#383838; line-height:1.6; margin-top:20px;
+    font-weight:500; max-width:300px;
+  }
+  .desc strong { color:#505050; }
+
+  .logo-row {
+    display:flex; align-items:center; gap:10px; margin-top:28px;
+  }
+  .logo { font-size:18px; font-weight:900; letter-spacing:-0.5px; color:#fff; }
+  .logo strong { color:#ff6200; }
+  .logo-dot { width:4px; height:4px; border-radius:50%; background:#2a2a2a; }
+  .logo-url { font-size:12px; color:#282828; font-weight:600; }
+
+  /* ── Right panel ── */
+  .right {
+    flex:1; display:flex; align-items:center; gap:18px;
+    padding:32px 48px 32px 32px; position:relative; z-index:2;
+  }
+
+  /* ── Bidding war card (tall) ── */
+  .bcard {
+    background:#0e0d12;
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:18px; overflow:hidden;
+    width:268px; flex-shrink:0;
+    display:flex; flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+  }
+  .bcard.hot {
+    border-color:rgba(255,98,0,0.3);
+    box-shadow:0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(255,98,0,0.1);
+  }
+
+  .bcard-top {
+    height:148px; position:relative;
+    background:linear-gradient(135deg,#12111a,#1a1825);
+    display:flex; align-items:center; justify-content:center;
+    font-size:60px;
+    flex-shrink:0;
+  }
+  .bcard.hot .bcard-top { background:linear-gradient(135deg,#15111a,#1e1420); }
+
+  .status-bar {
+    position:absolute; top:0; left:0; right:0;
+    height:3px;
+    background:linear-gradient(to right,#ff6200,#ff9500);
+  }
+
+  .live-chip {
+    position:absolute; top:10px; left:10px;
+    background:rgba(6,6,10,0.85); border:1px solid rgba(255,98,0,0.35);
+    border-radius:20px; padding:4px 10px;
+    font-size:10px; font-weight:800; color:#ff6200;
+    display:flex; align-items:center; gap:5px; letter-spacing:0.5px;
+  }
+  .live-dot {
+    width:6px; height:6px; border-radius:50%; background:#ff6200;
+    box-shadow:0 0 8px rgba(255,98,0,1);
+  }
+
+  .bid-chip {
+    position:absolute; top:10px; right:10px;
+    background:rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.08);
+    border-radius:8px; padding:4px 8px;
+    font-size:9px; font-weight:700; color:#666; letter-spacing:0.5px;
+  }
+
+  .bcard-body { padding:14px 16px; display:flex; flex-direction:column; gap:10px; flex:1; }
+
+  .bcard-name { font-size:13px; font-weight:800; color:#e0e0e0; line-height:1.2; }
+
+  .price-row {
+    display:flex; align-items:flex-end; justify-content:space-between;
+  }
+  .price-col {}
+  .price-lbl { font-size:9px; color:#2a2a2a; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:2px; font-weight:700; }
+  .price-val { font-family:'Courier New',monospace; font-size:28px; font-weight:700; color:#00e87a; line-height:1; letter-spacing:-1px; }
+  .timer-col { text-align:right; }
+  .timer-val { font-family:'Courier New',monospace; font-size:22px; font-weight:700; color:#ff6200; line-height:1; letter-spacing:-0.5px; }
+
+  /* Bid feed */
+  .bid-feed { border-top:1px solid rgba(255,255,255,0.04); padding-top:10px; display:flex; flex-direction:column; gap:5px; }
+  .bid-row { display:flex; align-items:center; justify-content:space-between; }
+  .bid-user { font-size:10px; font-weight:700; color:#333; }
+  .bid-user.new { color:#ff6200; }
+  .bid-time { font-size:10px; color:#222; font-family:'Courier New',monospace; }
+
+  .bid-btn {
+    background:linear-gradient(135deg,#ff6200,#ff8c00);
+    color:#fff; border-radius:10px; padding:10px;
+    text-align:center; font-size:12px; font-weight:800;
+    letter-spacing:0.3px; margin-top:auto;
+    box-shadow:0 4px 16px rgba(255,98,0,0.3);
+  }
+
+  /* ── Divider ── */
+  .panel-div {
+    width:1px; height:100%;
+    background:linear-gradient(to bottom,transparent,rgba(255,98,0,0.12),transparent);
+    position:absolute; left:460px; top:0; z-index:3;
+  }
+
+  /* ── Bottom strip ── */
+  .bot {
+    position:absolute; bottom:0; left:0; right:0; height:38px;
+    background:rgba(255,98,0,0.03); border-top:1px solid rgba(255,98,0,0.07);
+    display:flex; align-items:center; justify-content:center; gap:36px;
+    z-index:4;
+  }
+  .bot-item { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#1c1c1c; }
+  .bot-sep { width:3px; height:3px; border-radius:50%; background:#222; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <svg class="bg-svg" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="ga" cx="25%" cy="50%" r="45%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.09"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="gb" cx="80%" cy="40%" r="35%">
+        <stop offset="0%" stop-color="#6200ff" stop-opacity="0.04"/>
+        <stop offset="100%" stop-color="#6200ff" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="gc" cx="60%" cy="80%" r="30%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.05"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1500" height="500" fill="url(#ga)"/>
+    <rect width="1500" height="500" fill="url(#gb)"/>
+    <rect width="1500" height="500" fill="url(#gc)"/>
+
+    <!-- Grid -->
+    <g stroke="rgba(255,98,0,0.025)" stroke-width="1">
+      <line x1="0" y1="100" x2="1500" y2="100"/>
+      <line x1="0" y1="200" x2="1500" y2="200"/>
+      <line x1="0" y1="300" x2="1500" y2="300"/>
+      <line x1="0" y1="400" x2="1500" y2="400"/>
+      <line x1="150" y1="0" x2="150" y2="500"/>
+      <line x1="300" y1="0" x2="300" y2="500"/>
+      <line x1="460" y1="0" x2="460" y2="500"/>
+      <line x1="600" y1="0" x2="600" y2="500"/>
+      <line x1="750" y1="0" x2="750" y2="500"/>
+      <line x1="900" y1="0" x2="900" y2="500"/>
+      <line x1="1050" y1="0" x2="1050" y2="500"/>
+      <line x1="1200" y1="0" x2="1200" y2="500"/>
+      <line x1="1350" y1="0" x2="1350" y2="500"/>
+    </g>
+
+    <!-- Corner marks -->
+    <g fill="#ff6200" opacity="0.45">
+      <rect x="0" y="0" width="36" height="2"/>
+      <rect x="0" y="0" width="2" height="36"/>
+      <rect x="1464" y="0" width="36" height="2"/>
+      <rect x="1498" y="0" width="2" height="36"/>
+      <rect x="0" y="498" width="36" height="2"/>
+      <rect x="0" y="464" width="2" height="36"/>
+      <rect x="1464" y="498" width="36" height="2"/>
+      <rect x="1498" y="464" width="2" height="36"/>
+    </g>
+
+    <!-- Accent dots -->
+    <g fill="#ff6200">
+      <circle cx="60"   cy="60"  r="1.5" opacity="0.5"/>
+      <circle cx="200"  cy="400" r="2"   opacity="0.25"/>
+      <circle cx="1200" cy="80"  r="1.5" opacity="0.4"/>
+      <circle cx="1400" cy="380" r="2"   opacity="0.3"/>
+      <circle cx="700"  cy="450" r="1.5" opacity="0.3"/>
+      <circle cx="900"  cy="50"  r="1.5" opacity="0.35"/>
+    </g>
+
+    <!-- Diagonal accent -->
+    <line x1="1300" y1="0" x2="1500" y2="200" stroke="rgba(255,98,0,0.04)" stroke-width="1"/>
+    <line x1="1360" y1="0" x2="1500" y2="140" stroke="rgba(255,98,0,0.03)" stroke-width="1"/>
+  </svg>
+
+  <div class="panel-div"></div>
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="tag"><div class="tag-line"></div>Penny Auctions · Solana</div>
+    <div class="hl">Bid once.<em>Win big.</em></div>
+    <div class="desc">
+      Every bid costs <strong>$0.01</strong>. Each bid resets a <strong>15-second timer.</strong>
+      The last bidder takes it all.
+    </div>
+    <div class="logo-row">
+      <div class="logo">penny<strong>Bid</strong></div>
+      <div class="logo-dot"></div>
+      <div class="logo-url">penny.bid</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: cards -->
+  <div class="right">
+    <!-- Card 1 -->
+    <div class="bcard hot">
+      <div class="bcard-top">💻
+        <div class="status-bar"></div>
+        <div class="live-chip"><div class="live-dot"></div>LIVE</div>
+        <div class="bid-chip">847 bids</div>
+      </div>
+      <div class="bcard-body">
+        <div class="bcard-name">MacBook Pro 14"<br/>M3 Pro · 18GB RAM</div>
+        <div class="price-row">
+          <div class="price-col">
+            <div class="price-lbl">Current price</div>
+            <div class="price-val">$0.23</div>
+          </div>
+          <div class="timer-col">
+            <div class="price-lbl" style="text-align:right">Timer</div>
+            <div class="timer-val">3.1s</div>
+          </div>
+        </div>
+        <div class="bid-feed">
+          <div class="bid-row"><span class="bid-user new">▶ 0xLance</span><span class="bid-time">just now</span></div>
+          <div class="bid-row"><span class="bid-user">cryptoKing</span><span class="bid-time">2s ago</span></div>
+          <div class="bid-row"><span class="bid-user">sol_raider</span><span class="bid-time">4s ago</span></div>
+        </div>
+        <div class="bid-btn">⚡ Place Bid — $0.01</div>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="bcard">
+      <div class="bcard-top">🎧
+        <div class="status-bar" style="background:linear-gradient(to right,#555,#888)"></div>
+        <div class="live-chip"><div class="live-dot"></div>LIVE</div>
+        <div class="bid-chip">312 bids</div>
+      </div>
+      <div class="bcard-body">
+        <div class="bcard-name">Sony WH-1000XM5<br/>Wireless Headphones</div>
+        <div class="price-row">
+          <div class="price-col">
+            <div class="price-lbl">Current price</div>
+            <div class="price-val" style="font-size:24px">$0.08</div>
+          </div>
+          <div class="timer-col">
+            <div class="price-lbl" style="text-align:right">Timer</div>
+            <div class="timer-val" style="font-size:18px">11.7s</div>
+          </div>
+        </div>
+        <div class="bid-feed">
+          <div class="bid-row"><span class="bid-user new">▶ moon_bid</span><span class="bid-time">just now</span></div>
+          <div class="bid-row"><span class="bid-user">phantom99</span><span class="bid-time">3s ago</span></div>
+          <div class="bid-row"><span class="bid-user">bidmaster</span><span class="bid-time">6s ago</span></div>
+        </div>
+        <div class="bid-btn">⚡ Place Bid — $0.01</div>
+      </div>
+    </div>
+
+    <!-- Card 3 — Won -->
+    <div class="bcard" style="justify-content:flex-start;">
+      <div class="bcard-top" style="background:linear-gradient(135deg,#0a110d,#0f1a12);">📱
+        <div class="status-bar" style="background:linear-gradient(to right,#00e87a,#00c460)"></div>
+        <div class="live-chip" style="border-color:rgba(0,232,122,0.3);color:#00e87a;">✓ SOLD</div>
+      </div>
+      <div class="bcard-body">
+        <div class="bcard-name">iPhone 15 Pro Max<br/>256GB Titanium</div>
+        <div style="margin-top:4px;">
+          <div class="price-lbl">Final price · Retail $1,199</div>
+          <div style="font-family:'Courier New',monospace;font-size:32px;font-weight:700;color:#00e87a;letter-spacing:-1px;line-height:1;margin-top:2px;">$0.47</div>
+        </div>
+        <div style="margin-top:auto;padding-top:10px;border-top:1px solid rgba(255,255,255,0.04);">
+          <div class="price-lbl">Winner</div>
+          <div style="font-size:13px;font-weight:800;color:#ccc;margin-top:3px;">@sol_phantom</div>
+          <div style="font-size:11px;color:#1e1e1e;margin-top:2px;">saved $1,198.53 (99.96%)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bot">
+    <div class="bot-item">$0.01 per bid</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Last bidder wins</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">No KYC</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Built on Solana</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">$penny buyback & burn</div>
+  </div>
+
+</div>
+</body>
+</html>

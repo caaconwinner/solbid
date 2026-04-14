@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1500px; height:500px; overflow:hidden; background:#08070f; }
+
+  .wrap {
+    width:1500px; height:500px;
+    background:radial-gradient(ellipse at 50% 30%, #12102a 0%, #08070f 60%);
+    position:relative; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  /* Perspective grid scene */
+  .scene {
+    position:absolute;
+    top:-80px; left:-480px;
+    width:2460px;
+    transform: perspective(900px) rotateX(-34deg);
+    transform-origin: 50% 40%;
+    display:flex; flex-direction:column; gap:18px;
+    z-index:1;
+  }
+
+  .row { display:flex; gap:18px; }
+  /* Offset row 2 for stagger */
+  .row:last-child { transform:translateX(-110px); }
+
+  /* Auction card */
+  .card {
+    width:200px; height:230px; border-radius:20px;
+    flex-shrink:0; position:relative; overflow:hidden;
+    box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  }
+
+  .card-bg {
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:80px;
+  }
+
+  /* Color schemes */
+  .b1 { background:linear-gradient(150deg,#0d1f6e,#2a1080); }
+  .b2 { background:linear-gradient(150deg,#0a4060,#0a7070); }
+  .b3 { background:linear-gradient(150deg,#5a0a80,#8a0a60); }
+  .b4 { background:linear-gradient(150deg,#6a0010,#9a1a00); }
+  .b5 { background:linear-gradient(150deg,#1a4a10,#0a6a40); }
+  .b6 { background:linear-gradient(150deg,#4a3000,#7a5000); }
+  .b7 { background:linear-gradient(150deg,#080830,#101068); }
+  .b8 { background:linear-gradient(150deg,#3a0050,#7a0080); }
+
+  /* Bottom text overlay */
+  .card-label {
+    position:absolute; bottom:0; left:0; right:0;
+    background:linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
+    padding:36px 14px 14px;
+  }
+  .card-name {
+    font-size:15px; font-weight:900; color:#fff;
+    text-transform:uppercase; letter-spacing:0.5px; line-height:1.15;
+  }
+  .card-price {
+    font-family:'Courier New',monospace;
+    font-size:13px; font-weight:700; color:#ff6200; margin-top:4px;
+  }
+
+  /* Live badge */
+  .live-badge {
+    position:absolute; top:10px; right:10px;
+    background:rgba(255,98,0,0.9); border-radius:6px;
+    padding:3px 8px; font-size:9px; font-weight:800;
+    color:#fff; letter-spacing:1px;
+  }
+
+  /* Bottom vignette overlay */
+  .vignette {
+    position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(8,7,15,0.95) 0%, transparent 65%),
+      linear-gradient(to top, rgba(8,7,15,1) 0%, rgba(8,7,15,0.8) 20%, rgba(8,7,15,0.3) 40%, transparent 60%),
+      linear-gradient(to right, rgba(8,7,15,0.7) 0%, transparent 15%, transparent 85%, rgba(8,7,15,0.7) 100%);
+  }
+
+  /* Logo */
+  .logo {
+    position:absolute; bottom:48px; left:50%; transform:translateX(-50%);
+    z-index:5; text-align:center;
+    font-size:64px; font-weight:900; letter-spacing:-3px; color:#fff;
+    line-height:1;
+    text-shadow:0 0 60px rgba(255,98,0,0.4), 0 4px 24px rgba(0,0,0,0.8);
+  }
+  .logo strong { color:#ff6200; }
+
+  .tagline {
+    position:absolute; bottom:26px; left:50%; transform:translateX(-50%);
+    z-index:5; white-space:nowrap;
+    font-size:13px; color:rgba(255,255,255,0.35); font-weight:500; letter-spacing:2px;
+  }
+
+  /* Ambient glow */
+  .glow {
+    position:absolute; inset:0; z-index:0; pointer-events:none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SVG ambient -->
+  <svg class="glow" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="ag" cx="50%" cy="60%" r="50%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.08"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="ag2" cx="50%" cy="0%" r="60%">
+        <stop offset="0%" stop-color="#6600ff" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#6600ff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1500" height="500" fill="url(#ag)"/>
+    <rect width="1500" height="500" fill="url(#ag2)"/>
+    <!-- Particles -->
+    <g fill="#ff6200">
+      <circle cx="200"  cy="420" r="2"   opacity="0.4"/>
+      <circle cx="1300" cy="410" r="2"   opacity="0.4"/>
+      <circle cx="750"  cy="440" r="3"   opacity="0.3"/>
+      <circle cx="400"  cy="460" r="1.5" opacity="0.3"/>
+      <circle cx="1100" cy="455" r="1.5" opacity="0.3"/>
+    </g>
+  </svg>
+
+  <!-- CARD GRID (perspective tilted) -->
+  <div class="scene">
+    <!-- Row 1 -->
+    <div class="row">
+      <div class="card"><div class="card-bg b1">🎮</div><div class="card-label"><div class="card-name">PS5 Console<br/>Bundle</div><div class="card-price">$0.13 · LIVE</div></div></div>
+      <div class="card"><div class="card-bg b7">💻</div><div class="card-label"><div class="card-name">MacBook<br/>Pro M4</div><div class="card-price">$0.07 · LIVE</div></div><div class="live-badge">LIVE</div></div>
+      <div class="card"><div class="card-bg b2">📱</div><div class="card-label"><div class="card-name">iPhone 17<br/>Pro Max</div><div class="card-price">$0.31 · LIVE</div></div></div>
+      <div class="card"><div class="card-bg b3">⌚</div><div class="card-label"><div class="card-name">Rolex<br/>Watch</div><div class="card-price">WON $0.54</div></div></div>
+      <div class="card"><div class="card-bg b4">🚗</div><div class="card-label"><div class="card-name">Tesla<br/>Model 3</div><div class="card-price">$1.02 · LIVE</div></div></div>
+      <div class="card"><div class="card-bg b8">💎</div><div class="card-label"><div class="card-name">Diamond<br/>Necklace</div><div class="card-price">WON $0.28</div></div></div>
+      <div class="card"><div class="card-bg b5">🏠</div><div class="card-label"><div class="card-name">Luxury Villa<br/>Voucher</div><div class="card-price">$2.44 · LIVE</div></div></div>
+    </div>
+
+    <!-- Row 2 (staggered offset) -->
+    <div class="row">
+      <div class="card"><div class="card-bg b5">🎸</div><div class="card-label"><div class="card-name">Gibson<br/>Les Paul</div><div class="card-price">WON $0.18</div></div></div>
+      <div class="card"><div class="card-bg b6">🏆</div><div class="card-label"><div class="card-name">$500 Cash<br/>Prize</div><div class="card-price">$0.09 · LIVE</div></div></div>
+      <div class="card"><div class="card-bg b1">🖥️</div><div class="card-label"><div class="card-name">Gaming PC<br/>RTX 4090</div><div class="card-price">$0.41 · LIVE</div></div><div class="live-badge">LIVE</div></div>
+      <div class="card"><div class="card-bg b2">🎧</div><div class="card-label"><div class="card-name">Sony XM5<br/>Headphones</div><div class="card-price">WON $0.06</div></div></div>
+      <div class="card"><div class="card-bg b3">🕶️</div><div class="card-label"><div class="card-name">Designer<br/>Sunglasses</div><div class="card-price">$0.03 · LIVE</div></div></div>
+      <div class="card"><div class="card-bg b4">✈️</div><div class="card-label"><div class="card-name">First Class<br/>Flight Pass</div><div class="card-price">WON $0.77</div></div></div>
+      <div class="card"><div class="card-bg b7">🎮</div><div class="card-label"><div class="card-name">Steam Deck<br/>OLED</div><div class="card-price">$0.11 · LIVE</div></div></div>
+    </div>
+  </div>
+
+  <!-- Bottom vignette -->
+  <div class="vignette"></div>
+
+  <!-- Logo -->
+  <div class="logo">penny<strong>Bid</strong></div>
+  <div class="tagline">$0.01 per bid · Last bidder wins · penny.bid</div>
+
+</div>
+</body>
+</html>

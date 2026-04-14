@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1500px; height:500px; overflow:hidden; background:#050408; }
+
+  .wrap {
+    width:1500px; height:500px;
+    background:radial-gradient(ellipse at 50% 50%, #0f0a1e 0%, #050408 70%);
+    position:relative; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+
+  .bg-svg { position:absolute; inset:0; z-index:0; pointer-events:none; }
+
+  /* ── Perspective card grid (3 rows, wide) ── */
+  .scene {
+    position:absolute;
+    top:-20px; left:-560px;
+    width:2620px;
+    transform: perspective(1100px) rotateX(-26deg);
+    transform-origin: 50% 45%;
+    display:flex; flex-direction:column; gap:16px;
+    z-index:1;
+    opacity:0.55;
+  }
+  .row { display:flex; gap:16px; }
+  .row:nth-child(2) { transform:translateX(-100px); }
+  .row:nth-child(3) { transform:translateX(-200px); }
+
+  .card {
+    width:180px; height:218px; border-radius:18px;
+    flex-shrink:0; position:relative; overflow:hidden;
+    box-shadow:0 8px 28px rgba(0,0,0,0.6);
+    border:1px solid rgba(255,255,255,0.055);
+  }
+  .card-bg {
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:70px;
+  }
+  .b1{background:linear-gradient(150deg,#0d1f6e,#2a1080);}
+  .b2{background:linear-gradient(150deg,#0a4060,#0a7070);}
+  .b3{background:linear-gradient(150deg,#5a0a80,#8a0a60);}
+  .b4{background:linear-gradient(150deg,#6a0010,#9a1a00);}
+  .b5{background:linear-gradient(150deg,#1a4a10,#0a6a40);}
+  .b6{background:linear-gradient(150deg,#4a3000,#7a5000);}
+  .b7{background:linear-gradient(150deg,#080830,#101068);}
+  .b8{background:linear-gradient(150deg,#3a0050,#7a0080);}
+  .b9{background:linear-gradient(150deg,#001a10,#003a20);}
+
+  .card-label {
+    position:absolute; bottom:0; left:0; right:0;
+    background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,rgba(0,0,0,0.45) 55%,transparent 100%);
+    padding:32px 12px 12px;
+  }
+  .card-name { font-size:12px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:0.5px; line-height:1.15; }
+  .bar { position:absolute; top:0; left:0; right:0; height:3px; }
+  .bar-o { background:linear-gradient(to right,#ff6200,#ffaa00); }
+  .bar-d { background:linear-gradient(to right,#2a2a2a,#444); }
+
+  /* ── Vignette ── */
+  .vignette {
+    position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:
+      radial-gradient(ellipse at 50% 50%, transparent 20%, rgba(5,4,8,0.6) 70%, rgba(5,4,8,0.92) 100%),
+      linear-gradient(to top, rgba(5,4,8,1) 0%, rgba(5,4,8,0.7) 16%, transparent 40%),
+      linear-gradient(to bottom, rgba(5,4,8,0.5) 0%, transparent 20%);
+  }
+
+  /* ── Center announcement ── */
+  .center {
+    position:absolute; inset:0; z-index:5;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center;
+    gap:0;
+  }
+
+  .c-logo {
+    font-size:18px; font-weight:900; letter-spacing:-0.5px; color:rgba(255,255,255,0.5);
+    margin-bottom:10px;
+  }
+  .c-logo strong { color:#ff6200; }
+
+  /* Big orange "TOMORROW" pill badge */
+  .c-pill {
+    display:inline-flex; align-items:center; gap:10px;
+    background:rgba(255,98,0,0.12); border:1px solid rgba(255,98,0,0.3);
+    border-radius:100px; padding:8px 22px; margin-bottom:18px;
+    font-size:12px; font-weight:800; letter-spacing:3px; text-transform:uppercase;
+    color:#ff6200;
+  }
+  .c-pill-dot { width:6px; height:6px; border-radius:50%; background:#ff6200; box-shadow:0 0 8px #ff6200; }
+
+  /* LIVE AUCTIONS huge text */
+  .c-h1 {
+    font-size:100px; font-weight:900; letter-spacing:-5px; line-height:0.84; color:#fff;
+    text-shadow:0 0 100px rgba(255,98,0,0.35), 0 0 40px rgba(255,98,0,0.15);
+  }
+  .c-h2 {
+    font-size:100px; font-weight:900; letter-spacing:-5px; line-height:0.84;
+    color:transparent;
+    -webkit-text-stroke:2px rgba(255,98,0,0.6);
+    text-shadow:0 0 60px rgba(255,98,0,0.2);
+  }
+
+  .c-sub {
+    font-size:16px; color:rgba(255,255,255,0.25); font-weight:500;
+    margin-top:20px; letter-spacing:1px;
+  }
+  .c-sub strong { color:rgba(255,255,255,0.45); }
+
+  /* Horizontal rule lines */
+  .c-rule {
+    width:400px; height:1px;
+    background:linear-gradient(to right, transparent, rgba(255,98,0,0.3), transparent);
+    margin:14px auto 0;
+  }
+
+  .c-url {
+    font-size:13px; font-weight:700; color:rgba(255,98,0,0.5); margin-top:10px;
+    letter-spacing:1px;
+  }
+
+  /* Bottom bar */
+  .bot {
+    position:absolute; bottom:0; left:0; right:0; height:36px; z-index:6;
+    background:rgba(255,98,0,0.04); border-top:1px solid rgba(255,98,0,0.07);
+    display:flex; align-items:center; justify-content:center; gap:30px;
+  }
+  .bot-item { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#1a1a1a; }
+  .bot-sep  { width:3px; height:3px; border-radius:50%; background:#1a1a1a; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <svg class="bg-svg" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="k1" cx="50%" cy="50%" r="45%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.14"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="k2" cx="50%" cy="50%" r="30%">
+        <stop offset="0%" stop-color="#7700ff" stop-opacity="0.08"/>
+        <stop offset="100%" stop-color="#7700ff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1500" height="500" fill="url(#k1)"/>
+    <rect width="1500" height="500" fill="url(#k2)"/>
+    <!-- Corner marks -->
+    <g fill="#ff6200" opacity="0.4">
+      <rect x="0" y="0" width="36" height="2"/>
+      <rect x="0" y="0" width="2" height="36"/>
+      <rect x="1464" y="0" width="36" height="2"/>
+      <rect x="1498" y="0" width="2" height="36"/>
+      <rect x="0" y="498" width="36" height="2"/>
+      <rect x="0" y="464" width="2" height="36"/>
+      <rect x="1464" y="498" width="36" height="2"/>
+      <rect x="1498" y="464" width="2" height="36"/>
+    </g>
+    <!-- Horizontal scan lines (very subtle) -->
+    <g stroke="rgba(255,98,0,0.015)" stroke-width="1">
+      <line x1="0" y1="83"  x2="1500" y2="83"/>
+      <line x1="0" y1="166" x2="1500" y2="166"/>
+      <line x1="0" y1="249" x2="1500" y2="249"/>
+      <line x1="0" y1="332" x2="1500" y2="332"/>
+      <line x1="0" y1="415" x2="1500" y2="415"/>
+    </g>
+    <!-- Particles -->
+    <g fill="#ff6200">
+      <circle cx="140"  cy="80"  r="2"   opacity="0.4"/>
+      <circle cx="1360" cy="80"  r="2"   opacity="0.4"/>
+      <circle cx="100"  cy="420" r="1.5" opacity="0.3"/>
+      <circle cx="1400" cy="420" r="1.5" opacity="0.3"/>
+    </g>
+  </svg>
+
+  <!-- CARD GRID (background, dimmed) -->
+  <div class="scene">
+    <div class="row">
+      <div class="card"><div class="card-bg b1">🎮</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">PS5 Bundle</div></div></div>
+      <div class="card"><div class="card-bg b7">💻</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">MacBook Pro M4</div></div></div>
+      <div class="card"><div class="card-bg b2">📱</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">iPhone 17 Pro</div></div></div>
+      <div class="card"><div class="card-bg b3">⌚</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">Rolex Watch</div></div></div>
+      <div class="card"><div class="card-bg b4">🚗</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Tesla Model 3</div></div></div>
+      <div class="card"><div class="card-bg b8">💎</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">Diamond Chain</div></div></div>
+      <div class="card"><div class="card-bg b5">🏠</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Villa Voucher</div></div></div>
+      <div class="card"><div class="card-bg b9">🎸</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">Gibson Les Paul</div></div></div>
+    </div>
+    <div class="row">
+      <div class="card"><div class="card-bg b6">🏆</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">$500 Cash</div></div></div>
+      <div class="card"><div class="card-bg b1">🖥️</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Gaming PC RTX 4090</div></div></div>
+      <div class="card"><div class="card-bg b2">🎧</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">Sony XM5</div></div></div>
+      <div class="card"><div class="card-bg b3">🕶️</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Designer Shades</div></div></div>
+      <div class="card"><div class="card-bg b4">✈️</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">First Class Pass</div></div></div>
+      <div class="card"><div class="card-bg b7">🎮</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Steam Deck OLED</div></div></div>
+      <div class="card"><div class="card-bg b8">📷</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">Sony A7 IV</div></div></div>
+      <div class="card"><div class="card-bg b5">🎁</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Mystery Box</div></div></div>
+    </div>
+    <div class="row">
+      <div class="card"><div class="card-bg b9">🎯</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Dyson V15</div></div></div>
+      <div class="card"><div class="card-bg b3">🏋️</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">Peloton Bike</div></div></div>
+      <div class="card"><div class="card-bg b6">🥃</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Rare Whisky</div></div></div>
+      <div class="card"><div class="card-bg b1">💻</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Dell XPS 15</div></div></div>
+      <div class="card"><div class="card-bg b2">📱</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">Samsung Fold 6</div></div></div>
+      <div class="card"><div class="card-bg b7">🎮</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">Nintendo Switch 2</div></div></div>
+      <div class="card"><div class="card-bg b4">🌍</div><div class="bar bar-o"></div><div class="card-label"><div class="card-name">World Trip Tickets</div></div></div>
+      <div class="card"><div class="card-bg b5">🎪</div><div class="bar bar-d"></div><div class="card-label"><div class="card-name">VIP Event Pass</div></div></div>
+    </div>
+  </div>
+
+  <div class="vignette"></div>
+
+  <!-- CENTER ANNOUNCEMENT -->
+  <div class="center">
+    <div class="c-logo">penny<strong>Bid</strong></div>
+    <div class="c-pill"><div class="c-pill-dot"></div>Tomorrow</div>
+    <div class="c-h1">LIVE</div>
+    <div class="c-h2">AUCTIONS</div>
+    <div class="c-sub"><strong>$0.01 per bid</strong> · Last bidder wins · Items 90–99% off</div>
+    <div class="c-rule"></div>
+    <div class="c-url">penny.bid · @pennyBid_</div>
+  </div>
+
+  <div class="bot">
+    <div class="bot-item">No KYC</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Built on Solana</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">$0.01 per bid</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">$penny buyback & burn</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Withdrawable credits</div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1500px; height:500px; overflow:hidden; }
+
+  .wrap {
+    width:1500px; height:500px;
+    background:#07060c;
+    position:relative; overflow:hidden;
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .bg-svg { position:absolute; inset:0; z-index:0; pointer-events:none; }
+
+  /* ── Hero card (center) ── */
+  .hero-card {
+    position:relative; z-index:3;
+    width:320px; flex-shrink:0;
+    background:#0f0e15;
+    border:1px solid rgba(255,98,0,0.35);
+    border-radius:22px; overflow:visible;
+    box-shadow:
+      0 0 0 1px rgba(255,98,0,0.1),
+      0 24px 80px rgba(0,0,0,0.8),
+      0 0 60px rgba(255,98,0,0.12);
+  }
+
+  /* Glowing ring behind card */
+  .hero-card::before {
+    content:'';
+    position:absolute; inset:-20px;
+    border-radius:38px;
+    background:radial-gradient(ellipse at center, rgba(255,98,0,0.15) 0%, transparent 70%);
+    z-index:-1;
+  }
+
+  .hc-img {
+    height:180px;
+    background:linear-gradient(135deg,#13111e,#1c1828);
+    display:flex; align-items:center; justify-content:center;
+    font-size:80px; position:relative;
+    border-radius:21px 21px 0 0;
+  }
+
+  .hc-live {
+    position:absolute; top:14px; left:14px;
+    background:rgba(7,6,12,0.9); border:1px solid rgba(255,98,0,0.5);
+    border-radius:24px; padding:5px 12px;
+    font-size:11px; font-weight:800; color:#ff6200;
+    display:flex; align-items:center; gap:6px; letter-spacing:0.5px;
+  }
+  .hc-dot {
+    width:7px; height:7px; border-radius:50%; background:#ff6200;
+    box-shadow:0 0 10px rgba(255,98,0,1);
+  }
+
+  .hc-bids {
+    position:absolute; top:14px; right:14px;
+    background:rgba(0,0,0,0.75); border:1px solid rgba(255,255,255,0.07);
+    border-radius:10px; padding:4px 10px;
+    font-size:10px; font-weight:700; color:#555;
+  }
+
+  .hc-body { padding:18px 20px; }
+  .hc-name { font-size:16px; font-weight:900; color:#fff; line-height:1.2; margin-bottom:14px; }
+
+  .hc-price-row {
+    display:flex; align-items:flex-end; justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .hc-lbl { font-size:9px; color:#2a2a2a; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:3px; }
+  .hc-price { font-family:'Courier New',monospace; font-size:36px; font-weight:700; color:#00e87a; letter-spacing:-1.5px; line-height:1; }
+  .hc-timer { font-family:'Courier New',monospace; font-size:28px; font-weight:700; color:#ff6200; letter-spacing:-1px; line-height:1; text-align:right; }
+
+  .hc-bar-wrap { height:3px; background:rgba(255,255,255,0.06); border-radius:2px; margin-bottom:14px; }
+  .hc-bar { height:100%; width:20%; background:linear-gradient(to right,#ff6200,#ff8c00); border-radius:2px; }
+
+  .hc-btn {
+    background:linear-gradient(135deg,#ff6200,#ff7a00);
+    color:#fff; border-radius:12px; padding:12px;
+    text-align:center; font-size:13px; font-weight:900;
+    letter-spacing:0.3px;
+    box-shadow:0 6px 24px rgba(255,98,0,0.35);
+  }
+
+  /* ── Side panels ── */
+  .side { position:relative; z-index:2; display:flex; flex-direction:column; justify-content:center; }
+  .side-left { width:380px; padding:0 56px 0 64px; align-items:flex-start; }
+  .side-right { width:420px; padding:0 64px 0 48px; }
+
+  /* Left content */
+  .eyebrow {
+    font-size:10px; font-weight:700; letter-spacing:4px;
+    text-transform:uppercase; color:#ff6200; margin-bottom:18px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .ey-line { width:16px; height:1px; background:rgba(255,98,0,0.4); }
+
+  .hl { font-size:60px; font-weight:900; letter-spacing:-3px; line-height:0.88; color:#fff; }
+  .hl em { font-style:normal; color:#ff6200; }
+
+  .sub { font-size:14px; color:#363636; line-height:1.65; margin-top:18px; font-weight:500; }
+  .sub strong { color:#4e4e4e; }
+
+  .pill-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:22px; }
+  .pill {
+    font-size:10px; font-weight:700; letter-spacing:0.5px;
+    text-transform:uppercase; color:#2a2a2a;
+    border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:5px 12px;
+  }
+
+  /* Right content — stat grid */
+  .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .sbox {
+    background:#0d0c14; border:1px solid rgba(255,255,255,0.05);
+    border-radius:14px; padding:18px 20px;
+  }
+  .sbox.accent { border-color:rgba(255,98,0,0.15); background:#100e18; }
+  .sbox-v { font-family:'Courier New',monospace; font-size:32px; font-weight:700; color:#ff6200; letter-spacing:-1px; line-height:1; }
+  .sbox-l { font-size:10px; color:#222; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-top:6px; }
+
+  .logo-lockup { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:#0d0c14; border:1px solid rgba(255,255,255,0.05); border-radius:14px; }
+  .logo-text { font-size:22px; font-weight:900; letter-spacing:-1px; color:#fff; }
+  .logo-text strong { color:#ff6200; }
+  .logo-url { font-size:12px; color:#252525; font-weight:600; }
+
+  /* Bottom strip -->*/
+  .bot {
+    position:absolute; bottom:0; left:0; right:0; height:36px;
+    background:rgba(255,98,0,0.03); border-top:1px solid rgba(255,98,0,0.07);
+    display:flex; align-items:center; justify-content:center; gap:32px; z-index:5;
+  }
+  .bot-item { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#1a1a1a; }
+  .bot-sep { width:3px; height:3px; border-radius:50%; background:#1e1e1e; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <svg class="bg-svg" viewBox="0 0 1500 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="rA" cx="50%" cy="50%" r="40%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.11"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="rB" cx="15%" cy="50%" r="35%">
+        <stop offset="0%" stop-color="#ff6200" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#ff6200" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="rC" cx="85%" cy="50%" r="35%">
+        <stop offset="0%" stop-color="#4400ff" stop-opacity="0.04"/>
+        <stop offset="100%" stop-color="#4400ff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1500" height="500" fill="url(#rA)"/>
+    <rect width="1500" height="500" fill="url(#rB)"/>
+    <rect width="1500" height="500" fill="url(#rC)"/>
+
+    <!-- Grid -->
+    <g stroke="rgba(255,98,0,0.025)" stroke-width="1">
+      <line x1="0" y1="125" x2="1500" y2="125"/>
+      <line x1="0" y1="250" x2="1500" y2="250"/>
+      <line x1="0" y1="375" x2="1500" y2="375"/>
+      <line x1="187" y1="0" x2="187" y2="500"/>
+      <line x1="375" y1="0" x2="375" y2="500"/>
+      <line x1="562" y1="0" x2="562" y2="500"/>
+      <line x1="750" y1="0" x2="750" y2="500"/>
+      <line x1="937" y1="0" x2="937" y2="500"/>
+      <line x1="1125" y1="0" x2="1125" y2="500"/>
+      <line x1="1312" y1="0" x2="1312" y2="500"/>
+    </g>
+
+    <!-- Horizontal panel dividers -->
+    <line x1="380" y1="40" x2="380" y2="460" stroke="rgba(255,98,0,0.07)" stroke-width="1"/>
+    <line x1="1120" y1="40" x2="1120" y2="460" stroke="rgba(255,98,0,0.07)" stroke-width="1"/>
+
+    <!-- Corner marks -->
+    <g fill="#ff6200" opacity="0.4">
+      <rect x="0" y="0" width="40" height="2"/>
+      <rect x="0" y="0" width="2" height="40"/>
+      <rect x="1460" y="0" width="40" height="2"/>
+      <rect x="1498" y="0" width="2" height="40"/>
+      <rect x="0" y="498" width="40" height="2"/>
+      <rect x="0" y="460" width="2" height="40"/>
+      <rect x="1460" y="498" width="40" height="2"/>
+      <rect x="1498" y="460" width="2" height="40"/>
+    </g>
+
+    <!-- Dots -->
+    <g fill="#ff6200">
+      <circle cx="80"   cy="80"  r="1.5" opacity="0.5"/>
+      <circle cx="220"  cy="420" r="2"   opacity="0.25"/>
+      <circle cx="1280" cy="70"  r="1.5" opacity="0.4"/>
+      <circle cx="1420" cy="410" r="2"   opacity="0.3"/>
+      <circle cx="750"  cy="30"  r="2"   opacity="0.35"/>
+      <circle cx="750"  cy="470" r="2"   opacity="0.35"/>
+    </g>
+  </svg>
+
+  <!-- LEFT -->
+  <div class="side side-left">
+    <div class="eyebrow"><div class="ey-line"></div>Penny Auctions · Solana</div>
+    <div class="hl">Last<br/>bidder<br/><em>wins.</em></div>
+    <div class="sub">Items sell for <strong>90–99% below retail.</strong><br/>Every bid resets the clock to 15 seconds.</div>
+    <div class="pill-row">
+      <div class="pill">$0.01 / bid</div>
+      <div class="pill">No KYC</div>
+      <div class="pill">Provably fair</div>
+    </div>
+  </div>
+
+  <!-- CENTER: hero card -->
+  <div class="hero-card">
+    <div class="hc-img">🎮
+      <div class="hc-live"><div class="hc-dot"></div>LIVE</div>
+      <div class="hc-bids">1,204 bids</div>
+    </div>
+    <div class="hc-body">
+      <div class="hc-name">PlayStation 5 Slim<br/>Console + 2 Controllers</div>
+      <div class="hc-price-row">
+        <div>
+          <div class="hc-lbl">Current bid</div>
+          <div class="hc-price">$0.17</div>
+        </div>
+        <div>
+          <div class="hc-lbl" style="text-align:right">Expires in</div>
+          <div class="hc-timer">6.8s</div>
+        </div>
+      </div>
+      <div class="hc-bar-wrap"><div class="hc-bar"></div></div>
+      <div class="hc-btn">⚡ Place Bid — 1 credit ($0.01)</div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="side side-right">
+    <div class="stat-grid">
+      <div class="sbox accent">
+        <div class="sbox-v">$0.01</div>
+        <div class="sbox-l">Per bid</div>
+      </div>
+      <div class="sbox accent">
+        <div class="sbox-v">15s</div>
+        <div class="sbox-l">Timer reset</div>
+      </div>
+      <div class="sbox">
+        <div class="sbox-v">99%</div>
+        <div class="sbox-l">Below retail</div>
+      </div>
+      <div class="sbox">
+        <div class="sbox-v">50%</div>
+        <div class="sbox-l">$penny burn</div>
+      </div>
+      <div class="logo-lockup">
+        <div class="logo-text">penny<strong>Bid</strong></div>
+        <div class="logo-url">penny.bid · @pennyBid_</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bot">
+    <div class="bot-item">Deposit SOL</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Get credits</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Place bids</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Win the item</div>
+    <div class="bot-sep"></div>
+    <div class="bot-item">Unspent credits always withdrawable</div>
+  </div>
+
+</div>
+</body>
+</html>
