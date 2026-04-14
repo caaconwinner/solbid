@@ -314,6 +314,8 @@ function WinsTab({ token }: { token: string }) {
                         ? <>You won a <strong style={{ color: 'var(--green)' }}>{win.prize.amount} SOL</strong> prize! Pay the auction price to claim it.</>
                         : win.prize.type === 'credits'
                         ? <>You won <strong style={{ color: 'var(--orange)' }}>{win.prize.amount} bonus credits</strong>! Pay the auction price and they'll be added to your account instantly.</>
+                        : win.prize.type === 'token'
+                        ? <>You won <strong style={{ color: 'var(--orange)' }}>{win.prize.amount} tokens</strong>! Pay the auction price and the tokens will be sent to your deposit wallet.</>
                         : <>You won the right to buy this item.</>
                       }{' '}
                       The payment of{' '}
@@ -341,6 +343,10 @@ function WinsTab({ token }: { token: string }) {
                   {win.prize.type === 'credits' && (
                     <><p className="win-prize-label">Credits prize</p>
                     <p className="win-prize-desc" style={{ color: 'var(--orange)' }}>+{win.prize.amount} bonus credits added to your account ✓</p></>
+                  )}
+                  {win.prize.type === 'token' && (
+                    <><p className="win-prize-label">Token prize</p>
+                    <p className="win-prize-desc" style={{ color: 'var(--orange)' }}>{win.prize.amount} tokens sent to your deposit wallet ✓</p></>
                   )}
                   {win.purchaseSig && !adminSent && (
                     <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
