@@ -99,7 +99,8 @@ export interface Win {
   prize:         { type: 'sol'; amount: number }
                | { type: 'digital'; code: string }
                | { type: 'physical'; description: string }
-               | { type: 'credits'; amount: number };
+               | { type: 'credits'; amount: number }
+               | { type: 'token'; mint: string; amount: number };
   finalPrice:    number;
   purchasePrice: number;
   purchased:     boolean;

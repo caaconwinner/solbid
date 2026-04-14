@@ -32,6 +32,11 @@ import {
   sendAndConfirmTransaction,
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
+import {
+  getOrCreateAssociatedTokenAccount,
+  transfer as splTransfer,
+  getMint,
+} from '@solana/spl-token';
 
 const SOLANA_RPC = process.env.SOLANA_RPC ?? 'https://api.devnet.solana.com';
 const connection = new Connection(SOLANA_RPC, 'confirmed');
@@ -47,6 +52,26 @@ if (process.env.PRIZE_WALLET_SECRET) {
   } catch { console.error('[prize] PRIZE_WALLET_SECRET invalid — SOL prize claims disabled'); }
 } else {
   console.warn('[prize] PRIZE_WALLET_SECRET not set — SOL prize claims will fail');
+}
+
+// Send SPL tokens from prize wallet to a recipient public key.
+// amount is in human-readable units (e.g. 1000 = 1000 tokens, decimals applied internally).
+async function sendSplTokens(mintAddress, amount, toPubkey) {
+  if (!PRIZE_KEYPAIR) throw new Error('Prize wallet not configured');
+  const mint     = new PublicKey(mintAddress);
+  const mintInfo = await getMint(connection, mint);
+  const atomic   = BigInt(Math.round(amount * 10 ** mintInfo.decimals));
+
+  const sourceAta = await getOrCreateAssociatedTokenAccount(
+    connection, PRIZE_KEYPAIR, mint, PRIZE_KEYPAIR.publicKey
+  );
+  const destAta = await getOrCreateAssociatedTokenAccount(
+    connection, PRIZE_KEYPAIR, mint, toPubkey
+  );
+  const sig = await splTransfer(
+    connection, PRIZE_KEYPAIR, sourceAta.address, destAta.address, PRIZE_KEYPAIR, atomic
+  );
+  return sig;
 }
 
 let HOUSE_PUBKEY = null;
@@ -827,24 +852,34 @@ app.post('/api/wins/:id/claim', requireAuth, async (req, res) => {
   if (row.purchased)               return res.status(400).json({ message: 'Already claimed' });
 
   const prize = JSON.parse(row.prize_data);
-  if (prize.type !== 'sol')        return res.status(400).json({ message: 'Not a SOL prize' });
-  if (!PRIZE_KEYPAIR)              return res.status(503).json({ message: 'Prize wallet not configured — contact support' });
+  if (prize.type !== 'sol' && prize.type !== 'token')
+    return res.status(400).json({ message: 'This prize type cannot be self-claimed' });
+  if (!PRIZE_KEYPAIR)
+    return res.status(503).json({ message: 'Prize wallet not configured — contact support' });
 
-  const lamports = Math.round(prize.amount * LAMPORTS_PER_SOL);
   const toPubkey = new PublicKey(req.user.depositAddress);
 
   try {
-    const prizeBalance = await connection.getBalance(PRIZE_KEYPAIR.publicKey);
-    if (prizeBalance < lamports + 5000)
-      return res.status(400).json({ message: 'Prize wallet has insufficient funds — contact support' });
+    if (prize.type === 'sol') {
+      const lamports = Math.round(prize.amount * LAMPORTS_PER_SOL);
+      const prizeBalance = await connection.getBalance(PRIZE_KEYPAIR.publicKey);
+      if (prizeBalance < lamports + 5000)
+        return res.status(400).json({ message: 'Prize wallet has insufficient funds — contact support' });
+      const tx = new Transaction().add(
+        SystemProgram.transfer({ fromPubkey: PRIZE_KEYPAIR.publicKey, toPubkey, lamports })
+      );
+      const sig = await sendAndConfirmTransaction(connection, tx, [PRIZE_KEYPAIR]);
+      stmt.markPurchased.run({ id: row.id, sig });
+      console.log(`[claim] ${req.user.username} claimed ${prize.amount} SOL prize | ${sig}`);
+      return res.json({ ok: true, sig, amount: prize.amount });
+    }
 
-    const tx = new Transaction().add(
-      SystemProgram.transfer({ fromPubkey: PRIZE_KEYPAIR.publicKey, toPubkey, lamports })
-    );
-    const sig = await sendAndConfirmTransaction(connection, tx, [PRIZE_KEYPAIR]);
-    stmt.markPurchased.run({ id: row.id, sig });
-    console.log(`[claim] ${req.user.username} claimed ${prize.amount} SOL prize | ${sig}`);
-    return res.json({ ok: true, sig, amount: prize.amount });
+    if (prize.type === 'token') {
+      const sig = await sendSplTokens(prize.mint, prize.amount, toPubkey);
+      stmt.markPurchased.run({ id: row.id, sig });
+      console.log(`[claim] ${req.user.username} claimed ${prize.amount} tokens (${prize.mint.slice(0,8)}…) | ${sig}`);
+      return res.json({ ok: true, sig, amount: prize.amount, mint: prize.mint });
+    }
   } catch (e) {
     console.error('[claim] failed:', e.message);
     return res.status(500).json({ message: 'Claim failed: ' + e.message });
@@ -893,7 +928,7 @@ app.get('/api/admin/auctions', requireAdmin, (req, res) => {
 });
 
 app.post('/api/admin/auction', requireAdmin, (req, res) => {
-  const { name, image, retailValue, startAt, durationMinutes, snapTimerSeconds, prizeType, prizeAmount, prizeCode, prizeDescription } = req.body;
+  const { name, image, retailValue, startAt, durationMinutes, snapTimerSeconds, prizeType, prizeAmount, prizeCode, prizeDescription, prizeMint } = req.body;
   if (!name || !image || !retailValue || !durationMinutes)
     return res.status(400).json({ message: 'name, image, retailValue and durationMinutes are required' });
 
@@ -907,6 +942,7 @@ app.post('/api/admin/auction', requireAdmin, (req, res) => {
               : prizeType === 'digital'  ? { type: 'digital',  code: prizeCode }
               : prizeType === 'physical' ? { type: 'physical', description: prizeDescription }
               : prizeType === 'credits'  ? { type: 'credits',  amount: Number(prizeAmount) }
+              : prizeType === 'token'    ? { type: 'token',    mint: prizeMint, amount: Number(prizeAmount) }
               : null;
 
   const auction = makeAuction(id, { name, image, retailValue: Number(retailValue) }, durationMs, delayMs, snapMs, prize);
@@ -923,7 +959,7 @@ app.patch('/api/admin/auction/:id', requireAdmin, (req, res) => {
   if (auction.status === 'active')
     return res.status(400).json({ message: 'Cannot edit an active auction' });
 
-  const { name, image, retailValue, startAt, durationMinutes, snapTimerSeconds, prizeType, prizeAmount, prizeCode, prizeDescription } = req.body;
+  const { name, image, retailValue, startAt, durationMinutes, snapTimerSeconds, prizeType, prizeAmount, prizeCode, prizeDescription, prizeMint } = req.body;
   if (name)             auction.item.name       = name;
   if (image)            auction.item.image      = image;
   if (retailValue)      auction.item.retailValue = Number(retailValue);
@@ -940,6 +976,8 @@ app.patch('/api/admin/auction/:id', requireAdmin, (req, res) => {
     auction.prize = prizeType === 'sol'      ? { type: 'sol',      amount: Number(prizeAmount) }
                   : prizeType === 'digital'  ? { type: 'digital',  code: prizeCode }
                   : prizeType === 'physical' ? { type: 'physical', description: prizeDescription }
+                  : prizeType === 'credits'  ? { type: 'credits',  amount: Number(prizeAmount) }
+                  : prizeType === 'token'    ? { type: 'token',    mint: prizeMint, amount: Number(prizeAmount) }
                   : null;
   }
   persistAuction(auction);
@@ -1154,6 +1192,20 @@ app.post('/api/admin/winners/:id/mark-sent', requireAdmin, async (req, res) => {
     }
     stmt.markPurchased.run({ id: row.id, sig: 'admin-physical' });
     return res.json({ ok: true, delivered: 'physical', emailed: !!winner.email });
+  }
+
+  if (prize.type === 'token') {
+    if (!PRIZE_KEYPAIR) return res.status(503).json({ message: 'Prize wallet not configured' });
+    const toPubkey = new PublicKey(winner.deposit_address);
+    try {
+      const sig = await sendSplTokens(prize.mint, prize.amount, toPubkey);
+      stmt.markPurchased.run({ id: row.id, sig });
+      console.log(`[admin] sent ${prize.amount} tokens (${prize.mint.slice(0,8)}…) to ${winner.username} | ${sig}`);
+      return res.json({ ok: true, sig, delivered: `${prize.amount} tokens` });
+    } catch (e) {
+      console.error('[admin] token send failed:', e.message);
+      return res.status(500).json({ message: 'Token send failed: ' + e.message });
+    }
   }
 
   // fallback

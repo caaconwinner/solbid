@@ -12,7 +12,7 @@ interface AdminAuction {
   endsAtMs:    number;
   snapTimerMs: number;
   _durationMs: number;
-  prize:       { type: string; amount?: number; code?: string; description?: string } | null;
+  prize:       { type: string; amount?: number; code?: string; description?: string; mint?: string } | null;
 }
 
 interface AdminUser {
@@ -32,7 +32,7 @@ interface AdminWinner {
   depositAddress: string;
   itemName:       string;
   prizeType:      string;
-  prizeData:      { type: string; amount?: number; code?: string; description?: string };
+  prizeData:      { type: string; amount?: number; code?: string; description?: string; mint?: string };
   finalPrice:     number;
   purchased:      boolean;
   purchaseSig:    string | null;
@@ -171,10 +171,11 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
   const [startAt,     setStartAt]     = useState(localNow);
   const [durationMin, setDurationMin] = useState('30');
   const [snapSec,     setSnapSec]     = useState('15');
-  const [prizeType,   setPrizeType]   = useState<'physical'|'digital'|'sol'|'credits'>('physical');
+  const [prizeType,   setPrizeType]   = useState<'physical'|'digital'|'sol'|'credits'|'token'>('physical');
   const [prizeAmount, setPrizeAmount] = useState('');
   const [prizeCode,   setPrizeCode]   = useState('');
   const [prizeDesc,   setPrizeDesc]   = useState('');
+  const [prizeMint,   setPrizeMint]   = useState('');
   const [saving,      setSaving]      = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -187,11 +188,11 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
           name, image, retailValue: Number(retailValue),
           startAt: startAt ? new Date(startAt).toISOString() : null,
           durationMinutes: Number(durationMin), snapTimerSeconds: Number(snapSec),
-          prizeType, prizeAmount, prizeCode, prizeDescription: prizeDesc,
+          prizeType, prizeAmount, prizeCode, prizeDescription: prizeDesc, prizeMint,
         }),
       });
       toast.success('Auction created');
-      setName(''); setImage(''); setRetailValue(''); setPrizeAmount(''); setPrizeCode(''); setPrizeDesc('');
+      setName(''); setImage(''); setRetailValue(''); setPrizeAmount(''); setPrizeCode(''); setPrizeDesc(''); setPrizeMint('');
       onCreated();
     } catch (e: any) {
       toast.error(e.message);
@@ -244,11 +245,11 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
         <div className="form-group admin-col-span">
           <label className="form-label">Prize type</label>
           <div className="admin-prize-tabs">
-            {(['physical','digital','sol','credits'] as const).map((t) => (
+            {(['physical','digital','sol','credits','token'] as const).map((t) => (
               <button key={t} type="button"
                 className={`tx-tab ${prizeType === t ? 'tx-tab--active' : ''}`}
                 onClick={() => setPrizeType(t)}>
-                {t === 'sol' ? 'SOL' : t === 'credits' ? 'Credits' : t.charAt(0).toUpperCase() + t.slice(1)}
+                {t === 'sol' ? 'SOL' : t === 'credits' ? 'Credits' : t === 'token' ? 'Token' : t.charAt(0).toUpperCase() + t.slice(1)}
               </button>
             ))}
           </div>
@@ -271,6 +272,16 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
             <input className="form-input" style={{ marginTop: 8 }} type="number" min={1} step={1}
               value={prizeAmount} onChange={(e) => setPrizeAmount(e.target.value)}
               placeholder="Number of bonus credits e.g. 50" required />
+          )}
+          {prizeType === 'token' && (
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <input className="form-input" value={prizeMint}
+                onChange={(e) => setPrizeMint(e.target.value)}
+                placeholder="Token mint address (Solana)" required />
+              <input className="form-input" type="number" min={0.000001} step={0.000001}
+                value={prizeAmount} onChange={(e) => setPrizeAmount(e.target.value)}
+                placeholder="Token amount e.g. 1000" required />
+            </div>
           )}
         </div>
       </div>
@@ -627,6 +638,7 @@ function WinnersPanel({ token }: { token: string }) {
       const prizeLabel =
         w.prizeType === 'sol'     ? `${w.prizeData.amount} SOL`
         : w.prizeType === 'credits' ? `${w.prizeData.amount} bonus credits`
+        : w.prizeType === 'token' ? `${w.prizeData.amount} tokens (mint: ${w.prizeData.mint ?? 'unknown'})`
         : `digital code: ${w.prizeData.code ?? '(none)'}`;
       if (!confirm(`Send prize to ${w.username}?\n\n${prizeLabel}`)) return;
     }
@@ -701,6 +713,11 @@ function WinnersPanel({ token }: { token: string }) {
                   )}
                   {w.prizeType === 'digital' && (
                     <span className="admin-code" title={w.prizeData.code}>Digital</span>
+                  )}
+                  {w.prizeType === 'token' && (
+                    <span style={{ color: 'var(--orange)' }} title={w.prizeData.mint}>
+                      {w.prizeData.amount} tokens
+                    </span>
                   )}
                 </td>
                 <td>
