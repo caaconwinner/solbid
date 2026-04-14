@@ -3510,10 +3510,18 @@ a:hover { text-decoration: underline; }
   flex: 1;
 }
 
-.slots-paytable__credits {
+.slots-paytable__name {
   font-size: 13px;
+  font-weight: 500;
+  color: #bbb;
+  flex: 1;
+}
+
+.slots-paytable__credits {
+  font-size: 12px;
   font-weight: 600;
-  color: #ccc;
+  color: #555;
+  white-space: nowrap;
 }
 
 .slots-paytable__tag {

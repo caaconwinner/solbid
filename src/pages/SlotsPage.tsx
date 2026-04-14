@@ -19,14 +19,14 @@ const SYM_H     = CELL_H - 10;                    // 96
 const MID_SYM_Y0 = REEL_Y + CELL_H + (CELL_H - SYM_H) / 2;  // top of middle symbol
 
 // ─── Symbols ──────────────────────────────────────────────────────────────────
-type Sym = { id: number; key: string; label: string; color: number; tc: string; value: number };
+type Sym = { id: number; key: string; label: string; name: string; color: number; value: number };
 
 const SYMBOLS: Sym[] = [
-  { id: 0, key: 's_penny',  label: '$P',         color: 0xff6200, tc: '#ffffff', value: 10 }, // jackpot
-  { id: 1, key: 's_bid',    label: 'BID',        color: 0x00bcd4, tc: '#ffffff', value: 5  },
-  { id: 2, key: 's_seven',  label: '7',          color: 0xffd700, tc: '#111111', value: 4  },
-  { id: 3, key: 's_bar',    label: 'BAR',        color: 0xb0b0b0, tc: '#111111', value: 2  },
-  { id: 4, key: 's_heart',  label: '\u2665',     color: 0xff3366, tc: '#ffffff', value: 1  },
+  { id: 0, key: 's_ctrl',  label: 'PS5',   name: 'PS5 Console',  color: 0x003db8, value: 10 }, // jackpot
+  { id: 1, key: 's_phone', label: 'iPHONE',name: 'Smartphone',   color: 0x636366, value: 5  },
+  { id: 2, key: 's_hphones',label:'PODS',  name: 'Headphones',   color: 0x9945ff, value: 4  },
+  { id: 3, key: 's_gift',  label: 'GIFT',  name: 'Gift Card',    color: 0x16a34a, value: 2  },
+  { id: 4, key: 's_cash',  label: 'CASH',  name: 'Cash Voucher', color: 0xd97706, value: 1  },
 ];
 
 // Weighted strips — jackpot ($P) is rarest
@@ -35,6 +35,161 @@ const STRIPS: number[][] = [
   [4, 3, 2, 4, 1, 4, 3, 0, 4, 2, 4, 3, 1, 4, 2, 3],
   [2, 4, 3, 1, 4, 2, 4, 3, 4, 0, 4, 1, 4, 2, 3, 4],
 ];
+
+// ─── Icon drawing functions (all coords in 0..SYM_W × 0..SYM_H space) ────────
+
+function drawController(g: Phaser.GameObjects.Graphics, w: number, h: number, c: number) {
+  const cx = w / 2, cy = h / 2 + 4;
+  g.fillStyle(c, 0.9);
+  // Body
+  g.fillRoundedRect(cx - 30, cy - 16, 60, 26, 12);
+  // Left grip
+  g.fillRoundedRect(cx - 28, cy + 6, 15, 22, 8);
+  // Right grip
+  g.fillRoundedRect(cx + 13, cy + 6, 15, 22, 8);
+  // Bumpers
+  g.fillStyle(c, 0.65);
+  g.fillRoundedRect(cx - 28, cy - 22, 13, 8, 4);
+  g.fillRoundedRect(cx + 15, cy - 22, 13, 8, 4);
+  // Left analog stick
+  g.fillStyle(0x000000, 0.4);
+  g.fillCircle(cx - 16, cy + 2, 7);
+  g.fillStyle(c, 0.6);
+  g.fillCircle(cx - 16, cy + 2, 5);
+  // Right analog stick
+  g.fillStyle(0x000000, 0.4);
+  g.fillCircle(cx + 7, cy + 14, 7);
+  g.fillStyle(c, 0.6);
+  g.fillCircle(cx + 7, cy + 14, 5);
+  // D-pad
+  g.fillStyle(0x000000, 0.45);
+  g.fillRect(cx - 27, cy - 2, 6, 14);
+  g.fillRect(cx - 30, cy + 3, 12, 5);
+  // Face buttons
+  g.fillStyle(0x44cc66, 1); g.fillCircle(cx + 21, cy - 8, 3.5);
+  g.fillStyle(0xff4466, 1); g.fillCircle(cx + 27, cy - 2, 3.5);
+  g.fillStyle(0x4488ff, 1); g.fillCircle(cx + 21, cy + 4,  3.5);
+  g.fillStyle(0xee88ff, 1); g.fillCircle(cx + 15, cy - 2, 3.5);
+}
+
+function drawPhone(g: Phaser.GameObjects.Graphics, w: number, h: number, c: number) {
+  const cx = w / 2, cy = h / 2 - 2;
+  // Body
+  g.fillStyle(c, 0.88);
+  g.fillRoundedRect(cx - 21, cy - 38, 42, 80, 12);
+  // Screen
+  g.fillStyle(0x060e18, 0.95);
+  g.fillRoundedRect(cx - 17, cy - 32, 34, 62, 8);
+  // App grid
+  g.fillStyle(c, 0.28);
+  g.fillRoundedRect(cx - 13, cy - 22, 10, 10, 3);
+  g.fillRoundedRect(cx + 3,  cy - 22, 10, 10, 3);
+  g.fillRoundedRect(cx - 13, cy - 8,  10, 10, 3);
+  g.fillRoundedRect(cx + 3,  cy - 8,  10, 10, 3);
+  g.fillRoundedRect(cx - 13, cy + 6,  10, 10, 3);
+  g.fillRoundedRect(cx + 3,  cy + 6,  10, 10, 3);
+  // Dynamic island
+  g.fillStyle(0x000000, 0.85);
+  g.fillRoundedRect(cx - 9, cy - 30, 18, 5, 3);
+  // Home bar
+  g.fillStyle(c, 0.4);
+  g.fillRoundedRect(cx - 10, cy + 24, 20, 3, 2);
+  // Side button
+  g.fillStyle(c, 1);
+  g.fillRoundedRect(cx + 20, cy - 14, 3, 14, 2);
+}
+
+function drawHeadphones(g: Phaser.GameObjects.Graphics, w: number, h: number, c: number) {
+  const cx = w / 2, cy = h / 2 + 4;
+  // Headband arc
+  g.lineStyle(7, c, 0.9);
+  g.beginPath();
+  g.arc(cx, cy - 4, 26, 0, Math.PI, true);
+  g.strokePath();
+  // Sliders
+  g.fillStyle(c, 0.65);
+  g.fillRoundedRect(cx - 29, cy - 24, 6, 20, 3);
+  g.fillRoundedRect(cx + 23, cy - 24, 6, 20, 3);
+  // Left cup outer
+  g.fillStyle(c, 0.9);
+  g.fillCircle(cx - 26, cy, 13);
+  g.fillStyle(0x000000, 0.35);
+  g.fillCircle(cx - 26, cy, 8);
+  g.fillStyle(c, 0.45);
+  g.fillCircle(cx - 26, cy, 4);
+  // Right cup outer
+  g.fillStyle(c, 0.9);
+  g.fillCircle(cx + 26, cy, 13);
+  g.fillStyle(0x000000, 0.35);
+  g.fillCircle(cx + 26, cy, 8);
+  g.fillStyle(c, 0.45);
+  g.fillCircle(cx + 26, cy, 4);
+  // Cup highlights
+  g.fillStyle(0xffffff, 0.12);
+  g.fillCircle(cx - 28, cy - 4, 5);
+  g.fillCircle(cx + 24, cy - 4, 5);
+}
+
+function drawGiftCard(g: Phaser.GameObjects.Graphics, w: number, h: number, c: number) {
+  const cx = w / 2, cy = h / 2 + 4;
+  // Card body
+  g.fillStyle(c, 0.88);
+  g.fillRoundedRect(cx - 36, cy - 24, 72, 46, 8);
+  // Shine
+  g.fillStyle(0xffffff, 0.06);
+  g.fillRoundedRect(cx - 35, cy - 23, 36, 44, 7);
+  // Mag stripe
+  g.fillStyle(0x000000, 0.22);
+  g.fillRect(cx - 36, cy - 3, 72, 14);
+  // Horizontal ribbon
+  g.fillStyle(0xffffff, 0.5);
+  g.fillRect(cx - 36, cy - 1, 72, 6);
+  // Vertical ribbon
+  g.fillRect(cx - 3, cy - 24, 6, 46);
+  // Bow — left loop
+  g.fillStyle(0xffffff, 0.65);
+  g.fillEllipse(cx - 12, cy - 24, 20, 12);
+  // Bow — right loop
+  g.fillEllipse(cx + 12, cy - 24, 20, 12);
+  // Bow knot
+  g.fillStyle(0xffffff, 1);
+  g.fillCircle(cx, cy - 24, 4);
+  // Chip
+  g.fillStyle(0xffd700, 0.6);
+  g.fillRoundedRect(cx - 32, cy + 2, 14, 10, 3);
+}
+
+function drawCash(g: Phaser.GameObjects.Graphics, w: number, h: number, c: number) {
+  const cx = w / 2, cy = h / 2 + 2;
+  // Stack (back bills)
+  g.fillStyle(c, 0.35);
+  g.fillRoundedRect(cx - 32, cy - 18, 70, 42, 7);
+  g.fillRoundedRect(cx - 34, cy - 20, 70, 42, 7);
+  // Main bill
+  g.fillStyle(c, 0.92);
+  g.fillRoundedRect(cx - 36, cy - 22, 72, 44, 7);
+  // Bill inner border
+  g.lineStyle(1.5, 0x000000, 0.18);
+  g.strokeRoundedRect(cx - 32, cy - 18, 64, 36, 5);
+  // Centre oval
+  g.fillStyle(0x000000, 0.18);
+  g.fillEllipse(cx, cy, 32, 22);
+  g.fillStyle(c, 0.5);
+  g.fillEllipse(cx, cy, 26, 16);
+  // $ vertical bar
+  g.fillStyle(0x000000, 0.55);
+  g.fillRect(cx - 1.5, cy - 13, 3, 26);
+  // $ horizontal strokes
+  g.fillRoundedRect(cx - 7, cy - 9, 14, 4, 2);
+  g.fillRoundedRect(cx - 7, cy - 1, 14, 4, 2);
+  g.fillRoundedRect(cx - 7, cy + 7, 14, 4, 2);
+  // Corner rosettes
+  g.fillStyle(0x000000, 0.12);
+  g.fillCircle(cx - 30, cy - 16, 4);
+  g.fillCircle(cx + 30, cy - 16, 4);
+  g.fillCircle(cx - 30, cy + 16, 4);
+  g.fillCircle(cx + 30, cy + 16, 4);
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface ReelData {
@@ -109,28 +264,37 @@ class GameScene extends Phaser.Scene {
 
   // ── Texture generation ──────────────────────────────────────────────────────
   private generateTextures() {
-    // Symbol tiles
+    // Symbol tiles — each drawn as a prize icon, no image files
+    const iconFns = [drawController, drawPhone, drawHeadphones, drawGiftCard, drawCash];
+
     for (const s of SYMBOLS) {
       if (this.textures.exists(s.key)) continue;
 
       const rt = this.add.renderTexture(0, 0, SYM_W, SYM_H);
 
+      // Shared tile background + border
       const bg = this.make.graphics({}, false);
       bg.fillStyle(0x0d1e2e, 1);
       bg.fillRoundedRect(0, 0, SYM_W, SYM_H, 10);
-      bg.fillStyle(s.color, 0.18);
+      bg.fillStyle(s.color, 0.14);
       bg.fillRoundedRect(3, 3, SYM_W - 6, SYM_H - 6, 8);
-      bg.lineStyle(2.5, s.color, 0.75);
+      bg.lineStyle(2.5, s.color, 0.72);
       bg.strokeRoundedRect(1, 1, SYM_W - 2, SYM_H - 2, 10);
       rt.draw(bg, 0, 0);
       bg.destroy();
 
-      const fs  = s.label.length > 2 ? '20px' : s.label.length > 1 ? '26px' : '38px';
+      // Draw icon
+      const ic = this.make.graphics({}, false);
+      iconFns[s.id](ic, SYM_W, SYM_H, s.color);
+      rt.draw(ic, 0, 0);
+      ic.destroy();
+
+      // Small prize label at bottom of tile
       const lbl = this.make.text({
         x: 0, y: 0, text: s.label,
-        style: { fontFamily: 'Inter,system-ui,sans-serif', fontSize: fs, fontStyle: 'bold', color: s.tc },
+        style: { fontFamily: 'Inter,system-ui,sans-serif', fontSize: '10px', fontStyle: 'bold', color: '#' + s.color.toString(16).padStart(6, '0') },
       }, false);
-      rt.draw(lbl, (SYM_W - lbl.width) / 2, (SYM_H - lbl.height) / 2);
+      rt.draw(lbl, (SYM_W - lbl.width) / 2, SYM_H - lbl.height - 3);
       lbl.destroy();
 
       rt.saveTexture(s.key);
@@ -519,11 +683,11 @@ class GameScene extends Phaser.Scene {
 
 // ─── Paytable data (mirrors SYMBOLS above) ────────────────────────────────────
 const PAYTABLE = [
-  { label: '$P',  color: '#ff6200', value: 10, tag: 'JACKPOT' },
-  { label: 'BID', color: '#00bcd4', value: 5,  tag: 'BIG WIN' },
-  { label: '7',   color: '#ffd700', value: 4,  tag: 'BIG WIN' },
-  { label: 'BAR', color: '#b0b0b0', value: 2,  tag: null       },
-  { label: '\u2665', color: '#ff3366', value: 1, tag: null     },
+  { label: 'PS5',    name: 'PS5 Console',  color: '#003db8', value: 10, tag: 'JACKPOT' },
+  { label: 'iPHONE', name: 'Smartphone',   color: '#636366', value: 5,  tag: 'BIG WIN' },
+  { label: 'PODS',   name: 'Headphones',   color: '#9945ff', value: 4,  tag: 'BIG WIN' },
+  { label: 'GIFT',   name: 'Gift Card',    color: '#16a34a', value: 2,  tag: null       },
+  { label: 'CASH',   name: 'Cash Voucher', color: '#d97706', value: 1,  tag: null       },
 ];
 
 // ─── React wrapper ────────────────────────────────────────────────────────────
@@ -576,7 +740,8 @@ export function SlotsPage() {
               </div>
               <div className="slots-paytable__arrow">&rarr;</div>
               <div className="slots-paytable__payout">
-                <span className="slots-paytable__credits">+{row.value} credits</span>
+                <span className="slots-paytable__name">{row.name}</span>
+                <span className="slots-paytable__credits">+{row.value}cr</span>
                 {row.tag && (
                   <span
                     className="slots-paytable__tag"
