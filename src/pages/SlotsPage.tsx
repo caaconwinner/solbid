@@ -15,15 +15,18 @@ const REEL_Y    = 82;
 const SYM_W     = REEL_W - 16;                    // 94
 const SYM_H     = CELL_H - 10;                    // 96
 
+// Middle cell bounds (row 1) — used for win flash overlays
+const MID_SYM_Y0 = REEL_Y + CELL_H + (CELL_H - SYM_H) / 2;  // top of middle symbol
+
 // ─── Symbols ──────────────────────────────────────────────────────────────────
 type Sym = { id: number; key: string; label: string; color: number; tc: string; value: number };
 
 const SYMBOLS: Sym[] = [
-  { id: 0, key: 's_penny',  label: '$P',  color: 0xff6200, tc: '#ffffff', value: 10 }, // jackpot
-  { id: 1, key: 's_bid',    label: 'BID', color: 0x00bcd4, tc: '#ffffff', value: 5  },
-  { id: 2, key: 's_seven',  label: '7',   color: 0xffd700, tc: '#111111', value: 4  },
-  { id: 3, key: 's_bar',    label: 'BAR', color: 0xb0b0b0, tc: '#111111', value: 2  },
-  { id: 4, key: 's_heart',  label: '\u2665', color: 0xff3366, tc: '#ffffff', value: 1  },
+  { id: 0, key: 's_penny',  label: '$P',         color: 0xff6200, tc: '#ffffff', value: 10 }, // jackpot
+  { id: 1, key: 's_bid',    label: 'BID',        color: 0x00bcd4, tc: '#ffffff', value: 5  },
+  { id: 2, key: 's_seven',  label: '7',          color: 0xffd700, tc: '#111111', value: 4  },
+  { id: 3, key: 's_bar',    label: 'BAR',        color: 0xb0b0b0, tc: '#111111', value: 2  },
+  { id: 4, key: 's_heart',  label: '\u2665',     color: 0xff3366, tc: '#ffffff', value: 1  },
 ];
 
 // Weighted strips — jackpot ($P) is rarest
@@ -38,8 +41,8 @@ interface ReelData {
   col:       number;
   x:         number;
   container: Phaser.GameObjects.Container;
-  cells:     Phaser.GameObjects.Image[];   // 3 persistent visible cells
-  extras:    Phaser.GameObjects.Image[];   // temp cells added during spin
+  cells:     Phaser.GameObjects.Image[];
+  extras:    Phaser.GameObjects.Image[];
   strip:     number[];
 }
 
@@ -67,11 +70,17 @@ class BootScene extends Phaser.Scene {
 
 // ─── Game Scene ───────────────────────────────────────────────────────────────
 class GameScene extends Phaser.Scene {
+  // Part 2
   private credits   = 100;
   private spinning  = false;
   private reels:    ReelData[] = [];
   private creditTxt!: Phaser.GameObjects.Text;
   private btnGfx!:    Phaser.GameObjects.Graphics;
+
+  // Part 3
+  private winGfx!:    Phaser.GameObjects.Graphics;
+  private winLabel!:  Phaser.GameObjects.Text;
+  private winTween:   Phaser.Tweens.Tween | null = null;
 
   private readonly BTN_Y = REEL_Y + REEL_H + 106;
   private readonly BTN_W = 175;
@@ -80,22 +89,32 @@ class GameScene extends Phaser.Scene {
   constructor() { super('GameScene'); }
 
   create() {
-    this.generateSymbolTextures();
+    this.generateTextures();
     this.buildBackground();
     this.buildReels();
     this.buildPaylineMark();
     this.buildCreditDisplay();
     this.buildSpinButton();
+    // Win-effect layers — added last so they render above everything
+    this.winGfx   = this.add.graphics().setDepth(5);
+    this.winLabel = this.add.text(CW / 2, REEL_Y - 18, '', {
+      fontFamily: 'Inter,system-ui,sans-serif',
+      fontSize:   '26px',
+      fontStyle:  'bold',
+      color:      '#ffd700',
+      stroke:     '#000000',
+      strokeThickness: 3,
+    }).setOrigin(0.5).setAlpha(0).setDepth(5);
   }
 
-  // ── Symbol textures (generated in code, no image files) ────────────────────
-  private generateSymbolTextures() {
+  // ── Texture generation ──────────────────────────────────────────────────────
+  private generateTextures() {
+    // Symbol tiles
     for (const s of SYMBOLS) {
       if (this.textures.exists(s.key)) continue;
 
       const rt = this.add.renderTexture(0, 0, SYM_W, SYM_H);
 
-      // Background + tint + border
       const bg = this.make.graphics({}, false);
       bg.fillStyle(0x0d1e2e, 1);
       bg.fillRoundedRect(0, 0, SYM_W, SYM_H, 10);
@@ -106,11 +125,9 @@ class GameScene extends Phaser.Scene {
       rt.draw(bg, 0, 0);
       bg.destroy();
 
-      // Label — centered via manual offset
-      const fs = s.label.length > 2 ? '20px' : s.label.length > 1 ? '26px' : '38px';
+      const fs  = s.label.length > 2 ? '20px' : s.label.length > 1 ? '26px' : '38px';
       const lbl = this.make.text({
-        x: 0, y: 0,
-        text: s.label,
+        x: 0, y: 0, text: s.label,
         style: { fontFamily: 'Inter,system-ui,sans-serif', fontSize: fs, fontStyle: 'bold', color: s.tc },
       }, false);
       rt.draw(lbl, (SYM_W - lbl.width) / 2, (SYM_H - lbl.height) / 2);
@@ -118,6 +135,15 @@ class GameScene extends Phaser.Scene {
 
       rt.saveTexture(s.key);
       rt.destroy();
+    }
+
+    // Particle dot (white circle, tinted at runtime)
+    if (!this.textures.exists('particle')) {
+      const pg = this.make.graphics({}, false);
+      pg.fillStyle(0xffffff, 1);
+      pg.fillCircle(5, 5, 5);
+      pg.generateTexture('particle', 10, 10);
+      pg.destroy();
     }
   }
 
@@ -138,18 +164,15 @@ class GameScene extends Phaser.Scene {
   // ── Reel columns ───────────────────────────────────────────────────────────
   private buildReels() {
     this.reels = [];
-
     for (let col = 0; col < REEL_COLS; col++) {
       const x = REEL_X0 + col * (REEL_W + GAP);
 
-      // Frame background
       const frame = this.add.graphics();
       frame.fillStyle(0x0b1825, 1);
       frame.lineStyle(2, 0x1c3248, 1);
       frame.fillRoundedRect(x, REEL_Y, REEL_W, REEL_H, 8);
       frame.strokeRoundedRect(x, REEL_Y, REEL_W, REEL_H, 8);
 
-      // Geometry mask — clips symbols to reel window
       const mGfx = this.make.graphics({}, false);
       mGfx.fillStyle(0xffffff);
       mGfx.fillRect(x + 2, REEL_Y + 2, REEL_W - 4, REEL_H - 4);
@@ -158,7 +181,6 @@ class GameScene extends Phaser.Scene {
       const container = this.add.container(0, 0);
       container.setMask(mask);
 
-      // 3 initial cells at random strip position
       const strip    = STRIPS[col];
       const startIdx = Phaser.Math.Between(0, strip.length - 1);
       const cells:   Phaser.GameObjects.Image[] = [];
@@ -185,7 +207,6 @@ class GameScene extends Phaser.Scene {
     const g      = this.add.graphics();
     g.lineStyle(2, 0xff6200, 0.45);
     g.lineBetween(REEL_X0 - 10, py, REEL_X0 + totalW + 10, py);
-    // Side arrow indicators
     g.fillStyle(0xff6200, 0.6);
     g.fillTriangle(REEL_X0 - 16, py - 5, REEL_X0 - 5, py, REEL_X0 - 16, py + 5);
     g.fillTriangle(REEL_X0 + totalW + 16, py - 5, REEL_X0 + totalW + 5, py, REEL_X0 + totalW + 16, py + 5);
@@ -234,6 +255,12 @@ class GameScene extends Phaser.Scene {
     this.credits -= 1;
     this.creditTxt.setText(String(this.credits));
 
+    // Clear any lingering win effects from the previous spin
+    this.winTween?.stop();
+    this.winTween = null;
+    this.winGfx.clear();
+    this.winLabel.setAlpha(0);
+
     const finalMids: number[] = [];
     let stopped = 0;
 
@@ -243,7 +270,7 @@ class GameScene extends Phaser.Scene {
       const finalSyms = [0, 1, 2].map(r => reel.strip[(finalIdx + r) % reel.strip.length]);
 
       this.spinReel(reel, col, finalSyms, () => {
-        finalMids[col] = finalSyms[1]; // row index 1 = middle payline
+        finalMids[col] = finalSyms[1];
         stopped++;
         if (stopped === REEL_COLS) {
           this.spinning = false;
@@ -253,31 +280,20 @@ class GameScene extends Phaser.Scene {
     }
   }
 
-  // Scroll animation: prepend N+3 extra cells above the reel, tween container down
-  // by (N+3)*CELL_H so the last 3 extras land exactly in rows 0,1,2.
   private spinReel(
     reel:      ReelData,
     col:       number,
-    finalSyms: number[],  // [row0, row1, row2] desired symbols after stop
+    finalSyms: number[],
     onDone:    () => void
   ) {
-    // N = filler cells before the final 3. More for later reels → staggered stop.
-    const N           = 12 + col * 4;   // col0=12, col1=16, col2=20
+    const N           = 12 + col * 4;
     const totalExtras = N + 3;
-
-    // Math: after tween (+totalExtras*CELL_H), extra cell i lands at world y:
-    //   (REEL_Y - (i+1)*CELL_H + CELL_H/2) + totalExtras*CELL_H
-    //   = REEL_Y + (totalExtras - i - 1)*CELL_H + CELL_H/2
-    // For row r: REEL_Y + r*CELL_H + CELL_H/2  →  i = totalExtras - 1 - r
-    //   row 0: i = N+2  →  finalSyms[0]
-    //   row 1: i = N+1  →  finalSyms[1]
-    //   row 2: i = N    →  finalSyms[2]
 
     const extras: Phaser.GameObjects.Image[] = [];
     for (let i = 0; i < totalExtras; i++) {
       const symId = i < N
         ? reel.strip[Phaser.Math.Between(0, reel.strip.length - 1)]
-        : finalSyms[N + 2 - i];  // i=N→finalSyms[2], N+1→[1], N+2→[0]
+        : finalSyms[N + 2 - i];
 
       const localY = REEL_Y - (i + 1) * CELL_H + CELL_H / 2;
       const img    = this.add.image(reel.x + REEL_W / 2, localY, SYMBOLS[symId].key);
@@ -286,7 +302,6 @@ class GameScene extends Phaser.Scene {
     }
     reel.extras = extras;
 
-    // Duration staggers per col so reels stop left-to-right
     const duration = 1000 + col * 400;
 
     this.tweens.add({
@@ -295,32 +310,210 @@ class GameScene extends Phaser.Scene {
       duration,
       ease:     'Cubic.Out',
       onComplete: () => {
-        // Snap: restore main cells with final symbols, destroy extras, reset container
         for (let r = 0; r < REEL_ROWS; r++) {
           reel.cells[r].setTexture(SYMBOLS[finalSyms[r]].key);
           reel.cells[r].y = REEL_Y + r * CELL_H + CELL_H / 2;
         }
         reel.extras.forEach(e => e.destroy());
-        reel.extras       = [];
-        reel.container.y  = 0;
+        reel.extras      = [];
+        reel.container.y = 0;
         onDone();
       },
     });
   }
 
-  // ── Win detection (middle payline) ─────────────────────────────────────────
+  // ── Win detection ──────────────────────────────────────────────────────────
   private checkWin(middle: number[]) {
     const [a, b, c] = middle;
-    const labels    = middle.map(id => SYMBOLS[id].label).join(' | ');
+
     if (a === b && b === c) {
-      const sym = SYMBOLS[a];
-      const won = sym.value;
+      const sym      = SYMBOLS[a];
+      const won      = sym.value;
+      const isJackpot = sym.value === 10;
+      const isBig     = sym.value >= 4;
+
       this.credits += won;
       this.creditTxt.setText(String(this.credits));
+
+      const flashColor = isJackpot ? 0xff6200 : isBig ? 0xffd700 : 0x44dd66;
+      this.flashWinCells(flashColor, isJackpot);
+      this.pulseCredits(flashColor);
+      this.showWinLabel(isJackpot ? 'JACKPOT!' : isBig ? 'BIG WIN!' : 'WIN!', flashColor);
+
+      if (isBig) {
+        this.cameras.main.shake(380, isJackpot ? 0.013 : 0.006);
+      }
+      if (isJackpot) {
+        this.jackpotParticles();
+      }
+
       console.log(`\uD83C\uDFB0 WIN!  ${sym.label} \xD7 3  \u2192  +${won} credits  (balance: ${this.credits})`);
     } else {
-      console.log(`No win — [ ${labels} ]`);
+      console.log(`No win \u2014 [ ${middle.map(id => SYMBOLS[id].label).join(' | ')} ]`);
     }
+
+    if (this.credits === 0) {
+      this.time.delayedCall(700, () => this.showOutOfCredits());
+    }
+  }
+
+  // ── Win effects ────────────────────────────────────────────────────────────
+
+  // Flashing colored border on all 3 middle cells
+  private flashWinCells(color: number, isJackpot: boolean) {
+    const proxy = { a: 1 };
+
+    const draw = (alpha: number) => {
+      this.winGfx.clear();
+      for (let col = 0; col < REEL_COLS; col++) {
+        const sx = REEL_X0 + col * (REEL_W + GAP) + (REEL_W - SYM_W) / 2 - 1;
+        const sy = MID_SYM_Y0 - 1;
+        this.winGfx.lineStyle(3.5, color, alpha);
+        this.winGfx.strokeRoundedRect(sx, sy, SYM_W + 2, SYM_H + 2, 10);
+        if (isJackpot) {
+          this.winGfx.fillStyle(color, alpha * 0.14);
+          this.winGfx.fillRoundedRect(sx, sy, SYM_W + 2, SYM_H + 2, 10);
+        }
+      }
+    };
+
+    this.winTween = this.tweens.add({
+      targets:  proxy,
+      a:        0,
+      duration: 300,
+      ease:     'Linear',
+      yoyo:     true,
+      repeat:   isJackpot ? 6 : 3,
+      onUpdate: () => draw(proxy.a),
+      onComplete: () => this.winGfx.clear(),
+    });
+  }
+
+  // Credit counter scale-pop + momentary gold colour
+  private pulseCredits(color: number) {
+    const hex = '#' + color.toString(16).padStart(6, '0');
+    this.creditTxt.setColor(hex);
+    this.tweens.add({
+      targets:  this.creditTxt,
+      scaleX:   1.42,
+      scaleY:   1.42,
+      duration: 160,
+      ease:     'Back.Out',
+      yoyo:     true,
+      onComplete: () => this.creditTxt.setColor('#e0e0e0'),
+    });
+  }
+
+  // "WIN!" / "BIG WIN!" / "JACKPOT!" label that pops up and fades
+  private showWinLabel(text: string, color: number) {
+    const hex = '#' + color.toString(16).padStart(6, '0');
+    this.winLabel.setText(text).setColor(hex).setAlpha(1).setScale(0.6);
+    this.tweens.killTweensOf(this.winLabel);
+    this.tweens.add({
+      targets: this.winLabel,
+      scaleX: 1, scaleY: 1,
+      duration: 220,
+      ease: 'Back.Out',
+    });
+    this.tweens.add({
+      targets:  this.winLabel,
+      alpha:    0,
+      delay:    1100,
+      duration: 500,
+      ease:     'Linear',
+    });
+  }
+
+  // Orange + gold particle burst from the centre of the reel area (jackpot only)
+  private jackpotParticles() {
+    const cx = CW / 2;
+    const cy = REEL_Y + REEL_H / 2;
+
+    const emitter = this.add.particles(cx, cy, 'particle', {
+      lifespan:  { min: 600, max: 1100 },
+      speed:     { min: 120, max: 380 },
+      scale:     { start: 1.4, end: 0 },
+      alpha:     { start: 1, end: 0 },
+      gravityY:  280,
+      color:     [0xff6200, 0xffd700, 0xff9900, 0xffcc00, 0xffffff],
+      emitting:  false,
+    } as Phaser.Types.GameObjects.Particles.ParticleEmitterConfig);
+
+    emitter.explode(55);
+    this.time.delayedCall(1400, () => emitter.destroy());
+  }
+
+  // ── Out-of-credits overlay ─────────────────────────────────────────────────
+  private showOutOfCredits() {
+    // Container holds the visual objects; depth 20 keeps it above everything
+    const ctr = this.add.container(0, 0).setDepth(20).setAlpha(0);
+
+    const backdrop = this.add.graphics();
+    backdrop.fillStyle(0x000000, 0.78);
+    backdrop.fillRect(0, 0, CW, CH);
+    ctr.add(backdrop);
+
+    const card = this.add.graphics();
+    const cX   = CW / 2 - 140;
+    const cY   = CH / 2 - 88;
+    card.fillStyle(0x0c1825, 1);
+    card.lineStyle(2, 0x1c3248, 1);
+    card.fillRoundedRect(cX, cY, 280, 176, 14);
+    card.strokeRoundedRect(cX, cY, 280, 176, 14);
+    ctr.add(card);
+
+    ctr.add(
+      this.add.text(CW / 2, CH / 2 - 50, 'OUT OF CREDITS', {
+        fontFamily: 'Inter,system-ui,sans-serif', fontSize: '17px', fontStyle: 'bold', color: '#ff4444',
+      }).setOrigin(0.5)
+    );
+    ctr.add(
+      this.add.text(CW / 2, CH / 2 - 18, 'You ran out of credits.', {
+        fontFamily: 'Inter,system-ui,sans-serif', fontSize: '13px', color: '#777',
+      }).setOrigin(0.5)
+    );
+
+    // Refill button graphics (kept as local var for hover redraws)
+    const btnX = CW / 2 - 95;
+    const btnY = CH / 2 + 18;
+    const btnW = 190;
+    const btnH = 44;
+    const btnBg = this.add.graphics();
+
+    const drawRefillBtn = (hover: boolean) => {
+      btnBg.clear();
+      btnBg.fillStyle(hover ? 0xff7a1a : 0xff6200, 1);
+      btnBg.fillRoundedRect(btnX, btnY, btnW, btnH, 10);
+    };
+    drawRefillBtn(false);
+    ctr.add(btnBg);
+
+    ctr.add(
+      this.add.text(CW / 2, btnY + btnH / 2, 'REFILL — 50 FREE', {
+        fontFamily: 'Inter,system-ui,sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#fff',
+      }).setOrigin(0.5)
+    );
+
+    // Zone is NOT inside the container so hit-testing works in world space
+    const zone = this.add.zone(CW / 2, btnY + btnH / 2, btnW, btnH)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(21);
+
+    const cleanup = () => {
+      ctr.destroy(true);
+      zone.destroy();
+    };
+
+    zone.on('pointerdown', () => {
+      this.credits = 50;
+      this.creditTxt.setText('50');
+      cleanup();
+    });
+    zone.on('pointerover',  () => drawRefillBtn(true));
+    zone.on('pointerout',   () => drawRefillBtn(false));
+
+    // Fade the container in
+    this.tweens.add({ targets: ctr, alpha: 1, duration: 280, ease: 'Linear' });
   }
 }
 
