@@ -3,20 +3,20 @@
 
 :root {
   /* ── Backgrounds ── */
-  --bg:         #080808;
-  --surface:    #111111;
-  --surface-2:  #181818;
-  --surface-3:  #1e1e1e;
+  --bg:         #060e18;
+  --surface:    #0c1825;
+  --surface-2:  #101f2e;
+  --surface-3:  #152638;
   /* ── Borders ── */
-  --border:     #222222;
-  --border-2:   #2a2a2a;
+  --border:     #1a2f42;
+  --border-2:   #1f3850;
   /* ── Text ── */
   --text:       #e0e0e0;
   --text-muted: #aaaaaa;
   --text-dim:   #444444;
   /* ── Brand ── */
-  --orange:     #27679d;
-  --orange-dim: rgba(39, 103, 157, 0.12);
+  --orange:     #ff6200;
+  --orange-dim: rgba(255, 98, 0, 0.12);
   --green:      #00e87a;
   --green-dim:  rgba(0, 232, 122, 0.1);
   --red:        #ff3b3b;
@@ -32,7 +32,7 @@
   --radius:     10px;
   --radius-sm:  6px;
   /* ── Theme-aware ── */
-  --header-bg:       rgba(8, 8, 8, 0.92);
+  --header-bg:       rgba(6, 14, 24, 0.95);
   --overlay:         rgba(0, 0, 0, 0.65);
   --overlay-sm:      rgba(0, 0, 0, 0.3);
   --card-ended-border: rgba(255, 255, 255, 0.1);
@@ -49,7 +49,7 @@
   --text:       #111111;
   --text-muted: #777777;
   --text-dim:   #c0c0c0;
-  --orange-dim: rgba(39, 103, 157, 0.08);
+  --orange-dim: rgba(255, 98, 0, 0.08);
   --green:      #00b856;
   --green-dim:  rgba(0, 184, 86, 0.1);
   --red:        #e53030;
