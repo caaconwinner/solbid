@@ -3433,6 +3433,8 @@ a:hover { text-decoration: underline; }
 .slots-canvas-wrap {
   width: 480px;
   max-width: 100%;
+  aspect-ratio: 480 / 580;
+  overflow: hidden;
   /* Phaser injects a canvas inside here */
 }
 
