@@ -3441,3 +3441,92 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--border);
   box-shadow: 0 0 40px rgba(255, 98, 0, 0.08);
 }
+
+.slots-paytable {
+  width: 480px;
+  max-width: 100%;
+  margin-top: 20px;
+  background: #0c1825;
+  border: 1px solid #1c3248;
+  border-radius: 10px;
+  padding: 16px 20px 14px;
+}
+
+.slots-paytable__title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #444;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.slots-paytable__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slots-paytable__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slots-paytable__syms {
+  display: flex;
+  gap: 4px;
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.slots-paytable__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1.5px solid;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.03);
+  letter-spacing: 0.3px;
+}
+
+.slots-paytable__arrow {
+  color: #333;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.slots-paytable__payout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.slots-paytable__credits {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ccc;
+}
+
+.slots-paytable__tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 1px 6px;
+  opacity: 0.85;
+}
+
+.slots-paytable__note {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 10px;
+  color: #333;
+}

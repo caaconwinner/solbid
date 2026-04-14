@@ -517,6 +517,15 @@ class GameScene extends Phaser.Scene {
   }
 }
 
+// ─── Paytable data (mirrors SYMBOLS above) ────────────────────────────────────
+const PAYTABLE = [
+  { label: '$P',  color: '#ff6200', value: 10, tag: 'JACKPOT' },
+  { label: 'BID', color: '#00bcd4', value: 5,  tag: 'BIG WIN' },
+  { label: '7',   color: '#ffd700', value: 4,  tag: 'BIG WIN' },
+  { label: 'BAR', color: '#b0b0b0', value: 2,  tag: null       },
+  { label: '\u2665', color: '#ff3366', value: 1, tag: null     },
+];
+
 // ─── React wrapper ────────────────────────────────────────────────────────────
 export function SlotsPage() {
   const ref = useRef<HTMLDivElement>(null);
@@ -548,6 +557,40 @@ export function SlotsPage() {
   return (
     <div className="slots-page">
       <div className="slots-canvas-wrap" ref={ref} />
+
+      <div className="slots-paytable">
+        <div className="slots-paytable__title">PAYTABLE — middle row pays</div>
+        <div className="slots-paytable__rows">
+          {PAYTABLE.map(row => (
+            <div key={row.label} className="slots-paytable__row">
+              <div className="slots-paytable__syms">
+                {[0, 1, 2].map(i => (
+                  <span
+                    key={i}
+                    className="slots-paytable__chip"
+                    style={{ color: row.color, borderColor: row.color }}
+                  >
+                    {row.label}
+                  </span>
+                ))}
+              </div>
+              <div className="slots-paytable__arrow">&rarr;</div>
+              <div className="slots-paytable__payout">
+                <span className="slots-paytable__credits">+{row.value} credits</span>
+                {row.tag && (
+                  <span
+                    className="slots-paytable__tag"
+                    style={{ color: row.color, borderColor: row.color }}
+                  >
+                    {row.tag}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="slots-paytable__note">1 credit per spin · middle row only</div>
+      </div>
     </div>
   );
 }
