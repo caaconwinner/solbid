@@ -201,47 +201,49 @@ export function CrashPage() {
     ctx.fillStyle = '#060e18';
     ctx.fillRect(0, 0, W, H);
 
-    // Scale — keep coin anchored at ~80% width, ~72% height so chart fills nicely.
-    // Y: log scale. We pick topMult so that log(mult)/log(topMult) = 0.72
-    //    → topMult = mult^(1/0.72).  Floor at 2× so the grid isn't empty early on.
+    // Scale — linear Y so the exponential curve actually curves visually.
+    // (Log scale turns e^(kt) into a straight line by definition.)
+    // Keep coin anchored at ~80% width, ~75% height.
     const curMult = isCrashed ? crashedMultRef.current : mult;
-    const topMult = Math.max(2, Math.pow(Math.max(1.01, curMult), 1 / 0.72));
-    // X: coin at 80% of width
+    const topMult = Math.max(1.5, curMult / 0.75);   // coin at 75% height
     const maxTime = Math.max(6, (isCrashed ? elapsedRef.current : elapsed) / 0.80);
 
     const toX = (t: number) => pad.l + (t / maxTime) * gW;
     const toY = (m: number) => {
-      const frac = Math.log(Math.max(1, m)) / Math.log(topMult);
+      const frac = Math.max(0, (m - 1) / (topMult - 1));
       return pad.t + gH - frac * gH;
     };
 
-    // Grid lines
+    // Grid lines — pick ~4 evenly spaced round levels below topMult
     ctx.save();
-    const gridLevels = [1.5, 2, 3, 5, 10, 20, 50, 100, 200, 500];
+    ctx.font        = `${10 * dpr}px Inter, system-ui, sans-serif`;
+    ctx.textAlign   = 'right';
+    ctx.textBaseline = 'middle';
+    const range      = topMult - 1;
+    const rawStep    = range / 4;
+    // Round step to nearest nice number
+    const magnitude  = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const niceStep   = Math.ceil(rawStep / magnitude) * magnitude;
     ctx.setLineDash([3 * dpr, 6 * dpr]);
-    for (const gm of gridLevels) {
-      if (gm > topMult * 1.05) break;
+    for (let gm = 1 + niceStep; gm < topMult * 1.02; gm += niceStep) {
       const gy = toY(gm);
-      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      ctx.lineWidth   = 1;
       ctx.beginPath(); ctx.moveTo(pad.l, gy); ctx.lineTo(W - pad.r, gy); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(255,255,255,0.18)';
-      ctx.font = `${10 * dpr}px Inter, system-ui, sans-serif`;
-      ctx.textAlign    = 'right';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(gm + '\u00d7', pad.l - 6 * dpr, gy);
+      ctx.fillStyle   = 'rgba(255,255,255,0.22)';
+      ctx.fillText(gm.toFixed(gm < 10 ? 1 : 0) + '\u00d7', pad.l - 6 * dpr, gy);
       ctx.setLineDash([3 * dpr, 6 * dpr]);
     }
     ctx.setLineDash([]);
     ctx.restore();
 
-    // Waiting baseline — dotted line at 1× to show where the curve starts
+    // Waiting baseline — dotted line just above the X axis
     if (phaseRef.current === 'waiting') {
-      const baseY = toY(1);
+      const baseY = pad.t + gH - 2; // just above the axis line
       ctx.save();
       ctx.setLineDash([4 * dpr, 6 * dpr]);
-      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
       ctx.lineWidth   = 1.5;
       ctx.beginPath();
       ctx.moveTo(pad.l, baseY);
