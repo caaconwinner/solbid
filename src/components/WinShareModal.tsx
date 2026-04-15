@@ -28,10 +28,10 @@ export function WinShareModal({ win, onClose }: Props) {
 
           <div className="win-share-content">
             <div className="win-share-trophy">🏆</div>
-            <p className="win-share-label">Just won for only</p>
+            <p className="win-share-label">Just won</p>
             <p className="win-share-item">{win.itemName}</p>
             <p className="win-share-price">
-              for only <span className="win-share-price-val">${win.finalPrice.toFixed(2)}</span>
+              for <span className="win-share-price-val">${win.finalPrice.toFixed(2)}</span>
             </p>
             <p className="win-share-site">penny.bid</p>
           </div>
