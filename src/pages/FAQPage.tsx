@@ -40,8 +40,10 @@ const FAQS = [
   {
     category: 'Prizes',
     items: [
-      { q: 'What types of prizes can I win?', a: 'pennyBid auctions can feature four types of prizes: physical items (e.g. PS5, iPhone — shipped to you), SOL sent directly to your wallet, bid credits added to your account balance, and SPL tokens (e.g. $penny) sent to your deposit address.' },
+      { q: 'What types of prizes can I win?', a: 'pennyBid auctions can feature five types of prizes: physical items (e.g. PS5, iPhone — shipped to you), digital prizes (e.g. gift cards, game codes, software licences — delivered by email or DM), SOL sent directly to your wallet, bid credits added to your account balance, and SPL tokens (e.g. $penny) sent to your deposit address.' },
       { q: 'How do I receive a physical prize?', a: 'After winning, go to Account → Wins and click "Claim Prize". You\'ll be asked to pay the final auction price in SOL, then provide a shipping address. The team will fulfil and ship your item.' },
+      { q: 'How do I receive a digital prize?', a: 'Digital prizes (gift cards, game codes, software licences, etc.) are delivered electronically. After claiming, the code or redemption link is sent to your registered email address, usually within 24 hours. No shipping address is needed.' },
+      { q: 'What digital prizes are available?', a: 'Digital prizes include Amazon gift cards, PlayStation/Xbox/Nintendo Store credit, Steam game codes, Apple App Store & iTunes gift cards, Google Play credit, and software licences. The exact prize is always shown on the auction card before you bid.' },
       { q: 'How do I receive a SOL prize?', a: 'SOL prizes are sent directly on-chain to your pennyBid deposit wallet. You can then withdraw that SOL at any time from your Account page.' },
       { q: 'How do I receive an SPL token prize?', a: 'SPL token prizes (such as $penny) are sent to the associated token account of your deposit address on Solana. They arrive on-chain automatically — no claim step needed.' },
       { q: 'How do I receive a credits prize?', a: 'Credits prizes are added directly to your account balance the moment the admin sends them. They appear instantly in your header credits count and Account page.' },
