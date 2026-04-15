@@ -1,10 +1,6 @@
-import { useNavigate } from 'react-router-dom';
-
 const TAPE_TEXT = Array.from({ length: 16 }, () => '⚠ UNDER CONSTRUCTION ').join('');
 
 export function GamesPage() {
-  const navigate = useNavigate();
-
   return (
     <div className="games-page">
       <div className="games-split">
@@ -18,13 +14,7 @@ export function GamesPage() {
             scrolling="no"
           />
           {/* Transparent blocker — catches all pointer events so game is unplayable */}
-          <div
-            className="games-embed-blocker"
-            onClick={() => navigate('/slots')}
-            title="Go to Slots"
-          >
-            <span className="games-embed-hint">🎰 Play Slots</span>
-          </div>
+          <div className="games-embed-blocker" />
         </div>
 
         {/* ── Center divider ─────────────────────────────────── */}
@@ -38,13 +28,7 @@ export function GamesPage() {
             title="Crash preview"
             scrolling="no"
           />
-          <div
-            className="games-embed-blocker"
-            onClick={() => navigate('/crash')}
-            title="Go to Crash"
-          >
-            <span className="games-embed-hint">🚀 Play Crash</span>
-          </div>
+          <div className="games-embed-blocker" />
         </div>
 
         {/* ── Construction tape ─────────────────────────────── */}

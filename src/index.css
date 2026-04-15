@@ -3703,31 +3703,7 @@ a:hover { text-decoration: underline; }
   position: absolute;
   inset: 0;
   z-index: 10;
-  cursor: pointer;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 28px;
-}
-
-/* "Play X" pill — only visible on hover */
-.games-embed-hint {
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.2s, transform 0.2s;
-  background: rgba(0,0,0,0.72);
-  backdrop-filter: blur(6px);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 8px 20px;
-  border-radius: 99px;
-  border: 1px solid rgba(255,255,255,0.14);
-  pointer-events: none;
-}
-.games-embed-blocker:hover .games-embed-hint {
-  opacity: 1;
-  transform: translateY(0);
+  cursor: default;
 }
 
 /* ── Center divider ────────────────────────────────────────────── */
@@ -3765,8 +3741,6 @@ a:hover { text-decoration: underline; }
     #1a1200 22px,
     #1a1200 40px
   );
-  background-size: 57px 57px;
-  animation: tape-stripe-scroll 1.4s linear infinite;
   box-shadow:
     0 8px 40px rgba(0,0,0,0.8),
     0 -8px 40px rgba(0,0,0,0.8),
@@ -3774,11 +3748,6 @@ a:hover { text-decoration: underline; }
     inset 0 -1px 0 rgba(0,0,0,0.4);
   overflow: hidden;
 }
-@keyframes tape-stripe-scroll {
-  from { background-position: 0 0; }
-  to   { background-position: 57px 0; }
-}
-
 .games-tape-text {
   display: block;
   white-space: nowrap;
