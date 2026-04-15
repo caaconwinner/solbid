@@ -58,8 +58,23 @@ export function Header() {
           <NavLink to="/faq"          className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>FAQ</NavLink>
           <NavLink to="/penny"        className={({ isActive }) => isActive ? 'nav-link nav-link--penny active' : 'nav-link nav-link--penny'}>$penny</NavLink>
           <NavLink to="/refer"        className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Refer</NavLink>
-          <NavLink to="/slots"        className={({ isActive }) => isActive ? 'nav-link nav-link--slots active' : 'nav-link nav-link--slots'}>Slots</NavLink>
-          <NavLink to="/crash"        className={({ isActive }) => isActive ? 'nav-link nav-link--crash active' : 'nav-link nav-link--crash'}>Crash</NavLink>
+          <div className="nav-games-group">
+            <div className="nav-link nav-games-trigger">
+              Games
+              <span className="nav-construction-sign" title="Under construction">🚧</span>
+              <svg className="nav-games-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 3 5 7 8 3"/></svg>
+            </div>
+            <div className="nav-games-dropdown">
+              <NavLink to="/slots" className={({ isActive }) => `nav-games-item nav-games-item--slots${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="8" y1="4" x2="8" y2="20"/><line x1="16" y1="4" x2="16" y2="20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                Slots
+              </NavLink>
+              <NavLink to="/crash" className={({ isActive }) => `nav-games-item nav-games-item--crash${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 18 8 10 13 14 18 4"/><line x1="18" y1="4" x2="22" y2="8"/><line x1="22" y1="4" x2="18" y2="8"/></svg>
+                Crash
+              </NavLink>
+            </div>
+          </div>
           <NavLink to="/brand"        className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Brand</NavLink>
           <NavLink to="/account"      className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Account</NavLink>
         </nav>
@@ -179,8 +194,15 @@ export function Header() {
               Refer a friend
             </NavLink>
 
-            <NavLink to="/slots" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
-              {/* Slot machine */}
+            <div className="mobile-menu-games-label">
+              <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="17" cy="11" r="1"/><circle cx="15" cy="13" r="1"/>
+              </svg>
+              GAMES
+              <span className="mobile-construction-badge">🚧 Under construction</span>
+            </div>
+
+            <NavLink to="/slots" className={({ isActive }) => `mobile-menu-link mobile-menu-link--game${isActive ? ' active' : ''}`} onClick={close}>
               <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="4" width="20" height="16" rx="2"/>
                 <line x1="8" y1="4" x2="8" y2="20"/>
@@ -190,8 +212,7 @@ export function Header() {
               Slots
             </NavLink>
 
-            <NavLink to="/crash" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
-              {/* Chart line going up then crash */}
+            <NavLink to="/crash" className={({ isActive }) => `mobile-menu-link mobile-menu-link--game${isActive ? ' active' : ''}`} onClick={close}>
               <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="2 18 8 10 13 14 18 4"/><line x1="18" y1="4" x2="22" y2="8"/><line x1="22" y1="4" x2="18" y2="8"/>
               </svg>
