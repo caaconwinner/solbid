@@ -36,159 +36,331 @@ const STRIPS: number[][] = [
   [2, 4, 3, 1, 4, 2, 4, 3, 4, 0, 4, 1, 4, 2, 3, 4],
 ];
 
-// ─── Icon drawing functions (all coords in 0..SYM_W × 0..SYM_H space) ────────
+// ─── Canvas 2D helpers ────────────────────────────────────────────────────────
 
-function drawController(g: Phaser.GameObjects.Graphics, w: number, h: number, c: number) {
-  const cx = w / 2, cy = h / 2 + 4;
-  g.fillStyle(c, 0.9);
+function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y,     x + w, y + r,     r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x,     y + h, x,      y + h - r, r);
+  ctx.lineTo(x,    y + r);
+  ctx.arcTo(x,     y,     x + r,  y,         r);
+  ctx.closePath();
+}
+
+// Banner-style tile: gradient bg + corner bloom + icon + label
+function makeTile(
+  scene: Phaser.Scene,
+  key: string, w: number, h: number,
+  bg0: string, bg1: string,
+  glowRgb: string,       // e.g. "80,160,255"
+  labelColor: string,
+  label: string,
+  drawIcon: (ctx: CanvasRenderingContext2D, cx: number, cy: number) => void,
+) {
+  if (scene.textures.exists(key)) return;
+  const tex = scene.textures.createCanvas(key, w, h) as Phaser.Textures.CanvasTexture;
+  const ctx = tex.getContext() as CanvasRenderingContext2D;
+
+  // ── Gradient background (clipped to rounded rect) ──
+  ctx.save();
+  rr(ctx, 0, 0, w, h, 10);
+  ctx.clip();
+
+  const bg = ctx.createLinearGradient(0, 0, w * 0.65, h);
+  bg.addColorStop(0, bg0);
+  bg.addColorStop(1, bg1);
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  // Corner bloom (top-right light source)
+  const bloom = ctx.createRadialGradient(w * 0.82, h * 0.12, 0, w * 0.82, h * 0.12, w * 0.7);
+  bloom.addColorStop(0,   `rgba(${glowRgb},0.22)`);
+  bloom.addColorStop(0.45,`rgba(${glowRgb},0.06)`);
+  bloom.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = bloom;
+  ctx.fillRect(0, 0, w, h);
+
+  // Bottom vignette
+  const vign = ctx.createLinearGradient(0, h * 0.5, 0, h);
+  vign.addColorStop(0, 'rgba(0,0,0,0)');
+  vign.addColorStop(1, 'rgba(0,0,0,0.5)');
+  ctx.fillStyle = vign;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.restore();
+
+  // ── Icon ──
+  drawIcon(ctx, w / 2, h / 2 - 5);
+
+  // ── Label ──
+  ctx.save();
+  ctx.font = 'bold 9px Inter,system-ui,sans-serif';
+  ctx.fillStyle = labelColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.shadowColor = 'rgba(0,0,0,0.95)';
+  ctx.shadowBlur = 5;
+  ctx.fillText(label, w / 2, h - 3);
+  ctx.restore();
+
+  // ── Border ──
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.17)';
+  ctx.lineWidth = 1.5;
+  rr(ctx, 0.75, 0.75, w - 1.5, h - 1.5, 10);
+  ctx.stroke();
+  ctx.restore();
+
+  tex.refresh();
+}
+
+// ── Icon: PS5 DualSense controller ──
+function iconController(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  ctx.save();
   // Body
-  g.fillRoundedRect(cx - 30, cy - 16, 60, 26, 12);
-  // Left grip
-  g.fillRoundedRect(cx - 28, cy + 6, 15, 22, 8);
-  // Right grip
-  g.fillRoundedRect(cx + 13, cy + 6, 15, 22, 8);
+  ctx.shadowColor = 'rgba(60,120,255,0.6)';
+  ctx.shadowBlur = 10;
+  const bodyG = ctx.createLinearGradient(cx - 30, cy - 18, cx + 15, cy + 20);
+  bodyG.addColorStop(0, '#7090e0');
+  bodyG.addColorStop(1, '#2848a8');
+  ctx.fillStyle = bodyG;
+  rr(ctx, cx - 30, cy - 16, 60, 26, 12);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  // Grips
+  ctx.fillStyle = '#1e3888';
+  rr(ctx, cx - 27, cy + 7, 14, 20, 7);
+  ctx.fill();
+  rr(ctx, cx + 13, cy + 7, 14, 20, 7);
+  ctx.fill();
   // Bumpers
-  g.fillStyle(c, 0.65);
-  g.fillRoundedRect(cx - 28, cy - 22, 13, 8, 4);
-  g.fillRoundedRect(cx + 15, cy - 22, 13, 8, 4);
-  // Left analog stick
-  g.fillStyle(0x000000, 0.4);
-  g.fillCircle(cx - 16, cy + 2, 7);
-  g.fillStyle(c, 0.6);
-  g.fillCircle(cx - 16, cy + 2, 5);
-  // Right analog stick
-  g.fillStyle(0x000000, 0.4);
-  g.fillCircle(cx + 7, cy + 14, 7);
-  g.fillStyle(c, 0.6);
-  g.fillCircle(cx + 7, cy + 14, 5);
-  // D-pad
-  g.fillStyle(0x000000, 0.45);
-  g.fillRect(cx - 27, cy - 2, 6, 14);
-  g.fillRect(cx - 30, cy + 3, 12, 5);
+  ctx.fillStyle = 'rgba(90,130,210,0.85)';
+  rr(ctx, cx - 27, cy - 24, 12, 9, 3);
+  ctx.fill();
+  rr(ctx, cx + 15, cy - 24, 12, 9, 3);
+  ctx.fill();
+  // Touchpad
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.beginPath(); ctx.ellipse(cx, cy - 2, 10, 6.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(120,170,255,0.45)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.ellipse(cx, cy - 2, 10, 6.5, 0, 0, Math.PI * 2); ctx.stroke();
+  // Left stick
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.beginPath(); ctx.arc(cx - 16, cy + 6, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(60,100,200,0.8)';
+  ctx.beginPath(); ctx.arc(cx - 16, cy + 6, 4.5, 0, Math.PI * 2); ctx.fill();
+  // Right stick
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.beginPath(); ctx.arc(cx + 8, cy + 16, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(60,100,200,0.8)';
+  ctx.beginPath(); ctx.arc(cx + 8, cy + 16, 4.5, 0, Math.PI * 2); ctx.fill();
   // Face buttons
-  g.fillStyle(0x44cc66, 1); g.fillCircle(cx + 21, cy - 8, 3.5);
-  g.fillStyle(0xff4466, 1); g.fillCircle(cx + 27, cy - 2, 3.5);
-  g.fillStyle(0x4488ff, 1); g.fillCircle(cx + 21, cy + 4,  3.5);
-  g.fillStyle(0xee88ff, 1); g.fillCircle(cx + 15, cy - 2, 3.5);
+  const btns = [{x:cx+21,y:cy-8,c:'#3ece5a'},{x:cx+28,y:cy-2,c:'#ff4055'},{x:cx+21,y:cy+4,c:'#4488ff'},{x:cx+14,y:cy-2,c:'#cc88ff'}];
+  for (const b of btns) {
+    ctx.fillStyle = b.c; ctx.shadowColor = b.c; ctx.shadowBlur = 5;
+    ctx.beginPath(); ctx.arc(b.x, b.y, 3.5, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+  ctx.restore();
 }
 
-function drawPhone(g: Phaser.GameObjects.Graphics, w: number, h: number, c: number) {
-  const cx = w / 2, cy = h / 2 - 2;
-  // Body
-  g.fillStyle(c, 0.88);
-  g.fillRoundedRect(cx - 21, cy - 38, 42, 80, 12);
+// ── Icon: Smartphone ──
+function iconPhone(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  ctx.save();
+  ctx.shadowColor = 'rgba(100,160,255,0.5)';
+  ctx.shadowBlur = 10;
+  const bodyG = ctx.createLinearGradient(cx - 21, cy - 38, cx + 21, cy + 38);
+  bodyG.addColorStop(0, '#607090');
+  bodyG.addColorStop(1, '#2a3a58');
+  ctx.fillStyle = bodyG;
+  rr(ctx, cx - 20, cy - 38, 40, 78, 12);
+  ctx.fill();
+  ctx.shadowBlur = 0;
   // Screen
-  g.fillStyle(0x060e18, 0.95);
-  g.fillRoundedRect(cx - 17, cy - 32, 34, 62, 8);
+  ctx.fillStyle = '#060e18';
+  rr(ctx, cx - 16, cy - 32, 32, 60, 8);
+  ctx.fill();
+  // Screen glow
+  const sg = ctx.createRadialGradient(cx, cy - 10, 5, cx, cy - 10, 28);
+  sg.addColorStop(0, 'rgba(60,120,255,0.18)');
+  sg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = sg;
+  rr(ctx, cx - 16, cy - 32, 32, 60, 8);
+  ctx.fill();
   // App grid
-  g.fillStyle(c, 0.28);
-  g.fillRoundedRect(cx - 13, cy - 22, 10, 10, 3);
-  g.fillRoundedRect(cx + 3,  cy - 22, 10, 10, 3);
-  g.fillRoundedRect(cx - 13, cy - 8,  10, 10, 3);
-  g.fillRoundedRect(cx + 3,  cy - 8,  10, 10, 3);
-  g.fillRoundedRect(cx - 13, cy + 6,  10, 10, 3);
-  g.fillRoundedRect(cx + 3,  cy + 6,  10, 10, 3);
+  ctx.fillStyle = 'rgba(80,130,220,0.5)';
+  for (let row = 0; row < 3; row++) for (let col = 0; col < 2; col++) {
+    rr(ctx, cx - 13 + col * 14, cy - 22 + row * 14, 10, 10, 3);
+    ctx.fill();
+  }
   // Dynamic island
-  g.fillStyle(0x000000, 0.85);
-  g.fillRoundedRect(cx - 9, cy - 30, 18, 5, 3);
+  ctx.fillStyle = 'rgba(0,0,0,0.9)';
+  rr(ctx, cx - 9, cy - 31, 18, 5, 3);
+  ctx.fill();
   // Home bar
-  g.fillStyle(c, 0.4);
-  g.fillRoundedRect(cx - 10, cy + 24, 20, 3, 2);
-  // Side button
-  g.fillStyle(c, 1);
-  g.fillRoundedRect(cx + 20, cy - 14, 3, 14, 2);
+  ctx.fillStyle = 'rgba(120,160,220,0.4)';
+  rr(ctx, cx - 10, cy + 22, 20, 3, 2);
+  ctx.fill();
+  // Side button highlight
+  const sbG = ctx.createLinearGradient(cx + 20, 0, cx + 24, 0);
+  sbG.addColorStop(0, 'rgba(150,180,240,0.9)');
+  sbG.addColorStop(1, 'rgba(80,120,180,0.6)');
+  ctx.fillStyle = sbG;
+  rr(ctx, cx + 20, cy - 14, 3, 14, 2);
+  ctx.fill();
+  ctx.restore();
 }
 
-function drawHeadphones(g: Phaser.GameObjects.Graphics, w: number, h: number, c: number) {
-  const cx = w / 2, cy = h / 2 + 4;
-  // Headband arc
-  g.lineStyle(7, c, 0.9);
-  g.beginPath();
-  g.arc(cx, cy - 4, 26, 0, Math.PI, true);
-  g.strokePath();
+// ── Icon: Over-ear headphones ──
+function iconHeadphones(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  ctx.save();
+  ctx.shadowColor = 'rgba(220,60,100,0.5)';
+  ctx.shadowBlur = 10;
+  // Headband
+  ctx.strokeStyle = '#cc3060';
+  ctx.lineWidth = 7;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(cx, cy - 4, 26, Math.PI, 0, false);
+  ctx.stroke();
+  // Band highlight
+  ctx.strokeStyle = 'rgba(255,120,160,0.35)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(cx, cy - 4, 26, Math.PI * 1.1, Math.PI * 1.8, false);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
   // Sliders
-  g.fillStyle(c, 0.65);
-  g.fillRoundedRect(cx - 29, cy - 24, 6, 20, 3);
-  g.fillRoundedRect(cx + 23, cy - 24, 6, 20, 3);
-  // Left cup outer
-  g.fillStyle(c, 0.9);
-  g.fillCircle(cx - 26, cy, 13);
-  g.fillStyle(0x000000, 0.35);
-  g.fillCircle(cx - 26, cy, 8);
-  g.fillStyle(c, 0.45);
-  g.fillCircle(cx - 26, cy, 4);
-  // Right cup outer
-  g.fillStyle(c, 0.9);
-  g.fillCircle(cx + 26, cy, 13);
-  g.fillStyle(0x000000, 0.35);
-  g.fillCircle(cx + 26, cy, 8);
-  g.fillStyle(c, 0.45);
-  g.fillCircle(cx + 26, cy, 4);
-  // Cup highlights
-  g.fillStyle(0xffffff, 0.12);
-  g.fillCircle(cx - 28, cy - 4, 5);
-  g.fillCircle(cx + 24, cy - 4, 5);
+  ctx.fillStyle = '#8a1830';
+  rr(ctx, cx - 29, cy - 28, 6, 22, 3); ctx.fill();
+  rr(ctx, cx + 23, cy - 28, 6, 22, 3); ctx.fill();
+  // Cup L outer
+  const cupLG = ctx.createRadialGradient(cx - 28, cy - 3, 0, cx - 26, cy, 14);
+  cupLG.addColorStop(0, '#e03060');
+  cupLG.addColorStop(1, '#801030');
+  ctx.fillStyle = cupLG;
+  ctx.shadowColor = 'rgba(220,40,80,0.6)'; ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.arc(cx - 26, cy, 13, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath(); ctx.arc(cx - 26, cy, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(220,60,100,0.5)';
+  ctx.beginPath(); ctx.arc(cx - 26, cy, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.beginPath(); ctx.arc(cx - 29, cy - 4, 4, 0, Math.PI * 2); ctx.fill();
+  // Cup R outer
+  const cupRG = ctx.createRadialGradient(cx + 24, cy - 3, 0, cx + 26, cy, 14);
+  cupRG.addColorStop(0, '#e03060');
+  cupRG.addColorStop(1, '#801030');
+  ctx.fillStyle = cupRG;
+  ctx.shadowColor = 'rgba(220,40,80,0.6)'; ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.arc(cx + 26, cy, 13, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath(); ctx.arc(cx + 26, cy, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(220,60,100,0.5)';
+  ctx.beginPath(); ctx.arc(cx + 26, cy, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.beginPath(); ctx.arc(cx + 23, cy - 4, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
 }
 
-function drawGiftCard(g: Phaser.GameObjects.Graphics, w: number, h: number, c: number) {
-  const cx = w / 2, cy = h / 2 + 4;
-  // Card body
-  g.fillStyle(c, 0.88);
-  g.fillRoundedRect(cx - 36, cy - 24, 72, 46, 8);
-  // Shine
-  g.fillStyle(0xffffff, 0.06);
-  g.fillRoundedRect(cx - 35, cy - 23, 36, 44, 7);
-  // Mag stripe
-  g.fillStyle(0x000000, 0.22);
-  g.fillRect(cx - 36, cy - 3, 72, 14);
-  // Horizontal ribbon
-  g.fillStyle(0xffffff, 0.5);
-  g.fillRect(cx - 36, cy - 1, 72, 6);
-  // Vertical ribbon
-  g.fillRect(cx - 3, cy - 24, 6, 46);
-  // Bow — left loop
-  g.fillStyle(0xffffff, 0.65);
-  g.fillEllipse(cx - 12, cy - 24, 20, 12);
-  // Bow — right loop
-  g.fillEllipse(cx + 12, cy - 24, 20, 12);
+// ── Icon: Gift box ──
+function iconGift(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  ctx.save();
+  ctx.shadowColor = 'rgba(40,200,100,0.5)';
+  ctx.shadowBlur = 10;
+  // Box body
+  const boxG = ctx.createLinearGradient(cx - 28, cy - 6, cx + 28, cy + 26);
+  boxG.addColorStop(0, '#1e7840');
+  boxG.addColorStop(1, '#0a4020');
+  ctx.fillStyle = boxG;
+  rr(ctx, cx - 28, cy - 4, 56, 32, 6);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  // Lid
+  const lidG = ctx.createLinearGradient(cx - 28, cy - 18, cx + 28, cy - 4);
+  lidG.addColorStop(0, '#28a050');
+  lidG.addColorStop(1, '#145a28');
+  ctx.fillStyle = lidG;
+  rr(ctx, cx - 28, cy - 18, 56, 16, 4);
+  ctx.fill();
+  // Ribbon vertical
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.fillRect(cx - 3, cy - 18, 6, 46);
+  // Ribbon horizontal
+  ctx.fillRect(cx - 28, cy - 7, 56, 6);
+  // Bow loops
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.beginPath();
+  ctx.ellipse(cx - 13, cy - 22, 12, 7, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx + 13, cy - 22, 12, 7, 0.3, 0, Math.PI * 2);
+  ctx.fill();
   // Bow knot
-  g.fillStyle(0xffffff, 1);
-  g.fillCircle(cx, cy - 24, 4);
-  // Chip
-  g.fillStyle(0xffd700, 0.6);
-  g.fillRoundedRect(cx - 32, cy + 2, 14, 10, 3);
+  ctx.shadowColor = 'rgba(255,255,255,0.5)'; ctx.shadowBlur = 4;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(cx, cy - 22, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  // Shine on lid
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  rr(ctx, cx - 27, cy - 17, 28, 14, 3);
+  ctx.fill();
+  ctx.restore();
 }
 
-function drawCash(g: Phaser.GameObjects.Graphics, w: number, h: number, c: number) {
-  const cx = w / 2, cy = h / 2 + 2;
-  // Stack (back bills)
-  g.fillStyle(c, 0.35);
-  g.fillRoundedRect(cx - 32, cy - 18, 70, 42, 7);
-  g.fillRoundedRect(cx - 34, cy - 20, 70, 42, 7);
-  // Main bill
-  g.fillStyle(c, 0.92);
-  g.fillRoundedRect(cx - 36, cy - 22, 72, 44, 7);
-  // Bill inner border
-  g.lineStyle(1.5, 0x000000, 0.18);
-  g.strokeRoundedRect(cx - 32, cy - 18, 64, 36, 5);
-  // Centre oval
-  g.fillStyle(0x000000, 0.18);
-  g.fillEllipse(cx, cy, 32, 22);
-  g.fillStyle(c, 0.5);
-  g.fillEllipse(cx, cy, 26, 16);
-  // $ vertical bar
-  g.fillStyle(0x000000, 0.55);
-  g.fillRect(cx - 1.5, cy - 13, 3, 26);
-  // $ horizontal strokes
-  g.fillRoundedRect(cx - 7, cy - 9, 14, 4, 2);
-  g.fillRoundedRect(cx - 7, cy - 1, 14, 4, 2);
-  g.fillRoundedRect(cx - 7, cy + 7, 14, 4, 2);
-  // Corner rosettes
-  g.fillStyle(0x000000, 0.12);
-  g.fillCircle(cx - 30, cy - 16, 4);
-  g.fillCircle(cx + 30, cy - 16, 4);
-  g.fillCircle(cx - 30, cy + 16, 4);
-  g.fillCircle(cx + 30, cy + 16, 4);
+// ── Icon: Gold coin (SOL) ──
+function iconCoin(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
+  ctx.save();
+  // Outer ring shadow
+  ctx.shadowColor = 'rgba(255,180,0,0.7)';
+  ctx.shadowBlur = 14;
+  const ringG = ctx.createRadialGradient(cx - 6, cy - 8, 2, cx, cy, 30);
+  ringG.addColorStop(0, '#ffe080');
+  ringG.addColorStop(0.45, '#d4820a');
+  ringG.addColorStop(1, '#7a4200');
+  ctx.fillStyle = ringG;
+  ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  // Inner face
+  const faceG = ctx.createRadialGradient(cx - 4, cy - 6, 2, cx, cy, 24);
+  faceG.addColorStop(0, '#ffd050');
+  faceG.addColorStop(0.6, '#c07008');
+  faceG.addColorStop(1, '#6a3800');
+  ctx.fillStyle = faceG;
+  ctx.beginPath(); ctx.arc(cx, cy, 24, 0, Math.PI * 2); ctx.fill();
+  // Edge bevel
+  ctx.strokeStyle = 'rgba(255,220,60,0.55)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, 28, 0, Math.PI * 2); ctx.stroke();
+  // SOL logo — hexagon-ish bars
+  const bars = [
+    { y: -10, tilt:  0.18 },
+    { y:   0, tilt:  0    },
+    { y:  10, tilt: -0.18 },
+  ];
+  ctx.fillStyle = '#3a1e00';
+  for (const b of bars) {
+    ctx.save();
+    ctx.translate(cx, cy + b.y);
+    ctx.rotate(b.tilt);
+    rr(ctx, -14, -3.5, 28, 7, 3.5);
+    ctx.fill();
+    ctx.restore();
+  }
+  // Highlight arc (top-left)
+  const hl = ctx.createRadialGradient(cx - 10, cy - 12, 1, cx - 8, cy - 10, 16);
+  hl.addColorStop(0, 'rgba(255,255,200,0.3)');
+  hl.addColorStop(1, 'rgba(255,255,200,0)');
+  ctx.fillStyle = hl;
+  ctx.beginPath(); ctx.arc(cx, cy, 24, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -264,41 +436,21 @@ class GameScene extends Phaser.Scene {
 
   // ── Texture generation ──────────────────────────────────────────────────────
   private generateTextures() {
-    // Symbol tiles — each drawn as a prize icon, no image files
-    const iconFns = [drawController, drawPhone, drawHeadphones, drawGiftCard, drawCash];
+    // Banner-style tiles: gradient bg + canvas-drawn 3D icon
+    const defs: Array<{
+      bg0: string; bg1: string; glow: string; labelColor: string;
+      draw: (ctx: CanvasRenderingContext2D, cx: number, cy: number) => void;
+    }> = [
+      { bg0: '#0a1438', bg1: '#142060', glow: '80,130,255',  labelColor: '#7aabff', draw: iconController  },
+      { bg0: '#0e1826', bg1: '#1c2e48', glow: '100,160,240', labelColor: '#90b8e8', draw: iconPhone        },
+      { bg0: '#1e0810', bg1: '#4a1020', glow: '240,60,100',  labelColor: '#f080a0', draw: iconHeadphones   },
+      { bg0: '#081808', bg1: '#104828', glow: '40,200,90',   labelColor: '#50d070', draw: iconGift         },
+      { bg0: '#180e00', bg1: '#3c2008', glow: '255,180,0',   labelColor: '#ffc030', draw: iconCoin         },
+    ];
 
     for (const s of SYMBOLS) {
-      if (this.textures.exists(s.key)) continue;
-
-      const rt = this.add.renderTexture(0, 0, SYM_W, SYM_H);
-
-      // Shared tile background + border
-      const bg = this.make.graphics({}, false);
-      bg.fillStyle(0x0d1e2e, 1);
-      bg.fillRoundedRect(0, 0, SYM_W, SYM_H, 10);
-      bg.fillStyle(s.color, 0.14);
-      bg.fillRoundedRect(3, 3, SYM_W - 6, SYM_H - 6, 8);
-      bg.lineStyle(2.5, s.color, 0.72);
-      bg.strokeRoundedRect(1, 1, SYM_W - 2, SYM_H - 2, 10);
-      rt.draw(bg, 0, 0);
-      bg.destroy();
-
-      // Draw icon
-      const ic = this.make.graphics({}, false);
-      iconFns[s.id](ic, SYM_W, SYM_H, s.color);
-      rt.draw(ic, 0, 0);
-      ic.destroy();
-
-      // Small prize label at bottom of tile
-      const lbl = this.make.text({
-        x: 0, y: 0, text: s.label,
-        style: { fontFamily: 'Inter,system-ui,sans-serif', fontSize: '10px', fontStyle: 'bold', color: '#' + s.color.toString(16).padStart(6, '0') },
-      }, false);
-      rt.draw(lbl, (SYM_W - lbl.width) / 2, SYM_H - lbl.height - 3);
-      lbl.destroy();
-
-      rt.saveTexture(s.key);
-      rt.destroy();
+      const d = defs[s.id];
+      makeTile(this, s.key, SYM_W, SYM_H, d.bg0, d.bg1, d.glow, d.labelColor, s.label, d.draw);
     }
 
     // Particle dot (white circle, tinted at runtime)
