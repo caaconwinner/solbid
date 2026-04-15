@@ -28,6 +28,22 @@ function fmt(m: number) {
   return m.toFixed(2) + '\u00d7';
 }
 
+// ── 2B: Multiplier color — white → orange → red → magenta ────────────────────
+function lerpRGB(c1: [number,number,number], c2: [number,number,number], t: number): string {
+  const r = Math.round(c1[0] + (c2[0] - c1[0]) * t);
+  const g = Math.round(c1[1] + (c2[1] - c1[1]) * t);
+  const b = Math.round(c1[2] + (c2[2] - c1[2]) * t);
+  return `rgb(${r},${g},${b})`;
+}
+
+function multColor(m: number): string {
+  if (m <  2)  return lerpRGB([255,255,255], [255,200,80],  Math.max(0, m - 1));
+  if (m <  5)  return lerpRGB([255,200,80],  [255,110,0],   (m - 2) / 3);
+  if (m < 10)  return lerpRGB([255,110,0],   [255,40,0],    (m - 5) / 5);
+  if (m < 20)  return lerpRGB([255,40,0],    [255,0,80],    (m - 10) / 10);
+  return '#ff0080'; // handled by CSS flash above 20×
+}
+
 // ─── Draw the penny.bid coin ──────────────────────────────────────────────────
 function drawCoin(
   ctx: CanvasRenderingContext2D,
@@ -85,6 +101,7 @@ export function CrashPage() {
   const [history,   setHistory]   = useState<number[]>([]);
   const [cashedAt,  setCashedAt]  = useState<number | null>(null);
   const [toast,     setToast]     = useState<{ msg: string; win: boolean } | null>(null);
+  const [animKey,   setAnimKey]   = useState(0);  // increments each tick → remounts span → restarts pop anim
 
   // Game refs (mutated in RAF — no re-render)
   const phaseRef        = useRef<Phase>('waiting');
@@ -413,6 +430,7 @@ export function CrashPage() {
           doCrashRef.current();
         } else if (now - lastUIRef.current >= 50) {
           setDispMult(mult);
+          setAnimKey(k => k + 1);
           lastUIRef.current = now;
         }
       }
@@ -529,8 +547,13 @@ export function CrashPage() {
           ) : (
             <div className="crash-overlay__mult-wrap">
               <span
-                className="crash-overlay__mult"
-                style={{ color: phase === 'crashed' ? '#d93333' : '#ff6200' }}
+                key={animKey}
+                className={[
+                  'crash-overlay__mult',
+                  phase === 'crashed'              ? 'crash-overlay__mult--crashed' : '',
+                  phase === 'running' && dispMult >= 10 ? 'crash-overlay__mult--hot' : '',
+                ].join(' ').trim()}
+                style={{ color: phase === 'crashed' ? '#d93333' : multColor(dispMult) }}
               >
                 {fmt(dispMult)}
               </span>

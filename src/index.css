@@ -3675,6 +3675,33 @@ a:hover { text-decoration: underline; }
   font-family: var(--mono);
   letter-spacing: -2px;
   line-height: 1;
+  /* 2A: pop on every tick — key remount restarts this */
+  animation: mult-pop 0.18s cubic-bezier(0.22, 1.6, 0.36, 1) both;
+  display: inline-block; /* needed for transform */
+  text-shadow: 0 0 24px currentColor;
+}
+
+/* 2A: subtle scale-up pop — feels like the number is "growing" */
+@keyframes mult-pop {
+  0%   { transform: scale(1.07); }
+  100% { transform: scale(1); }
+}
+
+/* 2B: flashing red/magenta above 10× — communicates extreme risk */
+.crash-overlay__mult--hot {
+  animation: mult-pop 0.18s cubic-bezier(0.22, 1.6, 0.36, 1) both,
+             mult-flash 0.35s ease-in-out infinite alternate;
+}
+
+@keyframes mult-flash {
+  from { text-shadow: 0 0 28px #ff2200, 0 0 8px #ff2200; }
+  to   { text-shadow: 0 0 36px #ff0080, 0 0 12px #ff0080; }
+}
+
+/* 2B: crashed state glow */
+.crash-overlay__mult--crashed {
+  animation: none;
+  text-shadow: 0 0 32px rgba(217,51,51,0.7);
 }
 
 .crash-overlay__crashed-label {
