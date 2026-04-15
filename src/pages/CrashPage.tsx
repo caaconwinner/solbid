@@ -98,7 +98,8 @@ export function CrashPage() {
   const betAmtRef       = useRef(10);
   const autoOnRef       = useRef(false);
   const autoAtRef       = useRef(2.0);
-  const particlesRef    = useRef<Particle[]>([]);
+  const particlesRef    = useRef<Particle[]>([]);   // explosion burst
+  const trailRef        = useRef<Particle[]>([]);   // coin trail sparks
   const lastUIRef       = useRef(0);
   const crashTimerRef   = useRef<ReturnType<typeof setTimeout>>();
   const toastTimerRef   = useRef<ReturnType<typeof setTimeout>>();
@@ -141,6 +142,9 @@ export function CrashPage() {
     setDispMult(finalMult);
     setHistory(h => [finalMult, ...h].slice(0, 20));
 
+    // Kill trail sparks when crashed
+    trailRef.current = [];
+
     // Explosion particles at coin tip
     const { x, y } = coinPosRef.current;
     const colors = ['#ff6200', '#ffd700', '#ff4400', '#ff9900', '#ffffff', '#ffcc00'];
@@ -170,6 +174,7 @@ export function CrashPage() {
       multRef.current        = 1.0;
       crashedMultRef.current = 1.0;
       particlesRef.current   = [];
+      trailRef.current       = [];
       setCashedAt(null);
       setPhase('waiting');
       setDispMult(1.00);
@@ -262,19 +267,28 @@ export function CrashPage() {
         return { x: toX(t), y: toY(Math.exp(CURVE_K * t)) };
       });
 
-      const lineCol  = isCrashed ? '#d93333' : '#ff6200';
-      const fillCol0 = isCrashed ? 'rgba(220,50,50,0.22)' : 'rgba(255,98,0,0.22)';
+      const tip  = pts[pts.length - 1];
+      const lineCol = isCrashed ? '#d93333' : '#ff6200';
 
-      // Under-curve fill
-      const grad = ctx.createLinearGradient(0, pad.t, 0, H - pad.b);
-      grad.addColorStop(0, fillCol0);
-      grad.addColorStop(1, 'rgba(6,14,24,0)');
+      // ── 1A: Gradient fill anchored to the curve tip ─────────────────────────
+      // Top stop starts at tip.y (where the curve actually is) so the orange is
+      // always bright right under the curve rather than stuck at the chart top.
+      const gradFill = ctx.createLinearGradient(0, tip.y, 0, H - pad.b);
+      if (isCrashed) {
+        gradFill.addColorStop(0,   'rgba(200,40,40,0.50)');
+        gradFill.addColorStop(0.45,'rgba(200,40,40,0.15)');
+        gradFill.addColorStop(1,   'rgba(6,14,24,0)');
+      } else {
+        gradFill.addColorStop(0,   'rgba(255,100,0,0.52)');
+        gradFill.addColorStop(0.45,'rgba(255,80,0,0.14)');
+        gradFill.addColorStop(1,   'rgba(6,14,24,0)');
+      }
       ctx.beginPath();
       ctx.moveTo(pad.l, H - pad.b);
       for (const pt of pts) ctx.lineTo(pt.x, pt.y);
-      ctx.lineTo(pts[pts.length - 1].x, H - pad.b);
+      ctx.lineTo(tip.x, H - pad.b);
       ctx.closePath();
-      ctx.fillStyle = grad;
+      ctx.fillStyle = gradFill;
       ctx.fill();
 
       // Outer glow (wide, soft)
@@ -291,7 +305,7 @@ export function CrashPage() {
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
       for (const pt of pts) ctx.lineTo(pt.x, pt.y);
-      ctx.strokeStyle = isCrashed ? 'rgba(220,50,50,0.30)' : 'rgba(255,130,0,0.35)';
+      ctx.strokeStyle = isCrashed ? 'rgba(220,50,50,0.30)' : 'rgba(255,130,0,0.38)';
       ctx.lineWidth   = 8 * dpr;
       ctx.stroke();
 
@@ -303,13 +317,55 @@ export function CrashPage() {
       ctx.lineWidth   = 3 * dpr;
       ctx.stroke();
 
-      // Coin at tip
-      const tip = pts[pts.length - 1];
+      // ── 1B: Spawn trail sparks at the coin tip ──────────────────────────────
+      if (p === 'running' && pts.length >= 2) {
+        const prev   = pts[pts.length - 2];
+        const dx     = tip.x - prev.x;
+        const dy     = tip.y - prev.y;
+        const len    = Math.sqrt(dx * dx + dy * dy) || 1;
+        const tx     = dx / len;   // tangent (direction of travel)
+        const ty     = dy / len;
+        const TRAIL_COLORS = ['#ff6200','#ff8c00','#ffb300','#fff0a0','#ffffff'];
+        for (let i = 0; i < 3; i++) {
+          const spread = (Math.random() - 0.5) * 1.8;
+          const spd    = (0.4 + Math.random() * 1.2) * dpr;
+          trailRef.current.push({
+            x:     tip.x + (Math.random() - 0.5) * 6 * dpr,
+            y:     tip.y + (Math.random() - 0.5) * 6 * dpr,
+            vx:    (-tx + spread * 0.4) * spd,
+            vy:    (-ty + spread * 0.4 + 0.3) * spd,
+            life:  0.35 + Math.random() * 0.35,
+            color: TRAIL_COLORS[Math.floor(Math.random() * TRAIL_COLORS.length)],
+            size:  0.8 + Math.random() * 1.4,
+          });
+        }
+      }
+
+      // Update coin position & draw coin
       coinPosRef.current = { x: tip.x, y: tip.y };
+
+      // ── Trail spark render (before coin so coin sits on top) ────────────────
+      const aliveTrail: Particle[] = [];
+      for (const sp of trailRef.current) {
+        if (sp.life <= 0) continue;
+        ctx.globalAlpha = sp.life * 0.9;
+        ctx.fillStyle   = sp.color;
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, sp.size * dpr, 0, Math.PI * 2);
+        ctx.fill();
+        sp.x    += sp.vx;
+        sp.y    += sp.vy;
+        sp.vy   += 0.05;  // gentle gravity on sparks
+        sp.life -= 0.04;
+        aliveTrail.push(sp);
+      }
+      ctx.globalAlpha  = 1;
+      trailRef.current = aliveTrail;
+
       drawCoin(ctx, tip.x, tip.y, COIN_R * dpr, isCrashed);
     }
 
-    // Particles
+    // Explosion burst particles
     const alive: Particle[] = [];
     for (const pt of particlesRef.current) {
       if (pt.life <= 0) continue;
