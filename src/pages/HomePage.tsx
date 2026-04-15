@@ -166,7 +166,7 @@ export function HomePage() {
       </aside>
 
       <div className="home-auctions">
-        {live.length > 0 && (
+        {(live.length > 0 || upcoming.length > 0) && (
           <section className="auction-section">
             <h2 className="section-title">
               <span className="live-dot" />
@@ -174,14 +174,6 @@ export function HomePage() {
             </h2>
             <div className="auction-grid">
               {live.map((a) => <AuctionCard key={a.auctionId} auction={a} />)}
-            </div>
-          </section>
-        )}
-
-        {upcoming.length > 0 && (
-          <section className="auction-section">
-            <h2 className="section-title">Upcoming</h2>
-            <div className="auction-grid">
               {upcoming.map((a) => <AuctionCard key={a.auctionId} auction={a} />)}
             </div>
           </section>
