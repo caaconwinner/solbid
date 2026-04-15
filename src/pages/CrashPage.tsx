@@ -17,6 +17,14 @@ interface Particle {
   size: number;
 }
 
+interface Star {
+  x: number; y: number;
+  r: number;        // base radius
+  alpha: number;    // base opacity
+  speed: number;    // px/frame at mult=1
+  layer: number;    // 0 | 1 | 2
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function genCrashPoint(): number {
   const r = Math.random();
@@ -122,6 +130,7 @@ export function CrashPage() {
   const autoAtRef       = useRef(2.0);
   const particlesRef    = useRef<Particle[]>([]);   // explosion burst
   const trailRef        = useRef<Particle[]>([]);   // coin trail sparks
+  const starsRef        = useRef<Star[]>([]);        // parallax starfield
   const lastUIRef       = useRef(0);
   const lastMilestone   = useRef(1);   // tracks last integer floor for pop trigger
   const crashTimerRef   = useRef<ReturnType<typeof setTimeout>>();
@@ -198,6 +207,7 @@ export function CrashPage() {
       crashedMultRef.current = 1.0;
       particlesRef.current   = [];
       trailRef.current       = [];
+      starsRef.current       = [];   // reinit next frame with fresh positions
       lastMilestone.current  = 1;
       setCashedAt(null);
       setPhase('waiting');
@@ -229,6 +239,87 @@ export function CrashPage() {
     // Background
     ctx.fillStyle = '#060e18';
     ctx.fillRect(0, 0, W, H);
+
+    // ── Parallax starfield ──────────────────────────────────────────────────
+    // Lazy-init: fill canvas with stars the first time W/H are known
+    if (starsRef.current.length === 0 && W > 0 && H > 0) {
+      const stars: Star[] = [];
+      // Layer 0 — background: 90 tiny dim stars
+      for (let i = 0; i < 90; i++) stars.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: 0.4 + Math.random() * 0.6 * dpr,
+        alpha: 0.15 + Math.random() * 0.25,
+        speed: (0.15 + Math.random() * 0.25) * dpr,
+        layer: 0,
+      });
+      // Layer 1 — midground: 50 medium stars
+      for (let i = 0; i < 50; i++) stars.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: 0.8 + Math.random() * 1.0 * dpr,
+        alpha: 0.35 + Math.random() * 0.35,
+        speed: (0.55 + Math.random() * 0.6) * dpr,
+        layer: 1,
+      });
+      // Layer 2 — foreground: 22 bright streaks
+      for (let i = 0; i < 22; i++) stars.push({
+        x: Math.random() * W, y: Math.random() * H,
+        r: 1.2 + Math.random() * 1.4 * dpr,
+        alpha: 0.6 + Math.random() * 0.4,
+        speed: (1.8 + Math.random() * 2.0) * dpr,
+        layer: 2,
+      });
+      starsRef.current = stars;
+    }
+
+    // Speed multiplier ramps with the multiplier; stops dead on crash
+    const starMult   = p === 'crashed' ? 0 : p === 'waiting' ? 0.25 : Math.max(1, 1 + (mult - 1) * 0.22);
+    const trailScale = [1, 4, 12]; // streak trail length per layer
+
+    for (const s of starsRef.current) {
+      const dx = s.speed * starMult;
+
+      if (p !== 'crashed') {
+        s.x -= dx;
+        if (s.x < 0) { s.x = W; s.y = Math.random() * H; }
+      }
+
+      const a = s.alpha * Math.min(1, starMult * 1.2 + 0.1);
+      ctx.globalAlpha = a;
+
+      if (s.layer === 2) {
+        // Streak: line trailing to the right
+        const tailLen = dx * trailScale[2];
+        const grad = ctx.createLinearGradient(s.x, s.y, s.x + tailLen, s.y);
+        grad.addColorStop(0, `rgba(255,255,255,${a})`);
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth   = s.r;
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x + tailLen, s.y);
+        ctx.stroke();
+      } else {
+        // Dot star; layer 1 gets a tiny tail
+        if (s.layer === 1 && dx > 0.3) {
+          const tail = dx * trailScale[1];
+          const g2 = ctx.createLinearGradient(s.x, s.y, s.x + tail, s.y);
+          g2.addColorStop(0, `rgba(200,220,255,${a})`);
+          g2.addColorStop(1, 'rgba(200,220,255,0)');
+          ctx.strokeStyle = g2;
+          ctx.lineWidth   = s.r * 0.7;
+          ctx.beginPath();
+          ctx.moveTo(s.x, s.y);
+          ctx.lineTo(s.x + tail, s.y);
+          ctx.stroke();
+        }
+        ctx.fillStyle = s.layer === 0 ? 'rgba(200,220,255,1)' : 'rgba(220,235,255,1)';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+    // ── End starfield ────────────────────────────────────────────────────────
 
     // Scale — linear Y so the exponential curve actually curves visually.
     // (Log scale turns e^(kt) into a straight line by definition.)
