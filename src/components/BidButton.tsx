@@ -35,7 +35,7 @@ export function BidButton({ credits, onBid, disabled, result, connecting, isLead
         aria-label="Place a bid"
       >
         <span className="bid-btn-text">
-          {connecting ? 'CONNECTING…' : cooling ? 'BIDDING…' : noCredits ? 'NO CREDITS' : isLeader ? 'WINNING BID' : 'BID NOW'}
+          {connecting ? 'CONNECTING…' : cooling ? 'BIDDING…' : noCredits ? 'NO CREDITS' : isLeader ? 'YOU ARE WINNING' : 'BID NOW'}
         </span>
         <span className="bid-btn-cost">−0.01 SOL credit</span>
       </button>
