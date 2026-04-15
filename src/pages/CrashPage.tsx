@@ -98,7 +98,8 @@ export function CrashPage() {
   const [autoOn,    setAutoOn]    = useState(false);
   const [autoInput, setAutoInput] = useState('2.00');
   const [countdown, setCountdown] = useState(WAIT_SECS);
-  const [history,   setHistory]   = useState<number[]>([]);
+  const [history,   setHistory]   = useState<{ mult: number; id: number }[]>([]);
+  const histIdRef = useRef(0);
   const [cashedAt,  setCashedAt]  = useState<number | null>(null);
   const [toast,     setToast]     = useState<{ msg: string; win: boolean } | null>(null);
   const [animKey,   setAnimKey]   = useState(0);  // increments each tick → remounts span → restarts pop anim
@@ -158,7 +159,7 @@ export function CrashPage() {
 
     setPhase('crashed');
     setDispMult(finalMult);
-    setHistory(h => [finalMult, ...h].slice(0, 20));
+    setHistory(h => [{ mult: finalMult, id: histIdRef.current++ }, ...h].slice(0, 20));
 
     // Kill trail sparks when crashed
     trailRef.current = [];
@@ -525,13 +526,14 @@ export function CrashPage() {
         {history.length === 0 && (
           <span className="crash-history__empty">No rounds yet — waiting for first crash…</span>
         )}
-        {history.map((m, i) => (
+        {history.map(({ mult: m, id }) => (
           <span
-            key={i}
+            key={id}
             className={`crash-hist-pill ${
-              m < 2  ? 'crash-hist-pill--red'    :
-              m < 10 ? 'crash-hist-pill--orange' :
-                       'crash-hist-pill--green'
+              m < 1.2 ? 'crash-hist-pill--flatline' :
+              m < 2   ? 'crash-hist-pill--low'      :
+              m < 10  ? 'crash-hist-pill--mid'      :
+                        'crash-hist-pill--high'
             }`}
           >
             {fmt(m)}
