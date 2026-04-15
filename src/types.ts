@@ -14,6 +14,7 @@ export interface AuctionState {
   startsAtMs?: number;
   status: 'scheduled' | 'active' | 'ended' | 'settled';
   totalBids: number;
+  prizeMint?: string | null;
 }
 
 // Tiny WebSocket payload — every byte matters at 10hz broadcast rate
@@ -120,4 +121,5 @@ export interface AuctionListing {
   leaderName: string | null;
   viewers?: number;
   liveRetailUsd?: number | null;
+  prizeMint?: string | null;
 }

@@ -754,6 +754,7 @@ app.get('/api/auctions/public', async (req, res) => {
       snapTimerMs:    a.snapTimerMs,
       viewers:        sockets.size,
       liveRetailUsd:  tokenPriceCache.get(a.auctionId) ?? null,
+      prizeMint:      a.prizeMint ?? null,
     };
   }));
   res.json({ auctions: list });
@@ -774,6 +775,7 @@ app.get('/api/auctions', requireAuth, async (req, res) => {
       snapTimerMs:    a.snapTimerMs,
       viewers:        sockets.size,
       liveRetailUsd:  tokenPriceCache.get(a.auctionId) ?? null,
+      prizeMint:      a.prizeMint ?? null,
     };
   }));
   res.json({ auctions: list });
@@ -1301,6 +1303,7 @@ function makeAuction(id, item, durationMs, delayMs = 0, snapTimerMs = 15_000, pr
     totalBids:         0,
     snapTimerMs,
     prize,
+    prizeMint:         prize?.type === 'token' ? (prize.mint ?? null) : null,
     _durationMs:       durationMs,
     _delayMs:          delayMs,
     raffleSeed,        // kept secret until after draw
