@@ -58,7 +58,7 @@ function drawTrump(
   // Rotate to follow the curve. The image has Trump sitting upright facing
   // right, so rotating by (angle - π/2) makes his bottom face backward along
   // the curve — the "launch from ass" orientation.
-  ctx.rotate(angle - Math.PI / 2);
+  ctx.rotate(angle + Math.PI / 2);
 
   if (crashed) {
     ctx.filter = 'hue-rotate(160deg) brightness(0.6)';
