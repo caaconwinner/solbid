@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 const CURVE_K    = 0.07;   // multiplier = e^(K * seconds)
 const WAIT_SECS  = 5;
 const CRASH_HOLD = 4000;   // ms to show crashed state before next round
-const COIN_R     = 20;     // coin radius in CSS pixels
+const TRUMP_SIZE = 52;     // half-width of Trump image in CSS pixels
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Phase = 'waiting' | 'running' | 'crashed';
@@ -44,50 +44,45 @@ function multColor(m: number): string {
   return '#ff0080'; // handled by CSS flash above 20×
 }
 
-// ─── Draw the penny.bid coin ──────────────────────────────────────────────────
-function drawCoin(
+// ─── Draw Trump tilted along the curve tangent ───────────────────────────────
+function drawTrump(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, r: number,
+  img: HTMLImageElement,
+  x: number, y: number,
+  angle: number,   // curve tangent angle (radians)
+  size: number,    // half-width in canvas pixels
   crashed = false,
 ) {
   ctx.save();
   ctx.translate(x, y);
+  // Rotate to follow the curve. The image has Trump sitting upright facing
+  // right, so rotating by (angle - π/2) makes his bottom face backward along
+  // the curve — the "launch from ass" orientation.
+  ctx.rotate(angle - Math.PI / 2);
 
-  ctx.shadowColor = crashed ? '#e03030' : '#ff6200';
-  ctx.shadowBlur  = r * 1.4;
+  if (crashed) {
+    ctx.filter = 'hue-rotate(160deg) brightness(0.6)';
+  }
 
-  // Body
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.fillStyle = crashed ? '#c02020' : '#ff6200';
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // Border
-  ctx.strokeStyle = crashed ? '#3a0000' : '#1a0800';
-  ctx.lineWidth = r * 0.1;
-  ctx.stroke();
-
-  // Inner ring
-  ctx.beginPath();
-  ctx.arc(0, 0, r * 0.76, 0, Math.PI * 2);
-  ctx.strokeStyle = crashed ? 'rgba(255,80,80,0.5)' : 'rgba(255,175,75,0.65)';
-  ctx.lineWidth = r * 0.07;
-  ctx.stroke();
-
-  // $p label
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `bold ${Math.round(r * 0.66)}px Inter, system-ui, sans-serif`;
-  ctx.textAlign    = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('$p', 0, 0);
+  // Draw centered, aspect-ratio preserved (image is roughly square after bg removal)
+  const w = size * 1.3;
+  const h = size * 1.3;
+  ctx.drawImage(img, -w / 2, -h / 2, w, h);
 
   ctx.restore();
 }
 
 // ─── CrashPage ────────────────────────────────────────────────────────────────
 export function CrashPage() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef  = useRef<HTMLCanvasElement>(null);
+  const trumpImgRef = useRef<HTMLImageElement | null>(null);
+
+  // Preload Trump image
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/trump-sit.png';
+    img.onload = () => { trumpImgRef.current = img; };
+  }, []);
 
   // UI state
   const [phase,     setPhase]     = useState<Phase>('waiting');
@@ -337,34 +332,40 @@ export function CrashPage() {
       ctx.lineWidth   = 3 * dpr;
       ctx.stroke();
 
-      // ── 1B: Spawn trail sparks at the coin tip ──────────────────────────────
-      if (p === 'running' && pts.length >= 2) {
-        const prev   = pts[pts.length - 2];
-        const dx     = tip.x - prev.x;
-        const dy     = tip.y - prev.y;
-        const len    = Math.sqrt(dx * dx + dy * dy) || 1;
-        const tx     = dx / len;   // tangent (direction of travel)
-        const ty     = dy / len;
+      // ── Compute tangent angle for Trump rotation ────────────────────────────
+      const prev2  = pts.length >= 2 ? pts[pts.length - 2] : pts[0];
+      const dx     = tip.x - prev2.x;
+      const dy     = tip.y - prev2.y;
+      const len    = Math.sqrt(dx * dx + dy * dy) || 1;
+      const tx     = dx / len;
+      const ty     = dy / len;
+      const angle  = Math.atan2(dy, dx);
+
+      // ── 1B: Spawn trail sparks from Trump's ass (backward along tangent) ────
+      if (p === 'running') {
+        // Offset spawn behind Trump (bottom of chair = backward along tangent)
+        const assX = tip.x - tx * TRUMP_SIZE * dpr * 0.6;
+        const assY = tip.y - ty * TRUMP_SIZE * dpr * 0.6;
         const TRAIL_COLORS = ['#ff6200','#ff8c00','#ffb300','#fff0a0','#ffffff'];
         for (let i = 0; i < 3; i++) {
           const spread = (Math.random() - 0.5) * 1.8;
-          const spd    = (0.4 + Math.random() * 1.2) * dpr;
+          const spd    = (0.4 + Math.random() * 1.4) * dpr;
           trailRef.current.push({
-            x:     tip.x + (Math.random() - 0.5) * 6 * dpr,
-            y:     tip.y + (Math.random() - 0.5) * 6 * dpr,
+            x:     assX + (Math.random() - 0.5) * 8 * dpr,
+            y:     assY + (Math.random() - 0.5) * 8 * dpr,
             vx:    (-tx + spread * 0.4) * spd,
             vy:    (-ty + spread * 0.4 + 0.3) * spd,
             life:  0.35 + Math.random() * 0.35,
             color: TRAIL_COLORS[Math.floor(Math.random() * TRAIL_COLORS.length)],
-            size:  0.8 + Math.random() * 1.4,
+            size:  0.8 + Math.random() * 1.8,
           });
         }
       }
 
-      // Update coin position & draw coin
+      // Update coin position & render trail before Trump
       coinPosRef.current = { x: tip.x, y: tip.y };
 
-      // ── Trail spark render (before coin so coin sits on top) ────────────────
+      // ── Trail spark render ───────────────────────────────────────────────────
       const aliveTrail: Particle[] = [];
       for (const sp of trailRef.current) {
         if (sp.life <= 0) continue;
@@ -375,14 +376,18 @@ export function CrashPage() {
         ctx.fill();
         sp.x    += sp.vx;
         sp.y    += sp.vy;
-        sp.vy   += 0.05;  // gentle gravity on sparks
+        sp.vy   += 0.05;
         sp.life -= 0.04;
         aliveTrail.push(sp);
       }
       ctx.globalAlpha  = 1;
       trailRef.current = aliveTrail;
 
-      drawCoin(ctx, tip.x, tip.y, COIN_R * dpr, isCrashed);
+      // ── Draw Trump ───────────────────────────────────────────────────────────
+      const img = trumpImgRef.current;
+      if (img) {
+        drawTrump(ctx, img, tip.x, tip.y, angle, TRUMP_SIZE * dpr, isCrashed);
+      }
     }
 
     // Explosion burst particles
