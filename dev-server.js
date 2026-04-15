@@ -1324,6 +1324,10 @@ const persistedRows = stmt.allAuctions.all();
 for (const row of persistedRows) {
   try {
     const a = JSON.parse(row.data);
+    // Backfill prizeMint for auctions persisted before this field was added
+    if (a.prizeMint === undefined) {
+      a.prizeMint = a.prize?.type === 'token' ? (a.prize.mint ?? null) : null;
+    }
     auctions.set(a.auctionId, a);
   } catch { /* corrupt row — skip */ }
 }

@@ -91,7 +91,7 @@ function reducer(state: State, action: Action): State {
 function listingToState(a: AuctionListing): AuctionState {
   return { auctionId: a.auctionId, item: a.item, currentPrice: a.currentPrice,
            leaderId: null, leaderName: a.leaderName, endsAtMs: a.endsAtMs,
-           status: a.status, totalBids: a.totalBids };
+           status: a.status, totalBids: a.totalBids, prizeMint: a.prizeMint ?? null };
 }
 
 export function useAuction(auctionId: string, currentUserId: string, initialAuction?: AuctionListing) {
