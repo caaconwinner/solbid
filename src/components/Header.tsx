@@ -4,7 +4,6 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { usePing } from '../hooks/usePing';
 import { useXNotification } from '../hooks/useXNotification';
-import { useBidCounter } from '../hooks/useBidCounter';
 
 function useTheme() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() =>
@@ -23,7 +22,6 @@ export function Header() {
   const { status, latencyMs } = usePing();
   const { theme, toggle } = useTheme();
   const { hasNew, dismiss } = useXNotification();
-  const totalBids = useBidCounter();
   const location = useLocation();
 
   // Pulse animation when credits change
@@ -75,15 +73,6 @@ export function Header() {
         </nav>
 
         <div className="header-right">
-          {totalBids !== null && (
-            <div className="header-bid-counter" title="Total bids placed on pennyBid">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M14 4l6 6-10 10H4v-6L14 4z"/><line x1="14" y1="4" x2="20" y2="10"/>
-              </svg>
-              <span className="header-bid-counter-value">{totalBids.toLocaleString()}</span>
-              <span className="header-bid-counter-label">bids</span>
-            </div>
-          )}
           <button className="header-theme-btn" onClick={toggle} title="Toggle theme">
             {theme === 'dark'
               ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
