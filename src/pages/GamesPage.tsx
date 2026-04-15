@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SlotTilePreview } from '../components/SlotTilePreview';
 
 const TAPE_TEXT = Array.from({ length: 14 }, () => '⚠ UNDER CONSTRUCTION ').join('');
 
@@ -16,11 +17,7 @@ export function GamesPage() {
           <h2 className="games-panel-title games-panel-title--slots">SLOTS</h2>
           <p className="games-panel-sub">Spin the reels, win big</p>
 
-          <div className="games-panel-symbols">
-            <span className="games-symbol">🍒</span>
-            <span className="games-symbol">💎</span>
-            <span className="games-symbol">🎯</span>
-          </div>
+          <SlotTilePreview />
 
           <div className="games-panel-cta games-panel-cta--slots">Play Slots →</div>
         </Link>

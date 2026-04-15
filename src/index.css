@@ -3801,6 +3801,29 @@ a:hover { text-decoration: underline; }
   box-shadow: 0 8px 28px rgba(0,0,0,0.4);
 }
 
+/* ── Slot tile preview strip ─────────────────────────────────────────────── */
+.slot-tile-preview {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.slot-tile-canvas {
+  border-radius: 10px;
+  display: block;
+  /* slight scale-up on parent hover, staggered per nth-child via JS transform */
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+}
+.games-panel:hover .slot-tile-canvas { box-shadow: 0 6px 20px rgba(0,0,0,0.7); }
+.games-panel:hover .slot-tile-canvas:nth-child(1) { transform: translateY(-5px); transition-delay: 0ms;   }
+.games-panel:hover .slot-tile-canvas:nth-child(2) { transform: translateY(-5px); transition-delay: 50ms;  }
+.games-panel:hover .slot-tile-canvas:nth-child(3) { transform: translateY(-5px); transition-delay: 100ms; }
+.games-panel:hover .slot-tile-canvas:nth-child(4) { transform: translateY(-5px); transition-delay: 150ms; }
+.games-panel:hover .slot-tile-canvas:nth-child(5) { transform: translateY(-5px); transition-delay: 200ms; }
+
 /* ── Center divider ────────────────────────────────────────────── */
 .games-center-divider {
   position: absolute;
