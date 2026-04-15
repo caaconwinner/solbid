@@ -51,10 +51,11 @@ export function AuctionCard({ auction }: Props) {
   const joinedRef = useRef(false);
 
   // Local live state — updated via socket so card reflects bids instantly
-  const [livePrice,  setLivePrice]  = useState(auction.currentPrice);
-  const [liveBids,   setLiveBids]   = useState(auction.totalBids);
-  const [liveLeader, setLiveLeader] = useState(auction.leaderName);
-  const [liveEndsAt, setLiveEndsAt] = useState(auction.endsAtMs);
+  const [livePrice,    setLivePrice]    = useState(auction.currentPrice);
+  const [liveBids,     setLiveBids]     = useState(auction.totalBids);
+  const [liveLeader,   setLiveLeader]   = useState(auction.leaderName);
+  const [liveLeaderId, setLiveLeaderId] = useState<string | null>(null);
+  const [liveEndsAt,   setLiveEndsAt]   = useState(auction.endsAtMs);
 
   // Sync from parent if auction prop changes (e.g. initial load / poll refresh)
   useEffect(() => {
@@ -67,10 +68,11 @@ export function AuctionCard({ auction }: Props) {
   // Listen to socket events for instant updates
   useEffect(() => {
     if (!active) return;
-    const onBidPlaced = (e: { p: number; n: string; t: number }) => {
+    const onBidPlaced = (e: { p: number; n: string; t: number; u: string }) => {
       setLivePrice(e.p);
       setLiveBids((b) => b + 1);
       setLiveLeader(e.n);
+      setLiveLeaderId(e.u);
       setLiveEndsAt(e.t);
     };
     const onSync = (e: { auction: any }) => {
@@ -78,6 +80,7 @@ export function AuctionCard({ auction }: Props) {
       setLivePrice(e.auction.currentPrice);
       setLiveBids(e.auction.totalBids);
       setLiveLeader(e.auction.leaderName);
+      setLiveLeaderId(e.auction.leaderId ?? null);
       setLiveEndsAt(e.auction.endsAtMs);
     };
     socket.on('bid-placed',   onBidPlaced);
@@ -222,7 +225,7 @@ export function AuctionCard({ auction }: Props) {
             onClick={placeBid}
             disabled={pending || credits < 1}
           >
-            {pending ? 'Bidding…' : credits < 1 ? 'No credits' : `Bid — 1 credit`}
+            {pending ? 'Bidding…' : credits < 1 ? 'No credits' : liveLeaderId === user?.id ? '👑 You are winning' : 'Bid — 1 credit'}
           </button>
         ) : (
           <div className="card-enter">View Auction →</div>
