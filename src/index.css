@@ -3696,6 +3696,7 @@ a:hover { text-decoration: underline; }
   border: none;
   display: block;
   background: var(--bg);
+  filter: blur(3px);
 }
 
 /* Transparent overlay — captures all pointer events so game controls are dead */
