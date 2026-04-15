@@ -3,13 +3,13 @@
 
 :root {
   /* ── Backgrounds ── */
-  --bg:         #060e18;
-  --surface:    #0c1825;
-  --surface-2:  #101f2e;
-  --surface-3:  #152638;
+  --bg:         #080808;
+  --surface:    #111111;
+  --surface-2:  #181818;
+  --surface-3:  #1e1e1e;
   /* ── Borders ── */
-  --border:     #1a2f42;
-  --border-2:   #1f3850;
+  --border:     #222222;
+  --border-2:   #2a2a2a;
   /* ── Text ── */
   --text:       #e0e0e0;
   --text-muted: #aaaaaa;
@@ -32,7 +32,7 @@
   --radius:     10px;
   --radius-sm:  6px;
   /* ── Theme-aware ── */
-  --header-bg:       rgba(6, 14, 24, 0.95);
+  --header-bg:       rgba(8, 8, 8, 0.92);
   --overlay:         rgba(0, 0, 0, 0.65);
   --overlay-sm:      rgba(0, 0, 0, 0.3);
   --card-ended-border: rgba(255, 255, 255, 0.1);
