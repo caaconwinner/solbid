@@ -118,6 +118,7 @@ export function CrashPage() {
   const particlesRef    = useRef<Particle[]>([]);   // explosion burst
   const trailRef        = useRef<Particle[]>([]);   // coin trail sparks
   const lastUIRef       = useRef(0);
+  const lastMilestone   = useRef(1);   // tracks last integer floor for pop trigger
   const crashTimerRef   = useRef<ReturnType<typeof setTimeout>>();
   const toastTimerRef   = useRef<ReturnType<typeof setTimeout>>();
 
@@ -192,6 +193,7 @@ export function CrashPage() {
       crashedMultRef.current = 1.0;
       particlesRef.current   = [];
       trailRef.current       = [];
+      lastMilestone.current  = 1;
       setCashedAt(null);
       setPhase('waiting');
       setDispMult(1.00);
@@ -430,7 +432,11 @@ export function CrashPage() {
           doCrashRef.current();
         } else if (now - lastUIRef.current >= 50) {
           setDispMult(mult);
-          setAnimKey(k => k + 1);
+          const milestone = Math.floor(mult);
+          if (milestone > lastMilestone.current) {
+            lastMilestone.current = milestone;
+            setAnimKey(k => k + 1);
+          }
           lastUIRef.current = now;
         }
       }
