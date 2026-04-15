@@ -38,6 +38,17 @@ const FAQS = [
     ],
   },
   {
+    category: 'Prizes',
+    items: [
+      { q: 'What types of prizes can I win?', a: 'pennyBid auctions can feature four types of prizes: physical items (e.g. PS5, iPhone — shipped to you), SOL sent directly to your wallet, bid credits added to your account balance, and SPL tokens (e.g. $penny) sent to your deposit address.' },
+      { q: 'How do I receive a physical prize?', a: 'After winning, go to Account → Wins and click "Claim Prize". You\'ll be asked to pay the final auction price in SOL, then provide a shipping address. The team will fulfil and ship your item.' },
+      { q: 'How do I receive a SOL prize?', a: 'SOL prizes are sent directly on-chain to your pennyBid deposit wallet. You can then withdraw that SOL at any time from your Account page.' },
+      { q: 'How do I receive an SPL token prize?', a: 'SPL token prizes (such as $penny) are sent to the associated token account of your deposit address on Solana. They arrive on-chain automatically — no claim step needed.' },
+      { q: 'How do I receive a credits prize?', a: 'Credits prizes are added directly to your account balance the moment the admin sends them. They appear instantly in your header credits count and Account page.' },
+      { q: 'Is there a time limit to claim my prize?', a: 'Yes — unclaimed prizes may expire. Claim your prize as soon as possible from Account → Wins to avoid forfeiture.' },
+    ],
+  },
+  {
     category: '$penny token',
     items: [
       { q: 'What is $penny?', a: '$penny is the native Solana SPL token of the pennyBid platform, launched on pump.fun. It powers the reward mechanics and buyback engine.' },
