@@ -17,7 +17,7 @@ interface Props {
 }
 
 export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction, winClaimed }: Props) {
-  const { auction, bids, userCredits, clockDrift, isConnected, bidResult, viewers, cashback, cashbackSettled, placeBid } =
+  const { auction, bids, userCredits, clockDrift, isConnected, bidResult, viewers, cashback, cashbackSettled, placeBid, liveRetailUsd } =
     useAuction(auctionId, userId, initialAuction);
 
   useEffect(() => { onCreditsChange?.(userCredits); }, [userCredits]);
@@ -64,7 +64,14 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
           <h1 className="item-name">{auction.item.name}</h1>
           <p className="item-retail">
             <span className="item-retail-label">RETAIL VALUE:</span>
-            <span className="item-retail-value">${auction.item.retailValue.toLocaleString()}</span>
+            {liveRetailUsd != null ? (
+              <>
+                <span className="item-retail-value">${liveRetailUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                <span className="item-retail-live" title="Live token price">LIVE</span>
+              </>
+            ) : (
+              <span className="item-retail-value">${auction.item.retailValue.toLocaleString()}</span>
+            )}
           </p>
           <p className="item-bids">
             {auction.totalBids} bids placed

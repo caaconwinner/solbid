@@ -66,6 +66,7 @@ export interface SyncPayload {
   userCredits: number;
   recentBids?: BidEvent[];
   cashback?: CashbackState;
+  liveRetailUsd?: number | null;  // live token price × amount, null if unavailable
 }
 
 export type BidResult = 'ok' | 'rejected' | 'optimistic' | null;
@@ -118,4 +119,5 @@ export interface AuctionListing {
   totalBids: number;
   leaderName: string | null;
   viewers?: number;
+  liveRetailUsd?: number | null;
 }

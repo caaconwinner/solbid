@@ -743,16 +743,17 @@ app.get('/api/auctions/public', async (req, res) => {
   const list = await Promise.all([...auctions.values()].map(async (a) => {
     const sockets = await io.in(a.auctionId).allSockets();
     return {
-      auctionId:    a.auctionId,
-      item:         { name: a.item.name, image: a.item.image, retailValue: a.item.retailValue },
-      currentPrice: a.currentPrice,
-      endsAtMs:     a.endsAtMs,
-      startsAtMs:   a.endsAtMs - a._durationMs,
-      status:       a.status,
-      totalBids:    a.totalBids,
-      leaderName:   a.leaderName,
-      snapTimerMs:  a.snapTimerMs,
-      viewers:      sockets.size,
+      auctionId:      a.auctionId,
+      item:           { name: a.item.name, image: a.item.image, retailValue: a.item.retailValue },
+      currentPrice:   a.currentPrice,
+      endsAtMs:       a.endsAtMs,
+      startsAtMs:     a.endsAtMs - a._durationMs,
+      status:         a.status,
+      totalBids:      a.totalBids,
+      leaderName:     a.leaderName,
+      snapTimerMs:    a.snapTimerMs,
+      viewers:        sockets.size,
+      liveRetailUsd:  tokenPriceCache.get(a.auctionId) ?? null,
     };
   }));
   res.json({ auctions: list });
@@ -762,16 +763,17 @@ app.get('/api/auctions', requireAuth, async (req, res) => {
   const list = await Promise.all([...auctions.values()].map(async (a) => {
     const sockets = await io.in(a.auctionId).allSockets();
     return {
-      auctionId:    a.auctionId,
-      item:         a.item,
-      currentPrice: a.currentPrice,
-      endsAtMs:     a.endsAtMs,
-      startsAtMs:   a.endsAtMs - a._durationMs,
-      status:       a.status,
-      totalBids:    a.totalBids,
-      leaderName:   a.leaderName,
-      snapTimerMs:  a.snapTimerMs,
-      viewers:      sockets.size,
+      auctionId:      a.auctionId,
+      item:           a.item,
+      currentPrice:   a.currentPrice,
+      endsAtMs:       a.endsAtMs,
+      startsAtMs:     a.endsAtMs - a._durationMs,
+      status:         a.status,
+      totalBids:      a.totalBids,
+      leaderName:     a.leaderName,
+      snapTimerMs:    a.snapTimerMs,
+      viewers:        sockets.size,
+      liveRetailUsd:  tokenPriceCache.get(a.auctionId) ?? null,
     };
   }));
   res.json({ auctions: list });
@@ -1249,6 +1251,42 @@ app.get('/api/admin/referrals', requireAdmin, (req, res) => {
 const auctions = new Map();
 let   bidSeq   = 0;
 
+// ─── Live token price cache ────────────────────────────────────
+const tokenPriceCache = new Map(); // mint → USD price (number)
+
+async function fetchTokenPriceUsd(mint) {
+  try {
+    const jupRes = await fetch(`https://api.jup.ag/price/v2?ids=${mint}`);
+    if (jupRes.ok) {
+      const data = await jupRes.json();
+      const price = parseFloat(data?.data?.[mint]?.price);
+      if (!isNaN(price) && price > 0) return price;
+    }
+  } catch { /* fall through to dexscreener */ }
+  try {
+    const dexRes = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`);
+    if (dexRes.ok) {
+      const data = await dexRes.json();
+      const price = parseFloat(data?.pairs?.[0]?.priceUsd);
+      if (!isNaN(price) && price > 0) return price;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+async function refreshTokenPrices() {
+  for (const a of auctions.values()) {
+    if (a.prize?.type === 'token' && a.prize.mint && a.prize.amount) {
+      const price = await fetchTokenPriceUsd(a.prize.mint);
+      if (price != null) {
+        tokenPriceCache.set(a.auctionId, price * a.prize.amount);
+      }
+    }
+  }
+}
+
+setInterval(refreshTokenPrices, 5000);
+
 function makeAuction(id, item, durationMs, delayMs = 0, snapTimerMs = 15_000, prize = null) {
   const raffleSeed       = randomBytes(32).toString('hex');
   const raffleCommitment = createHash('sha256').update(raffleSeed).digest('hex');
@@ -1403,9 +1441,10 @@ io.on('connection', (socket) => {
     }));
     socket.emit('auction-sync', {
       auction,
-      serverTimeMs: Date.now(),
-      userCredits:  user ? user.credits + user.bonusCredits : 0,
+      serverTimeMs:  Date.now(),
+      userCredits:   user ? user.credits + user.bonusCredits : 0,
       recentBids,
+      liveRetailUsd: tokenPriceCache.get(auctionId) ?? null,
       cashback: (() => {
         const cbRow    = stmt.getCashbackWinner.get(auctionId);
         const cbWinner = cbRow ?? auction.cashbackWinner ?? null;
@@ -1464,7 +1503,7 @@ setInterval(async () => {
     if (a.status === 'scheduled' && now >= (a.endsAtMs - a._durationMs)) {
       a.status = 'active';
       persistAuction(a);
-      io.to(id).emit('auction-sync', { auction: a, serverTimeMs: now, userCredits: 0 });
+      io.to(id).emit('auction-sync', { auction: a, serverTimeMs: now, userCredits: 0, liveRetailUsd: tokenPriceCache.get(id) ?? null });
       console.log(`[auction] ${a.item.name} → LIVE`);
     }
     if (a.status === 'active' && now >= a.endsAtMs) {
