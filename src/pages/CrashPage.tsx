@@ -6,6 +6,16 @@ const WAIT_SECS  = 5;
 const CRASH_HOLD = 4000;   // ms to show crashed state before next round
 const TRUMP_SIZE = 52;     // half-width of Trump image in CSS pixels
 
+// ─── Milestones ───────────────────────────────────────────────────────────────
+const MILESTONES = [
+  { threshold:  1.5,  msg: 'A VERY STABLE ROCKET',        tier: 0 },
+  { threshold:  2.0,  msg: 'MAKING PROGRESS, BIGLY!',     tier: 1 },
+  { threshold:  5.0,  msg: 'THE BIGGEST MULTIPLIER EVER', tier: 2 },
+  { threshold: 10.0,  msg: 'TIRED OF WINNING YET?',       tier: 3 },
+  { threshold: 20.0,  msg: 'HISTORIC NUMBERS!',           tier: 4 },
+  { threshold: 50.0,  msg: 'TOLL THE BELLS!',             tier: 5 },
+];
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Phase = 'waiting' | 'running' | 'crashed';
 
@@ -23,6 +33,13 @@ interface Star {
   alpha: number;    // base opacity
   speed: number;    // px/frame at mult=1
   layer: number;    // 0 | 1 | 2
+}
+
+interface MilestonePopup {
+  msg: string;
+  x: number; y: number;   // canvas px — where it spawned
+  createdAt: number;      // Date.now()
+  tier: number;           // 0–5
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -131,6 +148,9 @@ export function CrashPage() {
   const particlesRef    = useRef<Particle[]>([]);   // explosion burst
   const trailRef        = useRef<Particle[]>([]);   // coin trail sparks
   const starsRef        = useRef<Star[]>([]);        // parallax starfield
+  const popupsRef       = useRef<MilestonePopup[]>([]);   // milestone meme popups
+  const triggeredRef    = useRef<Set<number>>(new Set()); // thresholds fired this round
+  const screenFlashRef  = useRef(0);               // 0–1 alpha for 50× flash
   const lastUIRef       = useRef(0);
   const lastMilestone   = useRef(1);   // tracks last integer floor for pop trigger
   const crashTimerRef   = useRef<ReturnType<typeof setTimeout>>();
@@ -208,6 +228,9 @@ export function CrashPage() {
       particlesRef.current   = [];
       trailRef.current       = [];
       starsRef.current       = [];   // reinit next frame with fresh positions
+      popupsRef.current      = [];
+      triggeredRef.current   = new Set();
+      screenFlashRef.current = 0;
       lastMilestone.current  = 1;
       setCashedAt(null);
       setPhase('waiting');
@@ -465,6 +488,37 @@ export function CrashPage() {
       // Update coin position & render trail before Trump
       coinPosRef.current = { x: tip.x, y: tip.y };
 
+      // ── Milestone check ─────────────────────────────────────────────────────
+      if (p === 'running') {
+        for (const ms of MILESTONES) {
+          if (mult >= ms.threshold && !triggeredRef.current.has(ms.threshold)) {
+            triggeredRef.current.add(ms.threshold);
+            popupsRef.current.push({
+              msg: ms.msg, tier: ms.tier, createdAt: Date.now(),
+              x: tip.x, y: tip.y - 55 * dpr,
+            });
+            // Tier 5: gold screen flash + rainbow confetti burst
+            if (ms.tier === 5) {
+              screenFlashRef.current = 0.7;
+              const confettiColors = ['#ff4400','#ff8800','#ffd700','#44ff88','#44aaff','#ff44ff','#ffffff'];
+              const extra = Array.from({ length: 80 }, (_, i) => {
+                const a = (Math.PI * 2 * i) / 80 + (Math.random() - 0.5) * 0.4;
+                const spd = 2.5 + Math.random() * 5;
+                return {
+                  x: tip.x, y: tip.y,
+                  vx:   Math.cos(a) * spd,
+                  vy:   Math.sin(a) * spd - 3,
+                  life: 0.8 + Math.random() * 0.2,
+                  color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+                  size:  2.5 + Math.random() * 3.5,
+                };
+              });
+              particlesRef.current.push(...extra);
+            }
+          }
+        }
+      }
+
       // ── Trail spark render ───────────────────────────────────────────────────
       const aliveTrail: Particle[] = [];
       for (const sp of trailRef.current) {
@@ -489,6 +543,79 @@ export function CrashPage() {
         drawTrump(ctx, img, tip.x, tip.y, angle, TRUMP_SIZE * dpr, isCrashed);
       }
     }
+
+    // ── Screen flash (tier 5) ────────────────────────────────────────────────
+    if (screenFlashRef.current > 0) {
+      ctx.save();
+      ctx.globalAlpha = screenFlashRef.current;
+      ctx.fillStyle   = '#ffd700';
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+      screenFlashRef.current = Math.max(0, screenFlashRef.current - 0.035);
+    }
+
+    // ── Milestone popups ─────────────────────────────────────────────────────
+    const TIER_FLASH_COLORS = ['#ff4400','#ff8800','#ffd700','#00ffaa','#4488ff','#ff44ff'];
+    const alivePopups: MilestonePopup[] = [];
+    for (const popup of popupsRef.current) {
+      const age    = Date.now() - popup.createdAt;
+      const lifeT  = Math.max(0, 1 - age / 2000);
+      if (lifeT <= 0) continue;
+      alivePopups.push(popup);
+
+      const yDrift = (1 - lifeT) * 28 * dpr;   // drifts upward as it fades
+      let   px     = popup.x;
+      let   py     = popup.y - yDrift;
+
+      // Per-tier position effects
+      if (popup.tier === 1) py += Math.sin(age * 0.018) * 6 * dpr;   // bounce
+      if (popup.tier === 3) {                                           // shake
+        px += (Math.random() - 0.5) * 7 * dpr;
+        py += (Math.random() - 0.5) * 5 * dpr;
+      }
+
+      // Keep popup inside canvas horizontally
+      px = Math.max(80 * dpr, Math.min(W - 80 * dpr, px));
+      py = Math.max(20 * dpr, py);
+
+      // Font size grows with tier
+      const fontSize = [11, 13, 14, 14, 15, 17][popup.tier] * dpr;
+
+      // Text color
+      let color = '#ffd700';
+      if (popup.tier === 4) {
+        color = TIER_FLASH_COLORS[Math.floor(age / 80) % TIER_FLASH_COLORS.length];
+      }
+      if (popup.tier === 5) {
+        color = TIER_FLASH_COLORS[Math.floor(age / 60) % TIER_FLASH_COLORS.length];
+      }
+
+      ctx.save();
+      ctx.globalAlpha = lifeT * (popup.tier === 0 ? 0.82 : 1);
+      ctx.font        = `900 ${fontSize}px "Rajdhani", Inter, sans-serif`;
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Glow (tier 2+)
+      if (popup.tier >= 2) {
+        ctx.shadowColor = popup.tier >= 4 ? color : '#ffd700';
+        ctx.shadowBlur  = (popup.tier >= 4 ? 22 : 14) * dpr;
+      }
+
+      // Black outline
+      ctx.strokeStyle = 'rgba(0,0,0,0.95)';
+      ctx.lineWidth   = (popup.tier <= 1 ? 3 : 4) * dpr;
+      ctx.lineJoin    = 'round';
+      ctx.strokeText(popup.msg, px, py);
+
+      // Fill
+      ctx.fillStyle   = color;
+      ctx.fillText(popup.msg, px, py);
+
+      ctx.shadowBlur  = 0;
+      ctx.restore();
+    }
+    popupsRef.current = alivePopups;
 
     // Explosion burst particles
     const alive: Particle[] = [];
