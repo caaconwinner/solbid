@@ -175,16 +175,34 @@ export function AuctionCard({ auction }: Props) {
             <span className="card-viewers">👁 {auction.viewers}</span>
           )}
           <span className="card-retail">
-            <span className="item-retail-label">RETAIL VALUE:</span>
             {auction.liveRetailUsd != null ? (
               <>
+                <span className="item-retail-live">LIVE</span>
+                <span className="item-retail-label">RETAIL VALUE:</span>
                 <span className="item-retail-value">${auction.liveRetailUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
-                <span className="item-retail-live" title="Live token price">LIVE</span>
               </>
             ) : (
-              <span className="item-retail-value">${auction.item.retailValue.toLocaleString()}</span>
+              <>
+                <span className="item-retail-label">RETAIL VALUE:</span>
+                <span className="item-retail-value">${auction.item.retailValue.toLocaleString()}</span>
+              </>
             )}
           </span>
+          {auction.prizeMint && (
+            <span className="card-prize-mint">
+              <span className="card-prize-mint-label">TOKEN:</span>
+              <a
+                className="card-prize-mint-addr"
+                href={`https://solscan.io/token/${auction.prizeMint}`}
+                target="_blank"
+                rel="noreferrer"
+                onClick={e => e.stopPropagation()}
+                title={auction.prizeMint}
+              >
+                {auction.prizeMint.slice(0, 4)}…{auction.prizeMint.slice(-4)}
+              </a>
+            </span>
+          )}
         </div>
 
         {ended && liveLeader && (

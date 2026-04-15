@@ -63,16 +63,33 @@ export function AuctionRoom({ auctionId, userId, onCreditsChange, initialAuction
         <div className="item-meta">
           <h1 className="item-name">{auction.item.name}</h1>
           <p className="item-retail">
-            <span className="item-retail-label">RETAIL VALUE:</span>
             {liveRetailUsd != null ? (
               <>
+                <span className="item-retail-live">LIVE</span>
+                <span className="item-retail-label">RETAIL VALUE:</span>
                 <span className="item-retail-value">${liveRetailUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
-                <span className="item-retail-live" title="Live token price">LIVE</span>
               </>
             ) : (
-              <span className="item-retail-value">${auction.item.retailValue.toLocaleString()}</span>
+              <>
+                <span className="item-retail-label">RETAIL VALUE:</span>
+                <span className="item-retail-value">${auction.item.retailValue.toLocaleString()}</span>
+              </>
             )}
           </p>
+          {auction.prizeMint && (
+            <p className="item-prize-mint">
+              <span className="item-prize-mint-label">TOKEN MINT:</span>
+              <a
+                className="item-prize-mint-addr"
+                href={`https://solscan.io/token/${auction.prizeMint}`}
+                target="_blank"
+                rel="noreferrer"
+                title={auction.prizeMint}
+              >
+                {auction.prizeMint}
+              </a>
+            </p>
+          )}
           <p className="item-bids">
             {auction.totalBids} bids placed
             {viewers > 0 && <span className="item-viewers"> · 👁 {viewers} watching</span>}

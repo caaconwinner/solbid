@@ -1223,6 +1223,14 @@ a:hover { text-decoration: underline; }
 .item-retail-label { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: #f0b830; }
 .item-retail-value { font-size: 13px; font-weight: 700; color: rgba(0,220,110,0.85); }
 .item-retail-live  { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: #fff; background: rgba(0,190,90,0.75); border-radius: 3px; padding: 1px 5px; vertical-align: middle; }
+.item-prize-mint   { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+.item-prize-mint-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-muted); white-space: nowrap; }
+.item-prize-mint-addr  { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: rgba(100,180,255,0.85); word-break: break-all; text-decoration: none; }
+.item-prize-mint-addr:hover { text-decoration: underline; }
+.card-prize-mint   { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
+.card-prize-mint-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-muted); }
+.card-prize-mint-addr  { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: rgba(100,180,255,0.8); text-decoration: none; }
+.card-prize-mint-addr:hover { text-decoration: underline; }
 .item-bids { font-size: 12px; color: var(--text-muted); margin-top: auto; }
 
 .live-state { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
