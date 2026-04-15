@@ -587,15 +587,11 @@ export function CrashPage() {
       <div className="crash-panel">
         <div className="crash-panel__controls">
 
-          {/* Bet amount row */}
+          {/* Bet amount */}
           <div className="crash-panel__field">
             <span className="crash-panel__label">Bet (credits)</span>
             <div className="crash-panel__input-row">
-              <button
-                className="crash-panel__adj"
-                onClick={() => setBetInput(String(Math.max(1, Math.floor(betAmt / 2))))}
-                disabled={phase !== 'waiting' || betPlaced}
-              >½</button>
+              <button className="crash-panel__adj" onClick={() => setBetInput(String(Math.max(1, Math.floor(betAmt / 2))))} disabled={phase !== 'waiting' || betPlaced}>½</button>
               <input
                 className="crash-panel__input"
                 type="number"
@@ -604,30 +600,37 @@ export function CrashPage() {
                 onChange={e => setBetInput(e.target.value)}
                 disabled={phase !== 'waiting' || betPlaced}
               />
-              <button
-                className="crash-panel__adj"
-                onClick={() => setBetInput(String(Math.min(credits, betAmt * 2)))}
-                disabled={phase !== 'waiting' || betPlaced}
-              >2×</button>
+              <button className="crash-panel__adj" onClick={() => setBetInput(String(Math.min(credits, betAmt * 2)))} disabled={phase !== 'waiting' || betPlaced}>2×</button>
+            </div>
+
+            {/* 4A: Quick-bet buttons */}
+            <div className="crash-panel__quick">
+              {([['Min', 1], ['+10', '+10'], ['+100', '+100'], ['Max', 'max']] as [string, number|string][]).map(([label, val]) => (
+                <button
+                  key={label}
+                  className="crash-panel__quick-btn"
+                  disabled={phase !== 'waiting' || betPlaced}
+                  onClick={() => {
+                    if (val === 'max')  { setBetInput(String(credits)); return; }
+                    if (typeof val === 'number') { setBetInput(String(val)); return; }
+                    // "+10" / "+100"
+                    const delta = parseInt(val, 10);
+                    setBetInput(String(Math.min(credits, betAmt + delta)));
+                  }}
+                >{label}</button>
+              ))}
             </div>
           </div>
 
           {/* Auto cashout */}
           <div className="crash-panel__auto">
             <label className="crash-panel__check">
-              <input
-                type="checkbox"
-                checked={autoOn}
-                onChange={e => setAutoOn(e.target.checked)}
-                disabled={phase !== 'waiting' || betPlaced}
-              />
+              <input type="checkbox" checked={autoOn} onChange={e => setAutoOn(e.target.checked)} disabled={phase !== 'waiting' || betPlaced} />
               Auto cashout at
             </label>
             <input
               className="crash-panel__input crash-panel__input--sm"
-              type="number"
-              min="1.01"
-              step="0.1"
+              type="number" min="1.01" step="0.1"
               value={autoInput}
               onChange={e => setAutoInput(e.target.value)}
               disabled={!autoOn || phase !== 'waiting' || betPlaced}
@@ -639,31 +642,26 @@ export function CrashPage() {
           <div className="crash-panel__meta">
             <span>Balance: <b>{credits}</b> credits</span>
             {betPlaced && autoOn && (
-              <span className="crash-panel__potential">
-                Potential: +<b>{potential}</b> cr
-              </span>
+              <span className="crash-panel__potential">Potential: +<b>{potential}</b> cr</span>
             )}
           </div>
         </div>
 
-        {/* Action button */}
+        {/* 4B: Action button — 4 distinct states */}
         <button
           className={`crash-panel__btn ${
-            canCashout                          ? 'crash-panel__btn--cashout' :
-            canBet                              ? 'crash-panel__btn--bet'     :
-            phase === 'waiting' && betPlaced    ? 'crash-panel__btn--placed'  :
-                                                  'crash-panel__btn--disabled'
+            canCashout                       ? 'crash-panel__btn--cashout'  :
+            canBet                           ? 'crash-panel__btn--bet'      :
+            phase === 'waiting' && betPlaced ? 'crash-panel__btn--accepted' :
+                                               'crash-panel__btn--disabled'
           }`}
           onClick={handleBet}
           disabled={!canBet && !canCashout}
         >
           {canCashout ? (
-            <>
-              CASHOUT
-              <span className="crash-panel__btn-sub">{fmt(dispMult)}</span>
-            </>
+            <>CASH OUT<span className="crash-panel__btn-sub">{fmt(dispMult)}</span></>
           ) : phase === 'waiting' && betPlaced ? (
-            'BET PLACED \u2713'
+            <><span className="crash-panel__btn-check">✓</span> BET ACCEPTED</>
           ) : (
             'BET'
           )}
