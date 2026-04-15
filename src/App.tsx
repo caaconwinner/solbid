@@ -43,13 +43,15 @@ function Protected({ children }: { children: ReactNode }) {
 
 function AppRoutes() {
   const { user } = useAuth();
+  const { search } = useLocation();
+  const isPreview = new URLSearchParams(search).has('preview');
 
   return (
     <>
       <ScrollToTop />
-      <FloatingParticles />
-      <div className="app-shell">
-      <Header />
+      {!isPreview && <FloatingParticles />}
+      <div className={`app-shell${isPreview ? ' app-shell--preview' : ''}`}>
+      {!isPreview && <Header />}
       <Routes>
         <Route path="/"               element={user ? <Navigate to="/auctions" replace /> : <LandingPage />} />
         <Route path="/login"          element={user ? <Navigate to="/auctions" replace /> : <LoginPage />} />
@@ -72,7 +74,7 @@ function AppRoutes() {
         <Route path="/crash"           element={<CrashPage />} />
         <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
-      <Footer />
+      {!isPreview && <Footer />}
       </div>
     </>
   );

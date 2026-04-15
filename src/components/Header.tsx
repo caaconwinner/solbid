@@ -60,7 +60,13 @@ export function Header() {
           <NavLink to="/refer"        className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Refer</NavLink>
           <NavLink to="/games" className={({ isActive }) => `nav-link nav-link--games${isActive ? ' active' : ''}`}>
             Games
-            <span className="nav-construction-sign" title="Under construction">🚧</span>
+            <span className="nav-construction-sign" title="Under construction">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="#fbbf24" stroke="#1a0e00" strokeWidth="1.5"/>
+                <line x1="12" y1="9" x2="12" y2="13" stroke="#1a0e00" strokeWidth="2" strokeLinecap="round"/>
+                <circle cx="12" cy="17" r="1" fill="#1a0e00"/>
+              </svg>
+            </span>
           </NavLink>
           <NavLink to="/brand"        className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Brand</NavLink>
           <NavLink to="/account"      className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Account</NavLink>
@@ -186,7 +192,14 @@ export function Header() {
                 <rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="17" cy="11" r="1"/><circle cx="15" cy="13" r="1"/>
               </svg>
               Games
-              <span className="mobile-construction-badge">🚧</span>
+              <span className="mobile-construction-badge">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{verticalAlign:'middle',marginRight:'3px'}}>
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="#fbbf24" stroke="#1a0e00" strokeWidth="1.5"/>
+                  <line x1="12" y1="9" x2="12" y2="13" stroke="#1a0e00" strokeWidth="2" strokeLinecap="round"/>
+                  <circle cx="12" cy="17" r="1" fill="#1a0e00"/>
+                </svg>
+                Under construction
+              </span>
             </NavLink>
 
             <NavLink to="/brand" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
