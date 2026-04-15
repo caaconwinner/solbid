@@ -176,7 +176,14 @@ export function AuctionCard({ auction }: Props) {
           )}
           <span className="card-retail">
             <span className="item-retail-label">RETAIL VALUE:</span>
-            <span className="item-retail-value">${auction.item.retailValue.toLocaleString()}</span>
+            {auction.liveRetailUsd != null ? (
+              <>
+                <span className="item-retail-value">${auction.liveRetailUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                <span className="item-retail-live" title="Live token price">LIVE</span>
+              </>
+            ) : (
+              <span className="item-retail-value">${auction.item.retailValue.toLocaleString()}</span>
+            )}
           </span>
         </div>
 

@@ -12,7 +12,8 @@ interface State {
   bidResult:            BidResult;
   viewers:              number;
   cashback:        CashbackState;
-  cashbackSettled: boolean; // true = server confirmed raffle already ran (don't animate on load)
+  cashbackSettled: boolean;
+  liveRetailUsd:   number | null;
 }
 
 type Action =
@@ -42,8 +43,8 @@ function reducer(state: State, action: Action): State {
         clockDrift:      action.payload.serverTimeMs - Date.now(),
         cashback:        action.payload.cashback ?? state.cashback,
         bids:            action.payload.recentBids ?? state.bids,
-        // Latch true when server confirms raffle is settled — never revert to false
         cashbackSettled: state.cashbackSettled || !!(action.payload.cashback?.settled),
+        liveRetailUsd:   action.payload.liveRetailUsd ?? state.liveRetailUsd,
       };
 
     case 'BID_PLACED': {
@@ -100,6 +101,7 @@ export function useAuction(auctionId: string, currentUserId: string, initialAuct
     bidResult: null as BidResult, viewers: initialAuction?.viewers ?? 0,
     cashback:        { participants: [], winner: null, settled: false, raffleCommitment: null } as CashbackState,
     cashbackSettled: false,
+    liveRetailUsd:   null,
   }));
 
   useEffect(() => {
@@ -175,5 +177,5 @@ export function useAuction(auctionId: string, currentUserId: string, initialAuct
     socket.emit('place-bid', { auctionId });
   };
 
-  return { ...state, placeBid };
+  return { ...state, placeBid, liveRetailUsd: state.liveRetailUsd };
 }
