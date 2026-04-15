@@ -20,6 +20,9 @@ import { TermsPage }           from './pages/TermsPage';
 import { FAQPage }             from './pages/FAQPage';
 import { LandingPage }         from './pages/LandingPage';
 import { PrivacyPage }         from './pages/PrivacyPage';
+import { SlotsPage }           from './pages/SlotsPage';
+import { CrashPage }           from './pages/CrashPage';
+import { GamesPage }           from './pages/GamesPage';
 import { FloatingParticles }   from './components/FloatingParticles';
 import { Footer }              from './components/Footer';
 import { ReactNode }           from 'react';
@@ -40,13 +43,15 @@ function Protected({ children }: { children: ReactNode }) {
 
 function AppRoutes() {
   const { user } = useAuth();
+  const { search } = useLocation();
+  const isPreview = new URLSearchParams(search).has('preview');
 
   return (
     <>
       <ScrollToTop />
-      <FloatingParticles />
-      <div className="app-shell">
-      <Header />
+      {!isPreview && <FloatingParticles />}
+      <div className={`app-shell${isPreview ? ' app-shell--preview' : ''}`}>
+      {!isPreview && <Header />}
       <Routes>
         <Route path="/"               element={user ? <Navigate to="/auctions" replace /> : <LandingPage />} />
         <Route path="/login"          element={user ? <Navigate to="/auctions" replace /> : <LoginPage />} />
@@ -64,9 +69,12 @@ function AppRoutes() {
         <Route path="/faq"             element={<FAQPage />} />
         <Route path="/terms"           element={<TermsPage />} />
         <Route path="/privacy"         element={<PrivacyPage />} />
+        <Route path="/games"           element={<GamesPage />} />
+        <Route path="/slots"           element={<SlotsPage />} />
+        <Route path="/crash"           element={<CrashPage />} />
         <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
-      <Footer />
+      {!isPreview && <Footer />}
       </div>
     </>
   );
