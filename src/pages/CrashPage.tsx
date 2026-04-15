@@ -42,6 +42,22 @@ interface MilestonePopup {
   tier: number;           // 0–5
 }
 
+interface SpaceObject {
+  type: 'redhat' | 'building' | 'asteroid';
+  x: number; y: number;
+  vx: number; vy: number;
+  angle: number;        // rotation (radians)
+  vAngle: number;       // rotation speed
+  scale: number;
+  createdAt: number;
+}
+
+const SPACE_EVENTS: { threshold: number; type: SpaceObject['type'] }[] = [
+  { threshold:  1.1, type: 'redhat'   },
+  { threshold:  3.0, type: 'building' },
+  { threshold: 10.0, type: 'asteroid' },
+];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function genCrashPoint(): number {
   const r = Math.random();
@@ -94,6 +110,171 @@ function drawTrump(
   const h = size * 1.3;
   ctx.drawImage(img, -w / 2, -h / 2, w, h);
 
+  ctx.restore();
+}
+
+// ─── Space Object Drawers ─────────────────────────────────────────────────────
+function drawRedHat(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, alpha: number) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  const W = 56, H = 30;
+
+  // Brim
+  ctx.beginPath();
+  ctx.ellipse(0, H * 0.35, W * 0.54, H * 0.18, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#c8001e';
+  ctx.fill();
+
+  // Crown
+  ctx.beginPath();
+  ctx.moveTo(-W * 0.38, H * 0.35);
+  ctx.bezierCurveTo(-W * 0.42, -H * 0.6, -W * 0.15, -H * 0.9, 0, -H * 0.88);
+  ctx.bezierCurveTo(W * 0.15, -H * 0.9, W * 0.42, -H * 0.6, W * 0.38, H * 0.35);
+  ctx.closePath();
+  ctx.fillStyle = '#d40020';
+  ctx.fill();
+
+  // White text "MAKE" on front (tiny)
+  ctx.font = `bold ${H * 0.28}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.fillText('MAKE', 0, -H * 0.12);
+  ctx.font = `bold ${H * 0.22}px sans-serif`;
+  ctx.fillText('AMERICA', 0, H * 0.12);
+
+  // Subtle brim shadow line
+  ctx.beginPath();
+  ctx.moveTo(-W * 0.38, H * 0.33);
+  ctx.lineTo(W * 0.38, H * 0.33);
+  ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawGoldenBuilding(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, alpha: number) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  const W = 28, H = 80;
+
+  // Main tower body — gold gradient
+  const grad = ctx.createLinearGradient(-W / 2, 0, W / 2, 0);
+  grad.addColorStop(0,   '#8a6600');
+  grad.addColorStop(0.3, '#ffd700');
+  grad.addColorStop(0.6, '#ffe566');
+  grad.addColorStop(1,   '#a07800');
+  ctx.fillStyle = grad;
+  ctx.fillRect(-W / 2, -H, W, H);
+
+  // Tapering spire
+  ctx.beginPath();
+  ctx.moveTo(-W * 0.18, -H);
+  ctx.lineTo(W * 0.18, -H);
+  ctx.lineTo(0, -H - 18);
+  ctx.closePath();
+  const spireGrad = ctx.createLinearGradient(-W * 0.18, 0, W * 0.18, 0);
+  spireGrad.addColorStop(0, '#c8a200');
+  spireGrad.addColorStop(0.5, '#ffe566');
+  spireGrad.addColorStop(1, '#c8a200');
+  ctx.fillStyle = spireGrad;
+  ctx.fill();
+
+  // Window grid (6 rows × 3 cols)
+  ctx.fillStyle = 'rgba(0,20,60,0.65)';
+  for (let row = 0; row < 6; row++) {
+    for (let col = 0; col < 3; col++) {
+      const wx = -W / 2 + 3 + col * 9;
+      const wy = -H + 8 + row * 12;
+      ctx.fillRect(wx, wy, 5, 7);
+      // Occasional lit window
+      if ((row + col) % 3 === 0) {
+        ctx.fillStyle = 'rgba(255,240,100,0.5)';
+        ctx.fillRect(wx, wy, 5, 7);
+        ctx.fillStyle = 'rgba(0,20,60,0.65)';
+      }
+    }
+  }
+
+  // "TRUMP" label
+  ctx.save();
+  ctx.font = `bold ${W * 0.28}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillText('TRUMP', 0, -H * 0.28);
+  ctx.restore();
+
+  ctx.restore();
+}
+
+function drawFakeNewsAsteroid(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, alpha: number, angle: number) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.scale(scale, scale);
+
+  const R = 34;
+
+  // Irregular rocky shape using bezier blobs
+  ctx.beginPath();
+  const pts = [
+    [R * 1.0, 0], [R * 0.7, -R * 0.75], [R * 0.1, -R * 1.05],
+    [-R * 0.55, -R * 0.85], [-R * 1.0, -R * 0.2], [-R * 0.9, R * 0.5],
+    [-R * 0.3, R * 1.0], [R * 0.5, R * 0.9], [R * 1.05, R * 0.35],
+  ];
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) {
+    const mx = (pts[i][0] + pts[(i + 1) % pts.length][0]) / 2;
+    const my = (pts[i][1] + pts[(i + 1) % pts.length][1]) / 2;
+    ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my);
+  }
+  ctx.closePath();
+
+  // Rocky fill gradient
+  const rg = ctx.createRadialGradient(-R * 0.2, -R * 0.2, R * 0.1, 0, 0, R * 1.1);
+  rg.addColorStop(0, '#a09080');
+  rg.addColorStop(0.5, '#6e5e50');
+  rg.addColorStop(1, '#3a2e28');
+  ctx.fillStyle = rg;
+  ctx.fill();
+
+  // Dark outline
+  ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Crater details
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.ellipse(-R * 0.3, R * 0.2, R * 0.2, R * 0.14, 0.4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(R * 0.35, -R * 0.3, R * 0.14, R * 0.1, -0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-R * 0.5, -R * 0.45, R * 0.1, R * 0.07, 0.8, 0, Math.PI * 2); ctx.fill();
+
+  ctx.restore();
+
+  // "FAKE NEWS!" text — drawn without rotation so it's always readable
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.globalAlpha = alpha;
+  ctx.font = `900 ${14 * scale}px "Rajdhani", Inter, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = '#ff0000';
+  ctx.shadowBlur = 10;
+  ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+  ctx.lineWidth = 4 * scale;
+  ctx.lineJoin = 'round';
+  ctx.strokeText('FAKE NEWS!', 0, 0);
+  ctx.fillStyle = '#ff3300';
+  ctx.fillText('FAKE NEWS!', 0, 0);
   ctx.restore();
 }
 
@@ -151,6 +332,8 @@ export function CrashPage() {
   const popupsRef       = useRef<MilestonePopup[]>([]);   // milestone meme popups
   const triggeredRef    = useRef<Set<number>>(new Set()); // thresholds fired this round
   const screenFlashRef  = useRef(0);               // 0–1 alpha for 50× flash
+  const spaceObjRef     = useRef<SpaceObject[]>([]); // flying space objects
+  const spaceTriggeredRef = useRef<Set<number>>(new Set()); // space thresholds fired
   const lastUIRef       = useRef(0);
   const lastMilestone   = useRef(1);   // tracks last integer floor for pop trigger
   const crashTimerRef   = useRef<ReturnType<typeof setTimeout>>();
@@ -227,10 +410,12 @@ export function CrashPage() {
       crashedMultRef.current = 1.0;
       particlesRef.current   = [];
       trailRef.current       = [];
-      starsRef.current       = [];   // reinit next frame with fresh positions
-      popupsRef.current      = [];
-      triggeredRef.current   = new Set();
-      screenFlashRef.current = 0;
+      starsRef.current         = [];   // reinit next frame with fresh positions
+      popupsRef.current        = [];
+      triggeredRef.current     = new Set();
+      screenFlashRef.current   = 0;
+      spaceObjRef.current      = [];
+      spaceTriggeredRef.current = new Set();
       lastMilestone.current  = 1;
       setCashedAt(null);
       setPhase('waiting');
@@ -518,6 +703,53 @@ export function CrashPage() {
           }
         }
       }
+
+      // ── Space object spawn check ────────────────────────────────────────────
+      if (p === 'running') {
+        for (const ev of SPACE_EVENTS) {
+          if (mult >= ev.threshold && !spaceTriggeredRef.current.has(ev.threshold)) {
+            spaceTriggeredRef.current.add(ev.threshold);
+            const isAsteroid = ev.type === 'asteroid';
+            // Hat & building come from right; asteroid from left
+            const startX = isAsteroid ? -80 * dpr : W + 80 * dpr;
+            const startY = pad.t + Math.random() * gH * 0.7 + gH * 0.05;
+            const speed  = ev.type === 'building' ? 1.8 : ev.type === 'redhat' ? 3.5 : 4.5;
+            spaceObjRef.current.push({
+              type:      ev.type,
+              x:         startX,
+              y:         startY,
+              vx:        isAsteroid ? speed * dpr : -speed * dpr,
+              vy:        (Math.random() - 0.5) * 0.5 * dpr,
+              angle:     Math.random() * Math.PI * 2,
+              vAngle:    (Math.random() - 0.5) * 0.04,
+              scale:     dpr * (ev.type === 'building' ? 1.1 : ev.type === 'redhat' ? 0.9 : 1.0),
+              createdAt: Date.now(),
+            });
+          }
+        }
+      }
+
+      // ── Space object render ──────────────────────────────────────────────────
+      const aliveSpaceObjs: SpaceObject[] = [];
+      for (const obj of spaceObjRef.current) {
+        const age   = Date.now() - obj.createdAt;
+        const totalLife = 4200; // ms
+        const alpha = Math.max(0, 1 - age / totalLife);
+        if (alpha <= 0) continue;
+        aliveSpaceObjs.push(obj);
+        obj.x     += obj.vx;
+        obj.y     += obj.vy;
+        obj.angle += obj.vAngle;
+
+        if (obj.type === 'redhat') {
+          drawRedHat(ctx, obj.x, obj.y, obj.scale, alpha);
+        } else if (obj.type === 'building') {
+          drawGoldenBuilding(ctx, obj.x, obj.y, obj.scale, alpha);
+        } else {
+          drawFakeNewsAsteroid(ctx, obj.x, obj.y, obj.scale, alpha, obj.angle);
+        }
+      }
+      spaceObjRef.current = aliveSpaceObjs;
 
       // ── Trail spark render ───────────────────────────────────────────────────
       const aliveTrail: Particle[] = [];
