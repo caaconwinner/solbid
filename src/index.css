@@ -3547,6 +3547,40 @@ a:hover { text-decoration: underline; }
 .nav-link--crash.active { border-bottom-color: var(--red); }
 
 /* ─── Crash page ──────────────────────────────────────────────── */
+
+/* 5A: Rajdhani for all crash UI — geometric, high-tech feel */
+.crash-page,
+.crash-overlay__mult,
+.crash-overlay__wait-count,
+.crash-overlay__wait-label,
+.crash-overlay__crashed-label,
+.crash-hist-pill,
+.crash-panel__label,
+.crash-panel__btn,
+.crash-panel__quick-btn,
+.crash-panel__adj {
+  font-family: 'Rajdhani', 'Inter', system-ui, sans-serif;
+}
+
+/* Numbers keep mono for alignment */
+.crash-panel__input,
+.crash-panel__btn-sub { font-family: 'JetBrains Mono', monospace; }
+
+/* 5B: screen shake — fires when .crash-canvas-wrap--shake is toggled */
+.crash-canvas-wrap--shake {
+  animation: crash-shake 0.35s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes crash-shake {
+  0%,100% { transform: translate(0, 0) rotate(0deg); }
+  15%     { transform: translate(-4px, 2px) rotate(-0.4deg); }
+  30%     { transform: translate(4px, -2px) rotate(0.4deg); }
+  45%     { transform: translate(-3px, 1px) rotate(-0.2deg); }
+  60%     { transform: translate(3px, -1px) rotate(0.2deg); }
+  75%     { transform: translate(-2px, 1px) rotate(-0.1deg); }
+  90%     { transform: translate(1px, -1px); }
+}
+
 .crash-page {
   min-height: 100vh;
   background: var(--bg);
@@ -3696,10 +3730,10 @@ a:hover { text-decoration: underline; }
 }
 
 .crash-overlay__mult {
-  font-size: 56px;
-  font-weight: 900;
-  font-family: var(--mono);
-  letter-spacing: -2px;
+  font-size: 68px;
+  font-weight: 700;
+  font-family: 'Rajdhani', 'Inter', system-ui, sans-serif;
+  letter-spacing: 1px;
   line-height: 1;
   /* 2A: pop on every tick — key remount restarts this */
   animation: mult-pop 0.18s cubic-bezier(0.22, 1.6, 0.36, 1) both;

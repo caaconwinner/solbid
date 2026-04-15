@@ -97,7 +97,16 @@ export function CrashPage() {
   const histIdRef = useRef(0);
   const [cashedAt,  setCashedAt]  = useState<number | null>(null);
   const [toast,     setToast]     = useState<{ msg: string; win: boolean } | null>(null);
-  const [animKey,   setAnimKey]   = useState(0);  // increments each tick → remounts span → restarts pop anim
+  const [animKey,   setAnimKey]   = useState(0);
+  const [shaking,   setShaking]   = useState(false);
+
+  // 5B: screen shake the instant crash fires
+  useEffect(() => {
+    if (phase !== 'crashed') return;
+    setShaking(true);
+    const t = setTimeout(() => setShaking(false), 400);
+    return () => clearTimeout(t);
+  }, [phase]);
 
   // Game refs (mutated in RAF — no re-render)
   const phaseRef        = useRef<Phase>('waiting');
@@ -547,7 +556,7 @@ export function CrashPage() {
       </div>
 
       {/* Canvas area */}
-      <div className="crash-canvas-wrap">
+      <div className={`crash-canvas-wrap${shaking ? ' crash-canvas-wrap--shake' : ''}`}>
         <canvas ref={canvasRef} className="crash-canvas" />
 
         {/* Overlay — multiplier / countdown */}
