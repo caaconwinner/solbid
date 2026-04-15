@@ -58,6 +58,22 @@ const SPACE_EVENTS: { threshold: number; type: SpaceObject['type'] }[] = [
   { threshold: 10.0, type: 'asteroid' },
 ];
 
+interface CrashHeadline {
+  msg: string;
+  createdAt: number;
+  showL: boolean;          // player lost bet at crash < 1.2×
+  showThumbsUp: boolean;   // player cashed out > 5×
+}
+
+function getHeadline(m: number): string {
+  if (m <  1.3) return 'TOTAL DISASTER! This game is rigged!';
+  if (m <  3.0) return 'Fake News! We actually hit 100\u00d7!';
+  if (m <  5.0) return 'Deep State interference. Sad!';
+  if (m <  8.0) return 'A beautiful crash, the best ever.';
+  if (m < 12.0) return 'Sir, that was the greatest flight in history!';
+  return 'TIRED OF WINNING YET?';
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function genCrashPoint(): number {
   const r = Math.random();
@@ -332,8 +348,10 @@ export function CrashPage() {
   const popupsRef       = useRef<MilestonePopup[]>([]);   // milestone meme popups
   const triggeredRef    = useRef<Set<number>>(new Set()); // thresholds fired this round
   const screenFlashRef  = useRef(0);               // 0–1 alpha for 50× flash
-  const spaceObjRef     = useRef<SpaceObject[]>([]); // flying space objects
+  const spaceObjRef       = useRef<SpaceObject[]>([]); // flying space objects
   const spaceTriggeredRef = useRef<Set<number>>(new Set()); // space thresholds fired
+  const crashHeadlineRef  = useRef<CrashHeadline | null>(null); // post-crash headline
+  const cashedOutAtRef    = useRef(0);  // multiplier at last cashout (0 = didn't cash out)
   const lastUIRef       = useRef(0);
   const lastMilestone   = useRef(1);   // tracks last integer floor for pop trigger
   const crashTimerRef   = useRef<ReturnType<typeof setTimeout>>();
@@ -358,6 +376,7 @@ export function CrashPage() {
     const m   = multRef.current;
     const amt = betAmtRef.current;
     const win = Math.floor(amt * m);
+    cashedOutAtRef.current = m;
     betPlacedRef.current = false;
     setBetPlaced(false);
     setCashedAt(m);
@@ -368,14 +387,25 @@ export function CrashPage() {
   // ── doCrash ────────────────────────────────────────────────────────────────
   doCrashRef.current = () => {
     if (phaseRef.current !== 'running') return;
-    const finalMult       = crashPtRef.current;
-    multRef.current       = finalMult;
+    const finalMult        = crashPtRef.current;
+    const hadBet           = betPlacedRef.current;   // capture before cleared below
+    const prevCashedAt     = cashedOutAtRef.current;
+    multRef.current        = finalMult;
     crashedMultRef.current = finalMult;
     phaseRef.current       = 'crashed';
 
     setPhase('crashed');
     setDispMult(finalMult);
     setHistory(h => [{ mult: finalMult, id: histIdRef.current++ }, ...h].slice(0, 20));
+
+    // Post-crash headline
+    crashHeadlineRef.current = {
+      msg:          getHeadline(finalMult),
+      createdAt:    Date.now(),
+      showL:        hadBet && finalMult < 1.2,
+      showThumbsUp: prevCashedAt > 5.0,
+    };
+    cashedOutAtRef.current = 0;
 
     // Kill trail sparks when crashed
     trailRef.current = [];
@@ -414,8 +444,10 @@ export function CrashPage() {
       popupsRef.current        = [];
       triggeredRef.current     = new Set();
       screenFlashRef.current   = 0;
-      spaceObjRef.current      = [];
+      spaceObjRef.current       = [];
       spaceTriggeredRef.current = new Set();
+      crashHeadlineRef.current  = null;
+      cashedOutAtRef.current    = 0;
       lastMilestone.current  = 1;
       setCashedAt(null);
       setPhase('waiting');
@@ -866,6 +898,149 @@ export function CrashPage() {
     }
     ctx.globalAlpha = 1;
     particlesRef.current = alive;
+
+    // ── Post-crash headline ──────────────────────────────────────────────────
+    if (isCrashed && crashHeadlineRef.current) {
+      const hl  = crashHeadlineRef.current;
+      const age = Date.now() - hl.createdAt;
+
+      // Scale-in over 380ms, fade-out over last 700ms
+      const entryT  = Math.min(1, age / 380);
+      const easedIn = 1 - Math.pow(1 - entryT, 3);   // cubic ease-out
+      const fadeOut = Math.max(0, Math.min(1, (CRASH_HOLD - age) / 700));
+      const hlAlpha = easedIn * fadeOut;
+
+      if (hlAlpha > 0.01) {
+        const cx = W / 2;
+        const cy = H * 0.36;
+        const entryScale = 0.42 + easedIn * 0.58;
+
+        // Auto-fit font to canvas width
+        let fontSize = 28 * dpr;
+        ctx.font = `900 ${fontSize}px Impact, "Rajdhani", sans-serif`;
+        const rawW = ctx.measureText(hl.msg).width;
+        if (rawW > W * 0.86) fontSize *= W * 0.86 / rawW;
+
+        ctx.save();
+        ctx.globalAlpha  = hlAlpha;
+        ctx.translate(cx, cy);
+        ctx.scale(entryScale, entryScale);
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = `900 ${fontSize}px Impact, "Rajdhani", sans-serif`;
+
+        // Heavy shadow pass
+        ctx.shadowColor   = 'rgba(0,0,0,0.97)';
+        ctx.shadowBlur    = 22 * dpr;
+        ctx.shadowOffsetX = 4 * dpr;
+        ctx.shadowOffsetY = 5 * dpr;
+        ctx.strokeStyle   = 'rgba(0,0,0,0.92)';
+        ctx.lineWidth     = 10 * dpr;
+        ctx.lineJoin      = 'round';
+        ctx.strokeText(hl.msg, 0, 0);
+
+        // Gold gradient fill
+        const gg = ctx.createLinearGradient(0, -fontSize * 0.58, 0, fontSize * 0.58);
+        gg.addColorStop(0,    '#fffac0');
+        gg.addColorStop(0.22, '#ffd700');
+        gg.addColorStop(0.55, '#ff9900');
+        gg.addColorStop(0.82, '#c86000');
+        gg.addColorStop(1,    '#7a3800');
+        ctx.fillStyle     = gg;
+        ctx.shadowBlur    = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.fillText(hl.msg, 0, 0);
+        ctx.restore();
+
+        // ── "L" gesture — big red loser L, shakes after entry ──────────────
+        if (hl.showL) {
+          const lAge   = Math.max(0, age - 220);
+          const lEntry = Math.min(1, lAge / 280);
+          const lEased = 1 - Math.pow(1 - lEntry, 3);
+          const lAlpha = hlAlpha * lEased;
+          if (lAlpha > 0.01) {
+            const shakeX = lAge > 300 ? (Math.random() - 0.5) * 9 * dpr : 0;
+            const shakeY = lAge > 300 ? (Math.random() - 0.5) * 6 * dpr : 0;
+            const lSize  = 48 * dpr;
+            ctx.save();
+            ctx.globalAlpha  = lAlpha;
+            ctx.translate(cx + shakeX, cy + 54 * dpr + shakeY);
+            ctx.scale(lEased, lEased);
+            ctx.rotate(-0.08);
+            ctx.textAlign    = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `900 ${lSize}px Impact, sans-serif`;
+            ctx.shadowColor   = 'rgba(0,0,0,0.9)';
+            ctx.shadowBlur    = 14 * dpr;
+            ctx.shadowOffsetX = 3 * dpr;
+            ctx.shadowOffsetY = 4 * dpr;
+            ctx.strokeStyle   = 'rgba(0,0,0,0.92)';
+            ctx.lineWidth     = 9 * dpr;
+            ctx.lineJoin      = 'round';
+            ctx.strokeText('L', 0, 0);
+            // Red-to-crimson gradient
+            const lg = ctx.createLinearGradient(0, -lSize * 0.5, 0, lSize * 0.5);
+            lg.addColorStop(0, '#ff6644');
+            lg.addColorStop(0.5, '#ff1100');
+            lg.addColorStop(1, '#aa0000');
+            ctx.fillStyle     = lg;
+            ctx.shadowBlur    = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.fillText('L', 0, 0);
+            ctx.restore();
+          }
+        }
+
+        // ── Thumbs up + "SMART INVESTOR!" ──────────────────────────────────
+        if (hl.showThumbsUp) {
+          const tAge   = Math.max(0, age - 160);
+          const tEntry = Math.min(1, tAge / 300);
+          const tEased = 1 - Math.pow(1 - tEntry, 3);
+          const tAlpha = hlAlpha * tEased;
+          if (tAlpha > 0.01) {
+            const bounce = Math.sin(age * 0.007) * 5 * dpr;
+            const ty = cy + 52 * dpr + bounce;
+            ctx.save();
+            ctx.globalAlpha  = tAlpha;
+            ctx.scale(tEased, tEased);
+            // Scale-space coordinates: divide by scale to get canvas px
+            const scx = cx / tEased;
+            const scy = ty / tEased;
+
+            // Thumbs-up emoji
+            ctx.font = `${40 * dpr}px sans-serif`;
+            ctx.textAlign    = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('👍', scx - 52 * dpr, scy);
+
+            // "SMART INVESTOR!" text
+            const siSize = 20 * dpr;
+            ctx.font = `900 ${siSize}px Impact, "Rajdhani", sans-serif`;
+            ctx.shadowColor   = 'rgba(0,0,0,0.95)';
+            ctx.shadowBlur    = 14 * dpr;
+            ctx.shadowOffsetX = 3 * dpr;
+            ctx.shadowOffsetY = 3 * dpr;
+            ctx.strokeStyle   = 'rgba(0,0,0,0.9)';
+            ctx.lineWidth     = 7 * dpr;
+            ctx.lineJoin      = 'round';
+            ctx.strokeText('SMART INVESTOR!', scx + 18 * dpr, scy);
+            const sg = ctx.createLinearGradient(scx + 18 * dpr, scy - siSize * 0.5, scx + 18 * dpr, scy + siSize * 0.5);
+            sg.addColorStop(0, '#ccffcc');
+            sg.addColorStop(0.4, '#44ff66');
+            sg.addColorStop(1, '#00aa44');
+            ctx.fillStyle     = sg;
+            ctx.shadowBlur    = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.fillText('SMART INVESTOR!', scx + 18 * dpr, scy);
+            ctx.restore();
+          }
+        }
+      }
+    }
+    // ── End post-crash headline ───────────────────────────────────────────────
 
     // Axes
     ctx.strokeStyle = 'rgba(255,255,255,0.07)';
