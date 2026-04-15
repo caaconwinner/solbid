@@ -201,15 +201,17 @@ export function CrashPage() {
     ctx.fillStyle = '#060e18';
     ctx.fillRect(0, 0, W, H);
 
-    // Scale — log y-axis so curve isn't crushed at low multipliers
-    const topMult = isCrashed
-      ? Math.max(2, crashedMultRef.current * 1.3)
-      : Math.max(2, mult * 1.3);
-    const maxTime = Math.max(8, elapsed * 1.2);
+    // Scale — keep coin anchored at ~80% width, ~72% height so chart fills nicely.
+    // Y: log scale. We pick topMult so that log(mult)/log(topMult) = 0.72
+    //    → topMult = mult^(1/0.72).  Floor at 2× so the grid isn't empty early on.
+    const curMult = isCrashed ? crashedMultRef.current : mult;
+    const topMult = Math.max(2, Math.pow(Math.max(1.01, curMult), 1 / 0.72));
+    // X: coin at 80% of width
+    const maxTime = Math.max(6, (isCrashed ? elapsedRef.current : elapsed) / 0.80);
 
     const toX = (t: number) => pad.l + (t / maxTime) * gW;
     const toY = (m: number) => {
-      const frac = Math.log(Math.max(1, m)) / Math.log(Math.max(1.01, topMult));
+      const frac = Math.log(Math.max(1, m)) / Math.log(topMult);
       return pad.t + gH - frac * gH;
     };
 
@@ -233,6 +235,21 @@ export function CrashPage() {
     }
     ctx.setLineDash([]);
     ctx.restore();
+
+    // Waiting baseline — dotted line at 1× to show where the curve starts
+    if (phaseRef.current === 'waiting') {
+      const baseY = toY(1);
+      ctx.save();
+      ctx.setLineDash([4 * dpr, 6 * dpr]);
+      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+      ctx.lineWidth   = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(pad.l, baseY);
+      ctx.lineTo(W - pad.r, baseY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
 
     // Curve
     if (dispElapsed > 0 || isCrashed) {
@@ -258,13 +275,22 @@ export function CrashPage() {
       ctx.fillStyle = grad;
       ctx.fill();
 
-      // Glow pass
+      // Outer glow (wide, soft)
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
       for (const pt of pts) ctx.lineTo(pt.x, pt.y);
-      ctx.strokeStyle = isCrashed ? 'rgba(220,50,50,0.2)' : 'rgba(255,98,0,0.2)';
-      ctx.lineWidth   = 12 * dpr;
+      ctx.strokeStyle = isCrashed ? 'rgba(220,50,50,0.15)' : 'rgba(255,98,0,0.15)';
+      ctx.lineWidth   = 20 * dpr;
       ctx.lineJoin    = 'round';
+      ctx.lineCap     = 'round';
+      ctx.stroke();
+
+      // Inner glow
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (const pt of pts) ctx.lineTo(pt.x, pt.y);
+      ctx.strokeStyle = isCrashed ? 'rgba(220,50,50,0.30)' : 'rgba(255,130,0,0.35)';
+      ctx.lineWidth   = 8 * dpr;
       ctx.stroke();
 
       // Main line
@@ -272,7 +298,7 @@ export function CrashPage() {
       ctx.moveTo(pts[0].x, pts[0].y);
       for (const pt of pts) ctx.lineTo(pt.x, pt.y);
       ctx.strokeStyle = lineCol;
-      ctx.lineWidth   = 2.5 * dpr;
+      ctx.lineWidth   = 3 * dpr;
       ctx.stroke();
 
       // Coin at tip
