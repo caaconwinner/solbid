@@ -839,6 +839,22 @@ app.post('/api/wins/:id/purchase', requireAuth, async (req, res) => {
       }
     })();
     console.log(`[purchase] ${user.username} purchased "${row.item_name}" for ${purchasePrice} SOL | ${sig}`);
+
+    // Token prizes: send SPL tokens immediately after payment
+    if (prize.type === 'token') {
+      if (!PRIZE_KEYPAIR)
+        return res.status(503).json({ message: 'Prize wallet not configured — contact support' });
+      try {
+        const claimSig = await sendSplTokens(prize.mint, prize.amount, fromPub);
+        db.prepare('UPDATE winners SET purchase_sig = ? WHERE id = ?').run(claimSig, row.id);
+        console.log(`[claim] ${user.username} claimed ${prize.amount} tokens (${prize.mint.slice(0,8)}…) | ${claimSig}`);
+        return res.json({ ok: true, prize, sig: claimSig });
+      } catch (e) {
+        console.error('[claim] token send failed after payment:', e.message);
+        return res.status(500).json({ message: 'Payment succeeded but token delivery failed — contact support. Payment sig: ' + sig });
+      }
+    }
+
     return res.json({ ok: true, prize, sig });
   } catch (e) {
     console.error('[purchase] failed:', e.message);
