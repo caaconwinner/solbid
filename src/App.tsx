@@ -22,6 +22,7 @@ import { LandingPage }         from './pages/LandingPage';
 import { PrivacyPage }         from './pages/PrivacyPage';
 import { SlotsPage }           from './pages/SlotsPage';
 import { CrashPage }           from './pages/CrashPage';
+import { GamesPage }           from './pages/GamesPage';
 import { FloatingParticles }   from './components/FloatingParticles';
 import { Footer }              from './components/Footer';
 import { ReactNode }           from 'react';
@@ -66,6 +67,7 @@ function AppRoutes() {
         <Route path="/faq"             element={<FAQPage />} />
         <Route path="/terms"           element={<TermsPage />} />
         <Route path="/privacy"         element={<PrivacyPage />} />
+        <Route path="/games"           element={<GamesPage />} />
         <Route path="/slots"           element={<SlotsPage />} />
         <Route path="/crash"           element={<CrashPage />} />
         <Route path="*"                element={<Navigate to="/" replace />} />
