@@ -59,6 +59,7 @@ export function Header() {
           <NavLink to="/penny"        className={({ isActive }) => isActive ? 'nav-link nav-link--penny active' : 'nav-link nav-link--penny'}>$penny</NavLink>
           <NavLink to="/refer"        className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Refer</NavLink>
           <NavLink to="/slots"        className={({ isActive }) => isActive ? 'nav-link nav-link--slots active' : 'nav-link nav-link--slots'}>Slots</NavLink>
+          <NavLink to="/crash"        className={({ isActive }) => isActive ? 'nav-link nav-link--crash active' : 'nav-link nav-link--crash'}>Crash</NavLink>
           <NavLink to="/brand"        className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Brand</NavLink>
           <NavLink to="/account"      className={({ isActive }) => isActive ? 'nav-link nav-link--secondary active' : 'nav-link nav-link--secondary'}>Account</NavLink>
         </nav>
@@ -187,6 +188,14 @@ export function Header() {
                 <line x1="2" y1="12" x2="22" y2="12"/>
               </svg>
               Slots
+            </NavLink>
+
+            <NavLink to="/crash" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
+              {/* Chart line going up then crash */}
+              <svg className="menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="2 18 8 10 13 14 18 4"/><line x1="18" y1="4" x2="22" y2="8"/><line x1="22" y1="4" x2="18" y2="8"/>
+              </svg>
+              Crash
             </NavLink>
 
             <NavLink to="/brand" className={({ isActive }) => `mobile-menu-link${isActive ? ' active' : ''}`} onClick={close}>
