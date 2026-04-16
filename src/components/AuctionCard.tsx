@@ -69,7 +69,8 @@ export function AuctionCard({ auction }: Props) {
   // Listen to socket events for instant updates
   useEffect(() => {
     if (!active) return;
-    const onBidPlaced = (e: { p: number; n: string; t: number; u: string }) => {
+    const onBidPlaced = (e: { id: string; p: number; n: string; t: number; u: string }) => {
+      if (e.id !== auction.auctionId) return;
       setLivePrice(e.p);
       setLiveBids((b) => b + 1);
       setLiveLeader(e.n);
