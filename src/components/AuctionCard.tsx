@@ -144,15 +144,17 @@ export function AuctionCard({ auction }: Props) {
   };
 
   const credits = user ? user.credits + (user.bonusCredits ?? 0) : 0;
+  const isDraft = auction.status === 'draft';
 
   return (
     <div
       className="auction-card"
       data-ended={ended}
-      onClick={() => navigate(`/auction/${auction.auctionId}`, { state: { auction } })}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && navigate(`/auction/${auction.auctionId}`, { state: { auction } })}
+      data-draft={isDraft}
+      onClick={isDraft ? undefined : () => navigate(`/auction/${auction.auctionId}`, { state: { auction } })}
+      role={isDraft ? undefined : 'button'}
+      tabIndex={isDraft ? -1 : 0}
+      onKeyDown={isDraft ? undefined : (e) => e.key === 'Enter' && navigate(`/auction/${auction.auctionId}`, { state: { auction } })}
     >
       <div className="card-image-wrap">
         <img className="card-image" src={auction.item.image} alt={auction.item.name} />
@@ -217,7 +219,7 @@ export function AuctionCard({ auction }: Props) {
           <div className="card-leader">👑 Current leader: {liveLeader}</div>
         )}
 
-        {active && !user ? (
+        {isDraft ? null : active && !user ? (
           <Link to="/login" className="card-bid-btn card-bid-btn--guest" onClick={e => e.stopPropagation()}>
             Sign in to bid
           </Link>

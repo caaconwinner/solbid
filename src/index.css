@@ -871,6 +871,8 @@ a:hover { text-decoration: underline; }
 }
 .auction-card:hover { border-color: rgba(255, 98, 0, 0.55); box-shadow: 0 0 16px rgba(255, 98, 0, 0.15); transform: translateY(-2px); }
 .auction-card[data-ended='true'] { border-color: var(--card-ended-border); box-shadow: none; }
+.auction-card[data-draft='true'] { opacity: 0.45; cursor: default; pointer-events: none; }
+.auction-card[data-draft='true']:hover { border-color: var(--border); box-shadow: none; transform: none; }
 
 .card-image-wrap {
   position: relative;
