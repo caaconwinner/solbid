@@ -159,6 +159,59 @@ function StartTimeInput({ value, onChange }: { value: string; onChange: (v: stri
   );
 }
 
+// ─── Draft helpers ─────────────────────────────────────────────
+const DRAFTS_KEY = 'admin_auction_drafts';
+
+interface AuctionDraft {
+  id: string;
+  savedAt: number;
+  name: string; image: string; retailValue: string;
+  startAt: string; durationMin: string; snapSec: string;
+  prizeType: 'physical'|'digital'|'sol'|'credits'|'token';
+  prizeAmount: string; prizeCode: string; prizeDesc: string; prizeMint: string;
+}
+
+function loadDrafts(): AuctionDraft[] {
+  try { return JSON.parse(localStorage.getItem(DRAFTS_KEY) || '[]'); } catch { return []; }
+}
+function saveDrafts(drafts: AuctionDraft[]) {
+  localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+}
+
+// ─── Drafts list ───────────────────────────────────────────────
+function DraftsList({ drafts, onLoad, onDelete }: {
+  drafts: AuctionDraft[];
+  onLoad: (d: AuctionDraft) => void;
+  onDelete: (id: string) => void;
+}) {
+  if (drafts.length === 0) return null;
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10 }}>
+        Saved drafts ({drafts.length})
+      </h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {drafts.map((d) => (
+          <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px' }}>
+            {d.image && <img src={d.image} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {d.name || <span style={{ color: 'var(--text-muted)' }}>Untitled</span>}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                {d.retailValue ? `$${d.retailValue}` : '—'} · {d.prizeType} · saved {new Date(d.savedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+            <button type="button" className="btn-outline" style={{ fontSize: 12, padding: '4px 12px' }} onClick={() => onLoad(d)}>Load</button>
+            <button type="button" style={{ background: 'none', border: '1px solid #333', borderRadius: 6, color: 'var(--text-muted)', fontSize: 12, padding: '4px 10px', cursor: 'pointer' }}
+              onClick={() => onDelete(d.id)}>✕</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Create form ───────────────────────────────────────────────
 function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () => void }) {
   const now = new Date();
@@ -177,6 +230,31 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
   const [prizeDesc,   setPrizeDesc]   = useState('');
   const [prizeMint,   setPrizeMint]   = useState('');
   const [saving,      setSaving]      = useState(false);
+  const [drafts,      setDrafts]      = useState<AuctionDraft[]>(loadDrafts);
+
+  const currentFields = () => ({ name, image, retailValue, startAt, durationMin, snapSec, prizeType, prizeAmount, prizeCode, prizeDesc, prizeMint });
+
+  const saveDraft = () => {
+    const draft: AuctionDraft = { id: Date.now().toString(), savedAt: Date.now(), ...currentFields() };
+    const updated = [draft, ...drafts];
+    saveDrafts(updated);
+    setDrafts(updated);
+    toast.success('Draft saved');
+  };
+
+  const loadDraft = (d: AuctionDraft) => {
+    setName(d.name); setImage(d.image); setRetailValue(d.retailValue);
+    setStartAt(d.startAt); setDurationMin(d.durationMin); setSnapSec(d.snapSec);
+    setPrizeType(d.prizeType); setPrizeAmount(d.prizeAmount); setPrizeCode(d.prizeCode);
+    setPrizeDesc(d.prizeDesc); setPrizeMint(d.prizeMint);
+    toast.success('Draft loaded');
+  };
+
+  const deleteDraft = (id: string) => {
+    const updated = drafts.filter((d) => d.id !== id);
+    saveDrafts(updated);
+    setDrafts(updated);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,6 +280,8 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
   };
 
   return (
+    <div>
+      <DraftsList drafts={drafts} onLoad={loadDraft} onDelete={deleteDraft} />
     <form className="admin-form" onSubmit={submit}>
       <h2 className="admin-section-title">New Auction</h2>
 
@@ -286,10 +366,17 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
         </div>
       </div>
 
-      <button className="btn-primary" type="submit" disabled={saving}>
-        {saving ? 'Creating…' : 'Create auction'}
-      </button>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <button className="btn-primary" type="submit" disabled={saving}>
+          {saving ? 'Creating…' : 'Create auction'}
+        </button>
+        <button type="button" className="btn-outline" onClick={saveDraft}
+          style={{ fontSize: 13, padding: '8px 18px' }}>
+          Save as draft
+        </button>
+      </div>
     </form>
+    </div>
   );
 }
 

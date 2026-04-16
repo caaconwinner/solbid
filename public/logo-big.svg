@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#080808"/>
+
+  <!-- Glow behind text -->
+  <ellipse cx="640" cy="360" rx="480" ry="120" fill="#ff6200" opacity="0.06"/>
+
+  <!-- penny -->
+  <text
+    x="640" y="400"
+    font-family="Inter,system-ui,sans-serif"
+    font-size="180"
+    font-weight="400"
+    fill="#e0e0e0"
+    text-anchor="middle"
+    letter-spacing="-4"
+  >penny<tspan font-weight="900" fill="#ff6200">Bid</tspan></text>
+
+  <!-- tagline -->
+  <text
+    x="640" y="470"
+    font-family="Inter,system-ui,sans-serif"
+    font-size="28"
+    font-weight="400"
+    fill="#666666"
+    text-anchor="middle"
+    letter-spacing="6"
+  >PENNY AUCTIONS ON SOLANA</text>
+</svg>
