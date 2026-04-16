@@ -316,7 +316,8 @@ function WinsTab({ token }: { token: string }) {
                         ? <>You won <strong style={{ color: 'var(--orange)' }}>{win.prize.amount} bonus credits</strong>! Pay the auction price and they'll be added to your account instantly.</>
                         : win.prize.type === 'token'
                         ? <>You won <strong style={{ color: 'var(--orange)' }}>{win.prize.amount} tokens</strong>! Pay the auction price and the tokens will be sent to your deposit wallet.</>
-                        : <>You won the right to buy this item.</>
+                        : <>You won this item! After paying, contact <a href="mailto:support@penny.bid" style={{ color: 'var(--orange)' }}>support@penny.bid</a> to arrange pickup or delivery.</>
+
                       }{' '}
                       The payment of{' '}
                       <strong>{win.purchasePrice < 0.0001 ? win.purchasePrice.toFixed(6) : win.purchasePrice.toFixed(4)} SOL</strong>{' '}
@@ -331,7 +332,10 @@ function WinsTab({ token }: { token: string }) {
               return (
                 <div className="win-prize">
                   {win.prize.type === 'digital' && (
-                    <><p className="win-prize-label">Gift card / download code</p><p className="win-code">{win.prize.code}</p></>
+                    <>
+                      <p className="win-prize-label">Gift card / download code</p>
+                      <p className="win-code" style={{ cursor: 'pointer' }} title="Click to copy" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(win.prize.type === 'digital' ? win.prize.code : ''); toast.success('Code copied!'); }}>{win.prize.type === 'digital' ? win.prize.code : ''} <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>copy</span></p>
+                    </>
                   )}
                   {win.prize.type === 'physical' && (
                     <><p className="win-prize-label">Physical item</p><p className="win-prize-desc">{win.prize.description}</p></>
