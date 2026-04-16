@@ -82,4 +82,10 @@ export const api = {
 
   updateEmail: (token: string, email: string) =>
     req<{ ok: boolean }>('POST', '/api/account/update-email', { email }, token),
+
+  myTokens: (token: string) =>
+    req<{ tokens: { mint: string; amount: number; decimals: number; raw: string }[] }>('GET', '/api/my-tokens', undefined, token),
+
+  withdrawTokens: (token: string, mintAddress: string, destinationAddress: string) =>
+    req<{ ok: boolean; sig: string }>('POST', '/api/withdraw-tokens', { mintAddress, destinationAddress }, token),
 };

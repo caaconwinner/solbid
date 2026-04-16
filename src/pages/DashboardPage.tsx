@@ -73,10 +73,74 @@ function WithdrawModal({ maxSol, onConfirm, onClose, loading }: WithdrawModalPro
 }
 
 // ─── Credits tab ────────────────────────────────────────────────
+function TokenWithdrawSection({ token }: { token: string }) {
+  type TokenEntry = { mint: string; amount: number; decimals: number };
+  const [tokens, setTokens]   = useState<TokenEntry[]>([]);
+  const [dest, setDest]       = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    api.myTokens(token).then(({ tokens: t }) => setTokens(t)).catch(() => {});
+  }, [token]);
+
+  if (tokens.length === 0) return null;
+
+  const withdraw = async (mint: string) => {
+    const address = dest[mint]?.trim();
+    if (!address) { toast.error('Enter a destination address'); return; }
+    setLoading(l => ({ ...l, [mint]: true }));
+    try {
+      const { sig } = await api.withdrawTokens(token, mint, address);
+      const cluster = import.meta.env.VITE_SOLANA_CLUSTER ?? 'mainnet-beta';
+      const suffix  = cluster === 'mainnet-beta' ? '' : `?cluster=${cluster}`;
+      toast.success(
+        <span>Tokens sent — <a href={`https://solscan.io/tx/${sig}${suffix}`} target="_blank" rel="noreferrer" style={{ color: 'var(--green)' }}>View on Solscan</a></span>,
+        { duration: 10000 },
+      );
+      setTokens(t => t.filter(x => x.mint !== mint));
+    } catch (e: any) {
+      toast.error(e.message ?? 'Withdrawal failed');
+    } finally {
+      setLoading(l => ({ ...l, [mint]: false }));
+    }
+  };
+
+  return (
+    <div className="dash-deposit-block" style={{ marginTop: 16 }}>
+      <h3 className="dash-sub-title">Withdraw Tokens</h3>
+      {tokens.map(t => (
+        <div key={t.mint} style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>
+            <span style={{ fontFamily: 'var(--mono)', color: 'var(--text)' }}>{t.mint.slice(0, 8)}…{t.mint.slice(-4)}</span>
+            {' — '}<strong style={{ color: 'var(--orange)' }}>{t.amount.toLocaleString()} tokens</strong>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              className="form-input"
+              placeholder="Destination Solana address"
+              value={dest[t.mint] ?? ''}
+              onChange={e => setDest(d => ({ ...d, [t.mint]: e.target.value }))}
+              style={{ flex: 1 }}
+            />
+            <button
+              className="btn-outline"
+              style={{ whiteSpace: 'nowrap', fontSize: 12, padding: '5px 14px' }}
+              disabled={loading[t.mint]}
+              onClick={() => withdraw(t.mint)}
+            >
+              {loading[t.mint] ? 'Sending…' : 'Withdraw all'}
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function CreditsTab({
-  user, creditsReady, solBalance, onWithdraw,
+  user, creditsReady, solBalance, onWithdraw, token,
 }: {
-  user: any; creditsReady: boolean; solBalance: number | null; onWithdraw: () => void;
+  user: any; creditsReady: boolean; solBalance: number | null; onWithdraw: () => void; token: string;
 }) {
   const solBacked  = solBalance !== null ? Math.min(user.credits, Math.floor(solBalance / 0.01)) : user.credits;
   const bonusTotal = (user.bonusCredits ?? 0) + Math.max(0, user.credits - solBacked);
@@ -115,6 +179,8 @@ function CreditsTab({
         </div>
         <button className="btn-withdraw" onClick={onWithdraw}>Withdraw SOL</button>
       </div>
+
+      <TokenWithdrawSection token={token} />
 
       <div className="dash-deposit-block" id="deposit">
         <h3 className="dash-sub-title">Deposit SOL</h3>
@@ -508,12 +574,13 @@ export function DashboardPage() {
         ))}
       </div>
 
-      {tab === 'credits' && (
+      {tab === 'credits' && token && (
         <CreditsTab
           user={user}
           creditsReady={creditsReady}
           solBalance={solBalance}
           onWithdraw={() => setShowWithdraw(true)}
+          token={token}
         />
       )}
       {tab === 'refer' && user.refCode && token && (
