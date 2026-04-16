@@ -156,6 +156,7 @@ export function AuctionCard({ auction }: Props) {
       <div className="card-image-wrap">
         <img className="card-image" src={auction.item.image} alt={auction.item.name} />
         {active && <div className="card-live-badge">LIVE</div>}
+        {auction.status === 'scheduled' && <div className="card-upcoming-tape">UPCOMING</div>}
       </div>
 
       <div className="card-body">

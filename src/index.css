@@ -897,6 +897,24 @@ a:hover { text-decoration: underline; }
   padding: 3px 7px;
   border-radius: 4px;
 }
+.card-upcoming-tape {
+  position: absolute;
+  top: 20px;
+  left: -32px;
+  width: 130px;
+  background: var(--orange);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-align: center;
+  padding: 5px 0;
+  transform: rotate(-45deg);
+  z-index: 3;
+  pointer-events: none;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
 
 .card-body { padding: clamp(14px, 1.2vw, 24px); }
 
