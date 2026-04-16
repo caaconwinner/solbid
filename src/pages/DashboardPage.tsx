@@ -317,9 +317,32 @@ function HistoryTab({ txs }: { txs: Transaction[] }) {
 
 // ─── Wins tab ───────────────────────────────────────────────────
 function WinsTab({ token }: { token: string }) {
-  const [wins,       setWins]       = useState<Win[]>([]);
-  const [paying,     setPaying]     = useState<string | null>(null);
-  const [shareWin,   setShareWin]   = useState<Win | null>(null);
+  const [wins,         setWins]         = useState<Win[]>([]);
+  const [paying,       setPaying]       = useState<string | null>(null);
+  const [shareWin,     setShareWin]     = useState<Win | null>(null);
+  const [tokenDest,    setTokenDest]    = useState<Record<string, string>>({});
+  const [withdrawing,  setWithdrawing]  = useState<Record<string, boolean>>({});
+
+  const withdrawTokens = async (win: Win, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (win.prize.type !== 'token') return;
+    const address = tokenDest[win.id]?.trim();
+    if (!address) { toast.error('Enter a destination address'); return; }
+    setWithdrawing(w => ({ ...w, [win.id]: true }));
+    try {
+      const { sig } = await api.withdrawTokens(token, win.prize.mint, address);
+      const cluster = import.meta.env.VITE_SOLANA_CLUSTER ?? 'mainnet-beta';
+      const suffix  = cluster === 'mainnet-beta' ? '' : `?cluster=${cluster}`;
+      toast.success(
+        <span>Tokens sent — <a href={`https://solscan.io/tx/${sig}${suffix}`} target="_blank" rel="noreferrer" style={{ color: 'var(--green)' }}>View on Solscan</a></span>,
+        { duration: 10000 },
+      );
+    } catch (err: any) {
+      toast.error(err.message ?? 'Withdrawal failed');
+    } finally {
+      setWithdrawing(w => ({ ...w, [win.id]: false }));
+    }
+  };
 
   const reload = () => api.myWins(token).then(({ wins: w }) => setWins(w));
   useEffect(() => { reload(); }, [token]);
@@ -416,8 +439,27 @@ function WinsTab({ token }: { token: string }) {
                     <p className="win-prize-desc" style={{ color: 'var(--orange)' }}>+{win.prize.amount} bonus credits added to your account ✓</p></>
                   )}
                   {win.prize.type === 'token' && (
-                    <><p className="win-prize-label">Token prize</p>
-                    <p className="win-prize-desc" style={{ color: 'var(--orange)' }}>{win.prize.amount} tokens sent to your deposit wallet ✓</p></>
+                    <>
+                      <p className="win-prize-label">Token prize</p>
+                      <p className="win-prize-desc" style={{ color: 'var(--orange)' }}>{win.prize.amount} tokens sent to your deposit wallet ✓</p>
+                      <div style={{ display: 'flex', gap: 8, marginTop: 10 }} onClick={e => e.stopPropagation()}>
+                        <input
+                          className="form-input"
+                          placeholder="Destination address to withdraw tokens"
+                          value={tokenDest[win.id] ?? ''}
+                          onChange={e => setTokenDest(d => ({ ...d, [win.id]: e.target.value }))}
+                          style={{ flex: 1, fontSize: 12 }}
+                        />
+                        <button
+                          className="btn-outline"
+                          style={{ whiteSpace: 'nowrap', fontSize: 12, padding: '5px 14px' }}
+                          disabled={withdrawing[win.id]}
+                          onClick={e => withdrawTokens(win, e)}
+                        >
+                          {withdrawing[win.id] ? 'Sending…' : 'Withdraw'}
+                        </button>
+                      </div>
+                    </>
                   )}
                   {win.purchaseSig && !adminSent && (
                     <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
