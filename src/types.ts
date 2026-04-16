@@ -12,7 +12,7 @@ export interface AuctionState {
   leaderName: string | null;
   endsAtMs:   number;
   startsAtMs?: number;
-  status: 'scheduled' | 'active' | 'ended' | 'settled';
+  status: 'draft' | 'scheduled' | 'active' | 'ended' | 'settled';
   totalBids: number;
   prizeMint?: string | null;
 }
@@ -116,7 +116,7 @@ export interface AuctionListing {
   currentPrice: number;
   endsAtMs: number;
   startsAtMs?: number;
-  status: 'scheduled' | 'active' | 'ended' | 'settled';
+  status: 'draft' | 'scheduled' | 'active' | 'ended' | 'settled';
   totalBids: number;
   leaderName: string | null;
   viewers?: number;

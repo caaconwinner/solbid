@@ -25,6 +25,7 @@ function MiniTimer({ endsAtMs, startsAtMs, status }: { endsAtMs: number; startsA
   const scheduledMs = useTimer(status === 'scheduled' && startsAtMs ? startsAtMs : null, 0);
   const seconds     = activeMs / 1000;
 
+  if (status === 'draft') return <span className="card-status scheduled">UPCOMING</span>;
   if (status === 'scheduled') {
     return startsAtMs
       ? <span className="card-status scheduled">{formatCountdown(scheduledMs)}</span>
@@ -156,7 +157,7 @@ export function AuctionCard({ auction }: Props) {
       <div className="card-image-wrap">
         <img className="card-image" src={auction.item.image} alt={auction.item.name} />
         {active && <div className="card-live-badge">LIVE</div>}
-        {auction.status === 'scheduled' && <div className="card-upcoming-tape">UPCOMING</div>}
+        {(auction.status === 'scheduled' || auction.status === 'draft') && <div className="card-upcoming-tape">UPCOMING</div>}
       </div>
 
       <div className="card-body">

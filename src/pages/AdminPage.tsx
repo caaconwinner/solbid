@@ -230,30 +230,32 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
   const [prizeDesc,   setPrizeDesc]   = useState('');
   const [prizeMint,   setPrizeMint]   = useState('');
   const [saving,      setSaving]      = useState(false);
-  const [drafts,      setDrafts]      = useState<AuctionDraft[]>(loadDrafts);
+  const auctionPayload = () => ({
+    name, image, retailValue: Number(retailValue),
+    startAt: startAt ? new Date(startAt).toISOString() : null,
+    durationMinutes: Number(durationMin), snapTimerSeconds: Number(snapSec),
+    prizeType, prizeAmount, prizeCode, prizeDescription: prizeDesc, prizeMint,
+  });
 
-  const currentFields = () => ({ name, image, retailValue, startAt, durationMin, snapSec, prizeType, prizeAmount, prizeCode, prizeDesc, prizeMint });
-
-  const saveDraft = () => {
-    const draft: AuctionDraft = { id: Date.now().toString(), savedAt: Date.now(), ...currentFields() };
-    const updated = [draft, ...drafts];
-    saveDrafts(updated);
-    setDrafts(updated);
-    toast.success('Draft saved');
+  const clearForm = () => {
+    setName(''); setImage(''); setRetailValue(''); setPrizeAmount(''); setPrizeCode(''); setPrizeDesc(''); setPrizeMint('');
   };
 
-  const loadDraft = (d: AuctionDraft) => {
-    setName(d.name); setImage(d.image); setRetailValue(d.retailValue);
-    setStartAt(d.startAt); setDurationMin(d.durationMin); setSnapSec(d.snapSec);
-    setPrizeType(d.prizeType); setPrizeAmount(d.prizeAmount); setPrizeCode(d.prizeCode);
-    setPrizeDesc(d.prizeDesc); setPrizeMint(d.prizeMint);
-    toast.success('Draft loaded');
-  };
-
-  const deleteDraft = (id: string) => {
-    const updated = drafts.filter((d) => d.id !== id);
-    saveDrafts(updated);
-    setDrafts(updated);
+  const saveDraft = async () => {
+    setSaving(true);
+    try {
+      await api(token, '/api/admin/auction', {
+        method: 'POST',
+        body: JSON.stringify({ ...auctionPayload(), draft: true }),
+      });
+      toast.success('Draft saved');
+      clearForm();
+      onCreated();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -262,15 +264,10 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
     try {
       await api(token, '/api/admin/auction', {
         method: 'POST',
-        body: JSON.stringify({
-          name, image, retailValue: Number(retailValue),
-          startAt: startAt ? new Date(startAt).toISOString() : null,
-          durationMinutes: Number(durationMin), snapTimerSeconds: Number(snapSec),
-          prizeType, prizeAmount, prizeCode, prizeDescription: prizeDesc, prizeMint,
-        }),
+        body: JSON.stringify(auctionPayload()),
       });
       toast.success('Auction created');
-      setName(''); setImage(''); setRetailValue(''); setPrizeAmount(''); setPrizeCode(''); setPrizeDesc(''); setPrizeMint('');
+      clearForm();
       onCreated();
     } catch (e: any) {
       toast.error(e.message);
@@ -280,8 +277,6 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
   };
 
   return (
-    <div>
-      <DraftsList drafts={drafts} onLoad={loadDraft} onDelete={deleteDraft} />
     <form className="admin-form" onSubmit={submit}>
       <h2 className="admin-section-title">New Auction</h2>
 
@@ -376,7 +371,6 @@ function CreateAuctionForm({ token, onCreated }: { token: string; onCreated: () 
         </button>
       </div>
     </form>
-    </div>
   );
 }
 
@@ -465,6 +459,17 @@ function AuctionList({ token, auctions, onRefresh }: {
     }
   };
 
+  const publish = async (id: string, name: string) => {
+    if (!confirm(`Publish "${name}"? It will go live (or scheduled) immediately.`)) return;
+    try {
+      const { status } = await api(token, `/api/admin/auction/${id}/publish`, { method: 'PATCH' });
+      toast.success(`Published — now ${status}`);
+      onRefresh();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
   if (auctions.length === 0) return <p className="dash-empty">No auctions yet.</p>;
 
   return (
@@ -480,16 +485,24 @@ function AuctionList({ token, auctions, onRefresh }: {
                 {a.prize && <> · Prize: <strong>{a.prize.type === 'sol' ? `${a.prize.amount} SOL` : a.prize.type}</strong></>}
               </span>
               <span className="admin-auction-meta">
-                {a.status === 'scheduled'
+                {a.status === 'draft'
+                  ? 'Draft — not visible to users until published'
+                  : a.status === 'scheduled'
                   ? `Starts ${new Date(a.endsAtMs - a._durationMs).toLocaleString()}`
                   : a.status === 'active'
                   ? `Ends ${new Date(a.endsAtMs).toLocaleString()}`
                   : 'Ended'}
               </span>
             </div>
-            <span className={`tx-badge tx-badge--${a.status === 'active' ? 'deposit' : a.status === 'ended' ? 'withdraw' : 'bid'}`}>
+            <span className={`tx-badge tx-badge--${a.status === 'active' ? 'deposit' : a.status === 'ended' ? 'withdraw' : a.status === 'draft' ? 'draft' : 'bid'}`}>
               {a.status}
             </span>
+            {a.status === 'draft' && (
+              <button className="btn-primary" style={{ flexShrink: 0, fontSize: 12, padding: '4px 12px' }}
+                onClick={() => publish(a.auctionId, a.item.name)}>
+                Publish
+              </button>
+            )}
             {a.status !== 'active' && (
               <button className="btn-ghost" style={{ flexShrink: 0 }}
                 onClick={() => setEditing(editing === a.auctionId ? null : a.auctionId)}>

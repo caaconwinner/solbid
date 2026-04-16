@@ -1645,6 +1645,7 @@ a:hover { text-decoration: underline; }
 .tx-badge--bid      { background: var(--orange-dim); color: var(--orange); }
 .tx-badge--deposit  { background: var(--green-dim);  color: var(--green); }
 .tx-badge--withdraw { background: var(--surface-3);  color: var(--text-muted); }
+.tx-badge--draft    { background: #1e1e2e; color: #8888cc; }
 
 .dash-empty { color: var(--text-muted); font-size: 13px; padding: 8px 0; }
 

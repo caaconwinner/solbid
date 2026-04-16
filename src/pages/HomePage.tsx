@@ -129,7 +129,7 @@ export function HomePage() {
   }, [token]);
 
   const live     = auctions.filter((a) => a.status === 'active').sort((a, b) => b.endsAtMs - a.endsAtMs);
-  const upcoming = auctions.filter((a) => a.status === 'scheduled').sort((a, b) => a.endsAtMs - b.endsAtMs);
+  const upcoming = auctions.filter((a) => a.status === 'scheduled' || a.status === 'draft').sort((a, b) => a.endsAtMs - b.endsAtMs);
   const past     = auctions.filter((a) => a.status === 'ended' || a.status === 'settled').sort((a, b) => b.endsAtMs - a.endsAtMs);
 
   if (loading && auctions.length === 0) {
