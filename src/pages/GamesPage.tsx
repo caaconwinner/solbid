@@ -1,6 +1,14 @@
+import { useEffect, useState } from 'react';
+
 const TAPE_TEXT = Array.from({ length: 16 }, () => '⚠ UNDER CONSTRUCTION ').join('');
 
 export function GamesPage() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setReady(true), 100);
+    return () => clearTimeout(id);
+  }, []);
+
   return (
     <div className="games-page">
       <div className="games-split">
@@ -8,12 +16,11 @@ export function GamesPage() {
         {/* ── Left — Slots ──────────────────────────────────── */}
         <div className="games-embed-panel">
           <iframe
-            src="/slots?preview=1"
+            src={ready ? '/slots?preview=1' : undefined}
             className="games-embed-frame"
             title="Slots preview"
             scrolling="no"
           />
-          {/* Transparent blocker — catches all pointer events so game is unplayable */}
           <div className="games-embed-blocker" />
         </div>
 
@@ -23,7 +30,7 @@ export function GamesPage() {
         {/* ── Right — Crash ─────────────────────────────────── */}
         <div className="games-embed-panel">
           <iframe
-            src="/crash?preview=1"
+            src={ready ? '/crash?preview=1' : undefined}
             className="games-embed-frame"
             title="Crash preview"
             scrolling="no"
