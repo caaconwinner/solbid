@@ -899,7 +899,7 @@ a:hover { text-decoration: underline; }
 }
 .card-upcoming-tape {
   position: absolute;
-  top: 20px;
+  bottom: 20px;
   left: -32px;
   width: 130px;
   background: var(--orange);
@@ -909,7 +909,7 @@ a:hover { text-decoration: underline; }
   letter-spacing: 2px;
   text-align: center;
   padding: 5px 0;
-  transform: rotate(-45deg);
+  transform: rotate(45deg);
   z-index: 3;
   pointer-events: none;
   text-transform: uppercase;
