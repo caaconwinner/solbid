@@ -169,8 +169,8 @@ export function HomePage() {
         {(live.length > 0 || upcoming.length > 0) && (
           <section className="auction-section">
             <h2 className="section-title">
-              <span className="live-dot" />
-              Live Now
+              {live.length > 0 && <span className="live-dot" />}
+              {live.length > 0 ? 'Live Now' : 'Upcoming'}
             </h2>
             <div className="auction-grid">
               {live.map((a) => <AuctionCard key={a.auctionId} auction={a} />)}
