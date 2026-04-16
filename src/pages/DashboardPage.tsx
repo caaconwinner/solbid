@@ -322,6 +322,10 @@ function WinsTab({ token }: { token: string }) {
   const [shareWin,     setShareWin]     = useState<Win | null>(null);
   const [tokenDest,    setTokenDest]    = useState<Record<string, string>>({});
   const [withdrawing,  setWithdrawing]  = useState<Record<string, boolean>>({});
+  const [withdrawn,    setWithdrawn]    = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('token-withdrawn') ?? '[]')); }
+    catch { return new Set(); }
+  });
 
   const withdrawTokens = async (win: Win, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -337,6 +341,11 @@ function WinsTab({ token }: { token: string }) {
         <span>Tokens sent — <a href={`https://solscan.io/tx/${sig}${suffix}`} target="_blank" rel="noreferrer" style={{ color: 'var(--green)' }}>View on Solscan</a></span>,
         { duration: 10000 },
       );
+      setWithdrawn(prev => {
+        const next = new Set(prev).add(win.id);
+        localStorage.setItem('token-withdrawn', JSON.stringify([...next]));
+        return next;
+      });
     } catch (err: any) {
       toast.error(err.message ?? 'Withdrawal failed');
     } finally {
@@ -442,23 +451,28 @@ function WinsTab({ token }: { token: string }) {
                     <>
                       <p className="win-prize-label">Token prize</p>
                       <p className="win-prize-desc" style={{ color: 'var(--orange)' }}>{win.prize.amount} tokens sent to your deposit wallet ✓</p>
-                      <div style={{ display: 'flex', gap: 8, marginTop: 10 }} onClick={e => e.stopPropagation()}>
-                        <input
-                          className="form-input"
-                          placeholder="Destination address to withdraw tokens"
-                          value={tokenDest[win.id] ?? ''}
-                          onChange={e => setTokenDest(d => ({ ...d, [win.id]: e.target.value }))}
-                          style={{ flex: 1, fontSize: 12 }}
-                        />
-                        <button
-                          className="btn-outline"
-                          style={{ whiteSpace: 'nowrap', fontSize: 12, padding: '5px 14px' }}
-                          disabled={withdrawing[win.id]}
-                          onClick={e => withdrawTokens(win, e)}
-                        >
-                          {withdrawing[win.id] ? 'Sending…' : 'Withdraw'}
-                        </button>
-                      </div>
+                      {withdrawn.has(win.id)
+                        ? <p style={{ marginTop: 8, fontSize: 12, color: 'var(--green)' }}>Tokens withdrawn ✓</p>
+                        : (
+                          <div style={{ display: 'flex', gap: 8, marginTop: 10 }} onClick={e => e.stopPropagation()}>
+                            <input
+                              className="form-input"
+                              placeholder="Destination address to withdraw tokens"
+                              value={tokenDest[win.id] ?? ''}
+                              onChange={e => setTokenDest(d => ({ ...d, [win.id]: e.target.value }))}
+                              style={{ flex: 1, fontSize: 12 }}
+                            />
+                            <button
+                              className="btn-outline"
+                              style={{ whiteSpace: 'nowrap', fontSize: 12, padding: '5px 14px' }}
+                              disabled={withdrawing[win.id]}
+                              onClick={e => withdrawTokens(win, e)}
+                            >
+                              {withdrawing[win.id] ? 'Sending…' : 'Withdraw'}
+                            </button>
+                          </div>
+                        )
+                      }
                     </>
                   )}
                   {win.purchaseSig && !adminSent && (
