@@ -486,7 +486,15 @@ function AuctionList({ token, auctions, onRefresh }: {
               </span>
               <span className="admin-auction-meta">
                 {a.status === 'draft'
-                  ? 'Draft — not visible to users until published'
+                  ? (() => {
+                      const startMs = a.endsAtMs - a._durationMs;
+                      const inMs = startMs - Date.now();
+                      const startStr = new Date(startMs).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                      const inStr = inMs > 0
+                        ? `in ${Math.floor(inMs / 3600000)}h ${Math.floor((inMs % 3600000) / 60000)}m`
+                        : 'immediately';
+                      return `Draft · If published: starts ${startStr} (${inStr}) · runs ${fmtMs(a._durationMs)}`;
+                    })()
                   : a.status === 'scheduled'
                   ? `Starts ${new Date(a.endsAtMs - a._durationMs).toLocaleString()}`
                   : a.status === 'active'
