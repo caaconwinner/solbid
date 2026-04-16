@@ -178,18 +178,18 @@ export function BrandPage() {
       <section className="brand-section">
         <h2 className="brand-section-title">Token Asset</h2>
         <div className="brand-token-card">
-          <div className="brand-token-preview">
-            <div dangerouslySetInnerHTML={{ __html: TOKEN_SVG }} />
+          <div className="brand-token-preview" style={{ background: '#0d0d0d' }}>
+            <img src="/pennylogofinal.png" alt="$penny token logo" style={{ width: 120, height: 120, borderRadius: 16 }} />
           </div>
           <div className="brand-token-info">
             <div className="brand-token-name">$penny token</div>
             <div className="brand-token-desc">
-              The official <span style={{ color: 'var(--orange)' }}>$penny</span> token icon for use in
+              The official <span style={{ color: 'var(--orange)' }}>$penny</span> token logo for use in
               listings, posts, and partner integrations.
             </div>
-            <button className="brand-dl-btn" style={{ marginTop: 12 }} onClick={() => downloadSvg(TOKEN_SVG, 'pennybid-token.svg')}>
-              Download SVG ↓
-            </button>
+            <a className="brand-dl-btn" style={{ marginTop: 12, display: 'inline-block' }} href="/pennylogofinal.png" download="penny-token-logo.png">
+              Download PNG ↓
+            </a>
           </div>
         </div>
       </section>
