@@ -2976,11 +2976,12 @@ a:hover { text-decoration: underline; }
 .legal-section h2 {
   font-size: 15px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--orange);
   margin-bottom: 10px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
 }
+.legal-section p strong { color: var(--text); }
 
 .legal-section p {
   font-size: 14px;
