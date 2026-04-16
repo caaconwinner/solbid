@@ -334,7 +334,8 @@ function WinsTab({ token }: { token: string }) {
                   {win.prize.type === 'digital' && (
                     <>
                       <p className="win-prize-label">Gift card / download code</p>
-                      <p className="win-code" style={{ cursor: 'pointer' }} title="Click to copy" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(win.prize.type === 'digital' ? win.prize.code : ''); toast.success('Code copied!'); }}>{win.prize.type === 'digital' ? win.prize.code : ''} <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>copy</span></p>
+                      <p className="win-code">{win.prize.code}</p>
+                      <button className="btn-primary" style={{ marginTop: 10 }} onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(win.prize.type === 'digital' ? win.prize.code : ''); toast.success('Code copied!'); }}>Copy code</button>
                     </>
                   )}
                   {win.prize.type === 'physical' && (
