@@ -19,26 +19,29 @@ export function WhitepaperPage() {
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '20px 24px', marginBottom: 40 }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Contents</p>
           {[
-            ['1', 'Executive Summary'],
-            ['2', 'The Problem & Opportunity'],
-            ['3', 'Platform — Penny Auctions'],
-            ['4', 'Casino Ecosystem'],
-            ['5', '$penny Token Economics'],
-            ['6', 'Token Listings & Discoverability'],
-            ['7', 'Solscan Verification & On-chain Transparency'],
-            ['8', 'Revenue Model'],
-            ['9', 'Roadmap'],
-            ['10', 'Community & Social'],
-          ].map(([n, title]) => (
-            <div key={n} style={{ display: 'flex', gap: 12, padding: '5px 0', borderBottom: '1px solid var(--border)', alignItems: 'baseline' }}>
+            ['1', 'Executive Summary',                          'section-1'],
+            ['2', 'The Problem & Opportunity',                  'section-2'],
+            ['3', 'Platform — Penny Auctions',                  'section-3'],
+            ['4', 'Casino Ecosystem',                           'section-4'],
+            ['5', '$penny Token Economics',                     'section-5'],
+            ['6', 'Token Listings & Discoverability',           'section-6'],
+            ['7', 'Solscan Verification & On-chain Transparency','section-7'],
+            ['8', 'Revenue Model',                              'section-8'],
+            ['9', 'Roadmap',                                    'section-9'],
+            ['10','Community & Social',                         'section-10'],
+          ].map(([n, title, id]) => (
+            <a key={n} href={`#${id}`} style={{ display: 'flex', gap: 12, padding: '5px 0', borderBottom: '1px solid var(--border)', alignItems: 'baseline', textDecoration: 'none', cursor: 'pointer' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-2)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
               <span style={{ fontSize: 12, color: 'var(--orange)', fontWeight: 700, minWidth: 24 }}>{n}.</span>
               <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>{title}</span>
-            </div>
+            </a>
           ))}
         </div>
 
         {/* 1 */}
-        <section className="legal-section">
+        <section id="section-1" className="legal-section">
           <h2>1. Executive Summary</h2>
           <p>
             pennyBid is a custodial penny auction platform and on-chain casino built entirely on Solana. Users deposit SOL, receive bid credits, and compete in fast-paced timed auctions for real-world and digital prizes — all settled on-chain. The platform is already live at <strong>penny.bid</strong> with real auctions, real prizes, and real on-chain settlement.
@@ -52,7 +55,7 @@ export function WhitepaperPage() {
         </section>
 
         {/* 2 */}
-        <section className="legal-section">
+        <section id="section-2" className="legal-section">
           <h2>2. The Problem & Opportunity</h2>
           <p>
             Traditional penny auction sites are opaque, centralized, and rife with trust issues — users have no way to verify fairness. Existing crypto casinos are either built on slow chains, require large minimum deposits, or offer no real utility token with verifiable buyback mechanics.
@@ -69,7 +72,7 @@ export function WhitepaperPage() {
         </section>
 
         {/* 3 */}
-        <section className="legal-section">
+        <section id="section-3" className="legal-section">
           <h2>3. Platform — Penny Auctions</h2>
           <p>
             Penny auctions are a hybrid between traditional auctions and a game of skill and timing. Each bid costs 1 credit (0.01 SOL) and raises the auction price by $0.01. The last bidder when the timer hits zero wins the right to purchase the item at the final auction price — which is typically far below retail value.
@@ -89,7 +92,7 @@ export function WhitepaperPage() {
         </section>
 
         {/* 4 */}
-        <section className="legal-section">
+        <section id="section-4" className="legal-section">
           <h2>4. Casino Ecosystem</h2>
           <p>
             The auction platform is the foundation. pennyBid is building a full on-chain casino suite on top of it — starting with two games already in development and visible at <strong>penny.bid/games</strong>.
@@ -116,7 +119,7 @@ export function WhitepaperPage() {
         </section>
 
         {/* 5 */}
-        <section className="legal-section">
+        <section id="section-5" className="legal-section">
           <h2>5. $penny Token Economics</h2>
           <p>
             <strong>$penny</strong> is a Solana SPL token launched on pump.fun. It is the native reward and utility token of the pennyBid ecosystem.
@@ -139,7 +142,7 @@ export function WhitepaperPage() {
         </section>
 
         {/* 6 */}
-        <section className="legal-section">
+        <section id="section-6" className="legal-section">
           <h2>6. Token Listings & Discoverability</h2>
           <p>
             $penny is live on pump.fun and tradeable today. The listing roadmap targets all major Solana discovery and trading surfaces:
@@ -164,7 +167,7 @@ export function WhitepaperPage() {
         </section>
 
         {/* 7 */}
-        <section className="legal-section">
+        <section id="section-7" className="legal-section">
           <h2>7. Solscan Verification & On-chain Transparency</h2>
           <p>
             Solscan is Solana's primary block explorer. pennyBid is committed to full on-chain transparency — every material platform transaction is publicly verifiable.
@@ -189,7 +192,7 @@ export function WhitepaperPage() {
         </section>
 
         {/* 8 */}
-        <section className="legal-section">
+        <section id="section-8" className="legal-section">
           <h2>8. Revenue Model</h2>
           <p>
             pennyBid operates multiple revenue streams that all feed into the $penny flywheel:
@@ -209,7 +212,7 @@ export function WhitepaperPage() {
         </section>
 
         {/* 9 */}
-        <section className="legal-section">
+        <section id="section-9" className="legal-section">
           <h2>9. Roadmap</h2>
           <p>
             <strong>✓ Completed</strong><br />
@@ -245,7 +248,7 @@ export function WhitepaperPage() {
         </section>
 
         {/* 10 */}
-        <section className="legal-section">
+        <section id="section-10" className="legal-section">
           <h2>10. Community & Social</h2>
           <p>
             pennyBid is built in public. All major platform updates are announced on X (<a href="https://x.com/pennyBid_" target="_blank" rel="noreferrer">@pennyBid_</a>). The community is the primary growth engine — the referral program rewards users for bringing in new bidders, and cashback raffles ensure every participant has a chance to win regardless of auction outcome.
