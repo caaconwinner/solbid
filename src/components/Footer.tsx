@@ -46,8 +46,9 @@ export function Footer() {
         {/* Legal + social column */}
         <div className="footer-col">
           <div className="footer-col-title">Legal</div>
-          <Link to="/terms"   className="footer-link">Terms of Service</Link>
-          <Link to="/privacy" className="footer-link">Privacy Policy</Link>
+          <Link to="/terms"       className="footer-link">Terms of Service</Link>
+          <Link to="/privacy"     className="footer-link">Privacy Policy</Link>
+          <Link to="/whitepaper"  className="footer-link" style={{ color: 'var(--orange)' }}>Whitepaper</Link>
           <div className="footer-col-title" style={{ marginTop: 20 }}>Community</div>
           <a
             href="https://x.com/pennyBid_"

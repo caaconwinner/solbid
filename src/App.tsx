@@ -20,6 +20,7 @@ import { TermsPage }           from './pages/TermsPage';
 import { FAQPage }             from './pages/FAQPage';
 import { LandingPage }         from './pages/LandingPage';
 import { PrivacyPage }         from './pages/PrivacyPage';
+import { WhitepaperPage }      from './pages/WhitepaperPage';
 import { SlotsPage }           from './pages/SlotsPage';
 import { CrashPage }           from './pages/CrashPage';
 import { GamesPage }           from './pages/GamesPage';
@@ -69,6 +70,7 @@ function AppRoutes() {
         <Route path="/faq"             element={<FAQPage />} />
         <Route path="/terms"           element={<TermsPage />} />
         <Route path="/privacy"         element={<PrivacyPage />} />
+        <Route path="/whitepaper"      element={<WhitepaperPage />} />
         <Route path="/games"           element={<GamesPage />} />
         <Route path="/slots"           element={<SlotsPage />} />
         <Route path="/crash"           element={<CrashPage />} />
