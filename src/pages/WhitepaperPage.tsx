@@ -222,13 +222,13 @@ export function WhitepaperPage() {
             · Digital, physical, SOL, SPL token, and credits prize types<br />
             · Cashback raffle with provably fair draw<br />
             · $penny token launched on pump.fun<br />
-            · Crash game (live on staging)<br />
-            · Slots game (live on staging)<br />
             · Referral system<br />
           </p>
           <p>
             <strong>→ In Progress</strong><br />
-            · Casino games launch to production<br />
+            · Crash game launch<br />
+            · Slots game launch<br />
+            · Casino games production release<br />
             · Solscan $penny token verification<br />
             · Raydium liquidity pool<br />
             · Jupiter listing<br />
