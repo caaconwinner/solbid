@@ -12,6 +12,7 @@ interface AdminAuction {
   endsAtMs:    number;
   snapTimerMs: number;
   _durationMs: number;
+  _delayMs:    number;
   prize:       { type: string; amount?: number; code?: string; description?: string; mint?: string } | null;
 }
 
@@ -487,13 +488,15 @@ function AuctionList({ token, auctions, onRefresh }: {
               <span className="admin-auction-meta">
                 {a.status === 'draft'
                   ? (() => {
-                      const startMs = a.endsAtMs - a._durationMs;
-                      const inMs = startMs - Date.now();
-                      const startStr = new Date(startMs).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                      const inStr = inMs > 0
-                        ? `in ${Math.floor(inMs / 3600000)}h ${Math.floor((inMs % 3600000) / 60000)}m`
-                        : 'immediately';
-                      return `Draft · If published: starts ${startStr} (${inStr}) · runs ${fmtMs(a._durationMs)}`;
+                      const d = a._delayMs ?? 0;
+                      const delayStr = d === 0
+                        ? 'goes live immediately'
+                        : d < 60000
+                        ? `goes live ${Math.round(d / 1000)}s after publish`
+                        : d < 3600000
+                        ? `goes live ${Math.round(d / 60000)}m after publish`
+                        : `goes live ${Math.floor(d / 3600000)}h ${Math.round((d % 3600000) / 60000)}m after publish`;
+                      return `Draft · If published: ${delayStr} · runs ${fmtMs(a._durationMs)}`;
                     })()
                   : a.status === 'scheduled'
                   ? `Starts ${new Date(a.endsAtMs - a._durationMs).toLocaleString()}`
