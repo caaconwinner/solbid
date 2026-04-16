@@ -156,8 +156,17 @@ export function PennyTokenPage() {
                 <div className="penny-token-stat-val">Deflationary 🔥</div>
               </div>
               <div className="penny-token-stat penny-token-stat--full">
-                <div className="penny-token-stat-label">Mint address</div>
-                <div className="penny-token-stat-val penny-token-stat-val--muted">TBA</div>
+                <div className="penny-token-stat-label">Contract address</div>
+                <div className="penny-token-stat-val" style={{ fontSize: 11, letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <a
+                    href="https://solscan.io/token/BWLZvmyTLZKMQHSW3v3Fagu94qESLbv4pNSYZTBApump"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: 'var(--orange)', fontFamily: "'JetBrains Mono', monospace", wordBreak: 'break-all' }}
+                  >
+                    BWLZvmyTLZKMQHSW3v3Fagu94qESLbv4pNSYZTBApump
+                  </a>
+                </div>
               </div>
             </div>
           </div>
